@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Files edge: the file-type registry (extensions, MIME types, magic bytes, kinds, risk), sniffing and safe names —
+    the store-less part a product uses alone for type checks. Registry/file-types.json is the one source the be tables
+    and the fe icon map come from. References the contract only: no core, no framework reference.
+  -->
+  <PropertyGroup>
+    <Description>Files formats: the file-type registry, magic-byte sniffing, file kinds and safe file names.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Abstractions\WoW.Two.Sdk.Beta.Be.Files.Abstractions.csproj" />
+  </ItemGroup>
+
+  <!-- The registry ships embedded (logical name "Registry/file-types.json"). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Registry\file-types.json">
+      <LogicalName>Registry/file-types.json</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Files.Tests.Unit" />
+  </ItemGroup>
+
+</Project>

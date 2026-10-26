@@ -1,0 +1,488 @@
+{
+  "$comment": "The one file-type registry: Files.Formats and fe-files/icons are built from it. Seeded 2026-10-26 from the legacy wow-two-platform.storage.file rows; v0.1 iteration 1 widens it (mime-db, dev, 3D, CAD, design formats). Fields: wow-two-ws/workbench/wow-two-sdk-beta/wow-two-sdk-beta.files/engineering/research/files-analysis-2026-10/t7-file-icons.md.",
+  "version": 1,
+  "types": [
+    {
+      "ext": "jpg",
+      "mime": "image/jpeg",
+      "kind": "image",
+      "label": "JPG",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "FFD8FF"
+        }
+      ],
+      "preview": "image",
+      "risk": "none"
+    },
+    {
+      "ext": "jpeg",
+      "mime": "image/jpeg",
+      "kind": "image",
+      "label": "JPEG",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "FFD8FF"
+        }
+      ],
+      "preview": "image",
+      "risk": "none"
+    },
+    {
+      "ext": "png",
+      "mime": "image/png",
+      "kind": "image",
+      "label": "PNG",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "89504E470D0A1A0A"
+        }
+      ],
+      "preview": "image",
+      "risk": "none"
+    },
+    {
+      "ext": "gif",
+      "mime": "image/gif",
+      "kind": "image",
+      "label": "GIF",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "47494638"
+        }
+      ],
+      "preview": "image",
+      "risk": "none"
+    },
+    {
+      "ext": "svg",
+      "mime": "image/svg+xml",
+      "kind": "vector",
+      "label": "SVG",
+      "preview": "image",
+      "risk": "active"
+    },
+    {
+      "ext": "webp",
+      "mime": "image/webp",
+      "kind": "image",
+      "label": "WEBP",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "52494646"
+        },
+        {
+          "offset": 8,
+          "hex": "57454250"
+        }
+      ],
+      "preview": "image",
+      "risk": "none"
+    },
+    {
+      "ext": "mp4",
+      "mime": "video/mp4",
+      "kind": "video",
+      "label": "MP4",
+      "magic": [
+        {
+          "offset": 4,
+          "hex": "66747970"
+        }
+      ],
+      "preview": "video",
+      "risk": "none"
+    },
+    {
+      "ext": "avi",
+      "mime": "video/x-msvideo",
+      "kind": "video",
+      "label": "AVI",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "52494646"
+        },
+        {
+          "offset": 8,
+          "hex": "41564920"
+        }
+      ],
+      "preview": "video",
+      "risk": "none"
+    },
+    {
+      "ext": "mov",
+      "mime": "video/quicktime",
+      "kind": "video",
+      "label": "MOV",
+      "magic": [
+        {
+          "offset": 4,
+          "hex": "66747970"
+        }
+      ],
+      "preview": "video",
+      "risk": "none"
+    },
+    {
+      "ext": "webm",
+      "mime": "video/webm",
+      "kind": "video",
+      "label": "WEBM",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "1A45DFA3"
+        }
+      ],
+      "preview": "video",
+      "risk": "none"
+    },
+    {
+      "ext": "mp3",
+      "mime": "audio/mpeg",
+      "kind": "audio",
+      "label": "MP3",
+      "preview": "audio",
+      "risk": "none"
+    },
+    {
+      "ext": "wav",
+      "mime": "audio/wav",
+      "kind": "audio",
+      "label": "WAV",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "52494646"
+        },
+        {
+          "offset": 8,
+          "hex": "57415645"
+        }
+      ],
+      "preview": "audio",
+      "risk": "none"
+    },
+    {
+      "ext": "aac",
+      "mime": "audio/aac",
+      "kind": "audio",
+      "label": "AAC",
+      "preview": "audio",
+      "risk": "none"
+    },
+    {
+      "ext": "zip",
+      "mime": "application/zip",
+      "kind": "archive",
+      "label": "ZIP",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "504B0304"
+        }
+      ],
+      "preview": "archive",
+      "risk": "none"
+    },
+    {
+      "ext": "rar",
+      "mime": "application/x-rar-compressed",
+      "kind": "archive",
+      "label": "RAR",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "526172211A07"
+        }
+      ],
+      "preview": "archive",
+      "risk": "none"
+    },
+    {
+      "ext": "7z",
+      "mime": "application/x-7z-compressed",
+      "kind": "archive",
+      "label": "7Z",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "377ABCAF271C"
+        }
+      ],
+      "preview": "archive",
+      "risk": "none"
+    },
+    {
+      "ext": "pdf",
+      "mime": "application/pdf",
+      "kind": "pdf",
+      "label": "PDF",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "25504446"
+        }
+      ],
+      "preview": "pdf",
+      "risk": "none"
+    },
+    {
+      "ext": "doc",
+      "mime": "application/msword",
+      "kind": "document",
+      "label": "DOC",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "D0CF11E0A1B11AE1"
+        }
+      ],
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "docx",
+      "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "kind": "document",
+      "label": "DOCX",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "504B0304"
+        }
+      ],
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "xls",
+      "mime": "application/vnd.ms-excel",
+      "kind": "spreadsheet",
+      "label": "XLS",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "D0CF11E0A1B11AE1"
+        }
+      ],
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "xlsx",
+      "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "kind": "spreadsheet",
+      "label": "XLSX",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "504B0304"
+        }
+      ],
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "ppt",
+      "mime": "application/vnd.ms-powerpoint",
+      "kind": "presentation",
+      "label": "PPT",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "D0CF11E0A1B11AE1"
+        }
+      ],
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "epub",
+      "mime": "application/epub+zip",
+      "kind": "ebook",
+      "label": "EPUB",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "504B0304"
+        }
+      ],
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "dwg",
+      "mime": "application/x-dwg",
+      "kind": "cad",
+      "label": "DWG",
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "shp",
+      "mime": "application/x-shapefile",
+      "kind": "cad",
+      "label": "SHP",
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "json",
+      "mime": "application/json",
+      "kind": "data",
+      "label": "JSON",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "xml",
+      "mime": "application/xml",
+      "kind": "data",
+      "label": "XML",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "csv",
+      "mime": "text/csv",
+      "kind": "data",
+      "label": "CSV",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "sqlite",
+      "mime": "application/x-sqlite3",
+      "kind": "database",
+      "label": "SQLITE",
+      "magic": [
+        {
+          "offset": 0,
+          "hex": "53514C69746520666F726D6174203300"
+        }
+      ],
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "cs",
+      "mime": "text/x-csharp",
+      "kind": "code",
+      "label": "CS",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "html",
+      "mime": "text/html",
+      "kind": "code",
+      "label": "HTML",
+      "preview": "text",
+      "risk": "active"
+    },
+    {
+      "ext": "yaml",
+      "mime": "text/yaml",
+      "kind": "config",
+      "label": "YAML",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "css",
+      "mime": "text/css",
+      "kind": "code",
+      "label": "CSS",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "js",
+      "mime": "text/javascript",
+      "kind": "code",
+      "label": "JS",
+      "preview": "text",
+      "risk": "active"
+    },
+    {
+      "ext": "sln",
+      "mime": "text/plain",
+      "kind": "code",
+      "label": "SLN",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "crt",
+      "mime": "application/x-x509-ca-cert",
+      "kind": "certificate",
+      "label": "CRT",
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "log",
+      "mime": "text/plain",
+      "kind": "text",
+      "label": "LOG",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "txt",
+      "mime": "text/plain",
+      "kind": "text",
+      "label": "TXT",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "eml",
+      "mime": "message/rfc822",
+      "kind": "email",
+      "label": "EML",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "ics",
+      "mime": "text/calendar",
+      "kind": "calendar",
+      "label": "ICS",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "vcf",
+      "mime": "text/vcard",
+      "kind": "calendar",
+      "label": "VCF",
+      "preview": "text",
+      "risk": "none"
+    },
+    {
+      "ext": "bak",
+      "mime": "application/octet-stream",
+      "kind": "generic",
+      "label": "BAK",
+      "preview": "none",
+      "risk": "none"
+    },
+    {
+      "ext": "vhd",
+      "mime": "application/x-vhd",
+      "kind": "disk-image",
+      "label": "VHD",
+      "preview": "none",
+      "risk": "none"
+    }
+  ]
+}

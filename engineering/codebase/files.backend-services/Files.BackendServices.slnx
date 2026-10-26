@@ -2,7 +2,9 @@
   <Folder Name="/Packages/">
     <Project Path="packages/Abstractions/WoW.Two.Sdk.Beta.Be.Files.Abstractions.csproj" />
     <Project Path="packages/Client/WoW.Two.Sdk.Beta.Be.Files.Client.csproj" />
+    <Project Path="packages/Formats/WoW.Two.Sdk.Beta.Be.Files.Formats.csproj" />
     <Project Path="packages/Module/WoW.Two.Sdk.Beta.Be.Files.Module.csproj" />
+    <Project Path="packages/Server/WoW.Two.Sdk.Beta.Be.Files.Server.csproj" />
     <Project Path="packages/Testing/WoW.Two.Sdk.Beta.Be.Files.Testing.csproj" />
   </Folder>
   <Folder Name="/Services/">

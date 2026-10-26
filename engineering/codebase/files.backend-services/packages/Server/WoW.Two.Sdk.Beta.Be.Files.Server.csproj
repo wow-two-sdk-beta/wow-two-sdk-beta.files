@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Files extension: the server role — delivery routes (signed /f, public /m), share and file-request pages, upload
+    protocols and the tenancy and admin API — so a product hosts delivery in process (Form 1) and the service hosts it
+    for Forms 2 and 3.
+  -->
+  <PropertyGroup>
+    <Description>Files server: delivery and share routes, upload protocols, tenancy and the admin API over the Files module.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="WoW2.Sdk.Beta.Be" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Abstractions\WoW.Two.Sdk.Beta.Be.Files.Abstractions.csproj" />
+    <ProjectReference Include="..\Module\WoW.Two.Sdk.Beta.Be.Files.Module.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Files.Tests.Unit" />
+    <InternalsVisibleTo Include="Files.Tests.E2E" />
+  </ItemGroup>
+
+</Project>

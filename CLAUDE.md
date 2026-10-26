@@ -19,7 +19,7 @@ engineering/             ← the HOW
 ├── deployment/          ← deploy.yml · Dockerfile · docker-compose.yml · deployment.md
 ├── research/ · scripts/ ← analyses · release helpers publish-packages.yml calls
 └── codebase/            ← THE CODE — only place code lives
-    ├── files.backend-services/    ← Files.BackendServices.slnx: packages/{Abstractions,Module,Client,Testing} · service/Files.Api · tests/Files.Tests.*
+    ├── files.backend-services/    ← Files.BackendServices.slnx: packages/{Abstractions,Formats,Module,Client,Server,Testing} · service/Files.Api · tests/Files.Tests.*
     └── files.frontend-services/   ← pnpm workspace: packages/fe-files (npm) · apps/web (hosted pages + console)
 ```
 
@@ -27,7 +27,14 @@ engineering/             ← the HOW
 
 - Shape: wow-two-ws/conventions/development/repo/structure/domain-structure.md; repo-specific deltas only in `engineering/development/`.
 - The contract lives in `packages/Abstractions`; Module (Form 1) and Client (Forms 2/3) implement it, and
-  `Files.Tests.Conformance` runs the one suite (`GreetingsBrokerConformance`, in `packages/Testing`) against both.
+  `Files.Tests.Conformance` runs the one suite (in `packages/Testing`) against both. The template's Greetings sample
+  stays until v0.1 iteration 6 removes it.
+- Core keeps the `Storage/` byte adapters; every Files byte goes through core `IBlobRepository`.
+- Code moved from core `Media/Images` and `Media/Pdf` takes the `Files.Images` and `Files.Documents` namespaces.
+- A package project lands with its first code; planned packages are rows in `engineering/architecture/package-registry.md`.
+- A new file type is a row in `packages/Formats/Registry/file-types.json`, the one source for be tables and fe icons.
+- Identity stays behind its contracts (`engineering/research/files-analysis-2026-10/t8-identity-contracts.md`) until
+  the final integration; references run one way, Files → Identity contracts only.
 - A package references only what its layer row allows; the service takes the packages by `ProjectReference` and adds
   only hosting, the HTTP mirror of the contract and the hosted pages.
 - Package versions come from tags (`be-v*` NuGet, `fe-v*` npm) in `publish-packages.yml`; never commit a version,

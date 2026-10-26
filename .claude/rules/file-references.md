@@ -28,6 +28,9 @@
 | What deploys — service, sites, settings, dev check | `engineering/deployment/deploy.yml` |
 | Releases — versions, tags, verification | `engineering/scripts/scripts.md` |
 | Research and analysis batches | `engineering/research/research.md` |
+| The pre-build analysis and its decision queue | `engineering/research/files-analysis-2026-10/files-analysis-2026-10.md` |
+| Prompts for the Identity and Wheelhouse chats | `engineering/research/files-analysis-2026-10/prompt-*.md` |
+| What the 2024 storage.file repo held | `engineering/research/legacy-storage-file.md` |
 
 ## Source projects (`engineering/codebase/`)
 
@@ -36,9 +39,11 @@
 ### `codebase/files.backend-services/`
 | Project | What it is |
 |---|---|
-| `packages/Abstractions` | the contract: `IGreetingsBroker`, model, constants, error catalogue |
+| `packages/Abstractions` | the contract: `IFile*Broker`s, models, constants, scopes, errors; the template's `IGreetingsBroker` until v0.1 removes it |
+| `packages/Formats` | the file-type registry (`Registry/file-types.json`), sniffing, kinds, safe names |
 | `packages/Module` | Form 1: the broker over the module's store, `AddFiles()`, embedded SQL migrations |
 | `packages/Client` | Forms 2/3: the broker over the service's HTTP API, `AddFilesClient()` |
+| `packages/Server` | delivery, share and request routes, upload protocols, tenancy and admin API |
 | `packages/Testing` | fake broker and the conformance suite |
 | `service/Files.Api` | the deployable host: the module, the HTTP mirror, the hosted pages |
 | `tests/Files.Tests.{Unit,Integration,E2E,Conformance,Migrations}` | the test tiers |

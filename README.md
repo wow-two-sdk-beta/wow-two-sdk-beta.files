@@ -2,16 +2,23 @@
 
 Files for every product — store, upload, transform, compress, share and serve them — as a .NET package family, an npm package and a service image, under one contract.
 
+> **Pre-release.** Scaffolded 2026-10-26; nothing is published yet. Plan: `engineering/planning/version-track/v0.1/`.
+
 ## Artifacts
 
 | Artifact | Registry | Line · tag | Install |
 |---|---|---|---|
 | `WoW2.Sdk.Beta.Be.Files.Abstractions` — the contract | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Abstractions --prerelease` |
+| `WoW2.Sdk.Beta.Be.Files.Formats` — file-type registry, sniffing, safe names | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Formats --prerelease` |
 | `WoW2.Sdk.Beta.Be.Files.Module` — Form 1, in process | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Module --prerelease` |
 | `WoW2.Sdk.Beta.Be.Files.Client` — Forms 2 and 3, over HTTP | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Client --prerelease` |
+| `WoW2.Sdk.Beta.Be.Files.Server` — delivery and share routes, tenancy | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Server --prerelease` |
 | `WoW2.Sdk.Beta.Be.Files.Testing` — fake and conformance suite | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Testing --prerelease` |
-| `@wow-two-beta/fe-files` — contract mirror, widget, forward | npm | `0.0.z` · `fe-v*` | `pnpm add @wow-two-beta/fe-files` |
-| `files` service image | GHCR | `X.Y.Z` · `v*` | `ghcr.io/wow-two-sdk-beta/wow-two-sdk-beta.files/files`, deployed by Wheelhouse |
+| `@wow-two-beta/fe-files` — contract mirror, upload kit, share UI, `/icons` | npm | `0.0.z` · `fe-v*` | `pnpm add @wow-two-beta/fe-files` |
+| `files` service image — roles `api`, `worker`, `delivery`; `Single` or `Shared` tenancy | GHCR | `X.Y.Z` · `v*` | `ghcr.io/wow-two-sdk-beta/wow-two-sdk-beta.files/files`, deployed by Wheelhouse |
+
+Planned, each with its first code: `Files.Compression`, `Files.Images` and `Files.Documents` (moved from core
+`Media/`), `Files.Video`, `Files.Scanning` — `engineering/architecture/package-registry.md`.
 
 A product pins the family with one `FilesSdkVersion` property beside `BackendSdkVersion`.
 

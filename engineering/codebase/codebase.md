@@ -5,8 +5,10 @@ The code lives in `files.backend-services/` (.NET) and `files.frontend-services/
 ## Backend
 
 - `Files.BackendServices.slnx` groups `Packages/`, `Services/` and `Tests/`.
-- `packages/` holds the NuGet family `WoW2.Sdk.Beta.Be.Files.*`: `Abstractions` (the contract), `Module` (Form 1,
-  with `Migrations/NNN-name/{Apply,Rollback}.sql`), `Client` (Forms 2/3) and `Testing` (fake + conformance suite).
+- `packages/` holds the NuGet family `WoW2.Sdk.Beta.Be.Files.*`: `Abstractions` (the contract), `Formats` (the
+  file-type registry, `Registry/file-types.json`), `Module` (Form 1, with `Migrations/NNN-name/{Apply,Rollback}.sql`),
+  `Client` (Forms 2/3), `Server` (delivery and share routes) and `Testing` (fake + conformance suite). Planned packages
+  get a project with their first code: `engineering/architecture/package-registry.md`.
   `Directory.Build.props` makes them packable by path; the core pin in `Directory.Packages.props` is their floor.
 - `service/Files.Api` hosts the module by `ProjectReference`: `AddApiDefaults()` / `UseApiDefaults()`, the migrator
   over the module's SQL, `GreetingsController` (the HTTP mirror of the contract), `SystemController`, and the pages in
