@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../../conventions/design/identity/product.schema.json",
+  "manifest": 1,
+  "name": "Files",
+  "description": "Files for every product: store, upload, transform, compress, share and serve them under one contract."
+}
