@@ -4,12 +4,18 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 
 /// <summary>The Files module's context — a pure mapper over the SQL-owned schema in <c>Migrations/</c>.</summary>
-/// <remarks>Internal: consumers reach the store through <c>IGreetingsBroker</c> only, never its tables.</remarks>
+/// <remarks>Internal: consumers reach the store through the Files brokers only, never its tables.</remarks>
 /// <param name="options">The context options, configured by <c>AddFiles</c>.</param>
 internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) : DbContext(options)
 {
     /// <summary>Gets the served-greeting log.</summary>
     public DbSet<GreetingLog> GreetingLogs => Set<GreetingLog>();
+
+    /// <summary>Gets the stored files.</summary>
+    public DbSet<FileEntity> Files => Set<FileEntity>();
+
+    /// <summary>Gets the stored bytes, one row per tenant and SHA-256.</summary>
+    public DbSet<FileBlobEntity> Blobs => Set<FileBlobEntity>();
 
     /// <inheritdoc />
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
@@ -27,5 +33,37 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         log.Property(row => row.Id).HasColumnName("id");
         log.Property(row => row.Message).HasColumnName("message");
         log.Property(row => row.GreetedAtUtc).HasColumnName("greeted_at_utc");
+
+        var file = modelBuilder.Entity<FileEntity>();
+        file.ToTable(FileEntity.TableName);
+        file.HasKey(row => row.Seq);
+        file.Property(row => row.Seq).HasColumnName("seq").ValueGeneratedOnAdd();
+        file.Property(row => row.Id).HasColumnName("id");
+        file.Property(row => row.TenantId).HasColumnName("tenant_id");
+        file.Property(row => row.OrganizationId).HasColumnName("organization_id");
+        file.Property(row => row.AppId).HasColumnName("app_id");
+        file.Property(row => row.OwnerId).HasColumnName("owner_id");
+        file.Property(row => row.Name).HasColumnName("name");
+        file.Property(row => row.ContentType).HasColumnName("content_type");
+        file.Property(row => row.Kind).HasColumnName("kind");
+        file.Property(row => row.Size).HasColumnName("size");
+        file.Property(row => row.Sha256).HasColumnName("sha256");
+        file.Property(row => row.Visibility).HasColumnName("visibility");
+        file.Property(row => row.State).HasColumnName("state");
+        file.Property(row => row.IdempotencyKey).HasColumnName("idempotency_key");
+        file.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
+        file.Property(row => row.ExpiresAtUtc).HasColumnName("expires_at_utc");
+        file.Property(row => row.DeletedAtUtc).HasColumnName("deleted_at_utc");
+        file.Property(row => row.PurgeAtUtc).HasColumnName("purge_at_utc");
+
+        var blob = modelBuilder.Entity<FileBlobEntity>();
+        blob.ToTable(FileBlobEntity.TableName);
+        blob.HasKey(row => new { row.TenantId, row.Sha256 });
+        blob.Property(row => row.TenantId).HasColumnName("tenant_id");
+        blob.Property(row => row.Sha256).HasColumnName("sha256");
+        blob.Property(row => row.StorageKey).HasColumnName("storage_key");
+        blob.Property(row => row.Size).HasColumnName("size");
+        blob.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
+        blob.Property(row => row.LastUsedAtUtc).HasColumnName("last_used_at_utc");
     }
 }

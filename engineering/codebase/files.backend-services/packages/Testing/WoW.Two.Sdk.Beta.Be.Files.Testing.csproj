@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- The Files test kit: a fake over the contract and the conformance suite every implementation must pass. -->
+  <!-- The Files test kit: the conformance suite every implementation must pass, and byte samples for upload tests. -->
   <PropertyGroup>
-    <Description>Files test kit: a fake greetings broker and the conformance suite every implementation must pass.</Description>
+    <Description>Files test kit: the conformance suite every Files implementation must pass, with byte samples for upload tests.</Description>
   </PropertyGroup>
 
   <ItemGroup>

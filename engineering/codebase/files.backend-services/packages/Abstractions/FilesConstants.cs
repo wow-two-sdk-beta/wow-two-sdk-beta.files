@@ -11,4 +11,7 @@ public static class FilesConstants
 
     /// <summary>Holds the most files one list call returns.</summary>
     public const int MaxPageSize = 200;
+
+    /// <summary>Holds the shape of a tenant id: it starts every storage key, so it stays a safe path segment.</summary>
+    public const string TenantIdPattern = "^[a-z0-9][a-z0-9._-]{0,62}$";
 }

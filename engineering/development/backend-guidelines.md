@@ -12,4 +12,6 @@ wow-two-ws/conventions/development/repo/structure/domain-structure.md. Repo delt
 - Store: SQLite through `DatabaseSettings:ConnectionString` (`DB_CONNECTION` wins). Tables carry the `files_` prefix,
   since a Form 1 consumer applies them beside its own. A new table is a new
   `packages/Module/Migrations/NNN-name/{Apply,Rollback}.sql` pair; never edit an applied one.
+- Bytes: the host registers core `IBlobRepository`; `Files.Api` uses a local folder at `Storage:Root` (default
+  `data/blobs`). Module settings bind from the `Files` section: `DefaultTenantId`, `Policies` by app, `SweepInterval`.
 - `dotnet test Files.BackendServices.slnx` runs every tier; the backend build needs Node and pnpm for the pages.

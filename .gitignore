@@ -17,6 +17,8 @@ node_modules/
 *.db
 *.db-shm
 *.db-wal
+# A local run's stored bytes (Storage:Root)
+**/data/blobs/
 # appsettings.Local.json is this machine's own, read by an IDE run only; appsettings.Target.json a target's, mounted
 # at deploy; appsettings.Machine.json the machine file's retired name
 **/appsettings.Local.json

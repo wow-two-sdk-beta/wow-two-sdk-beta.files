@@ -9,7 +9,11 @@ namespace Files.Tests.Migrations;
 /// <summary>The module's embedded migrations over a throwaway SQLite file: apply, idempotency, and the Apply → Rollback → Apply round trip.</summary>
 public sealed class MigrationTests : IDisposable
 {
-    private static readonly string[] Names = ["baseline"];
+    private static readonly string[] Names = ["baseline", "files"];
+
+    private static readonly string[] Applied = ["001-baseline", "002-files"];
+
+    private static readonly string[] Tables = ["files_greeting_logs", "files_files", "files_blobs"];
 
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"files-migrations-{Guid.NewGuid():N}.db");
 
@@ -32,15 +36,16 @@ public sealed class MigrationTests : IDisposable
 
         var applied = Unwrap(await migrator.Runner.ApplyPendingAsync("startup", CancellationToken.None));
 
-        applied.Should().Equal("001-baseline");
-        (await migrator.HasTableAsync("files_greeting_logs")).Should().BeTrue();
+        applied.Should().Equal(Applied);
+        foreach (var table in Tables)
+            (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var history = await migrator.ReadHistoryAsync();
-        history.Select(row => row.Ordinal).Should().Equal(1);
+        history.Select(row => row.Ordinal).Should().Equal(1, 2);
         history.Select(row => row.Name).Should().Equal(Names);
         history.Should().OnlyContain(row => row.AppliedBy == "startup" && row.Checksum.Length == 64);
 
         Unwrap(await migrator.Runner.ApplyPendingAsync("startup", CancellationToken.None)).Should().BeEmpty();
-        (await migrator.ReadHistoryAsync()).Should().HaveCount(1);
+        (await migrator.ReadHistoryAsync()).Should().HaveCount(Applied.Length);
     }
 
     [Fact]
@@ -50,14 +55,16 @@ public sealed class MigrationTests : IDisposable
         Unwrap(await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None));
 
         Unwrap(await migrator.Runner.RollbackAsync(targetOrdinal: 0, CancellationToken.None))
-            .Should().Equal("001-baseline");
-        (await migrator.HasTableAsync("files_greeting_logs")).Should().BeFalse();
+            .Should().Equal(Applied.Reverse());
+        foreach (var table in Tables)
+            (await migrator.HasTableAsync(table)).Should().BeFalse(table);
         (await migrator.ReadHistoryAsync()).Should().BeEmpty();
 
-        Unwrap(await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None)).Should().Equal("001-baseline");
-        (await migrator.HasTableAsync("files_greeting_logs")).Should().BeTrue();
+        Unwrap(await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None)).Should().Equal(Applied);
+        foreach (var table in Tables)
+            (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var status = Unwrap(await migrator.Runner.GetStatusAsync(CancellationToken.None));
-        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1);
+        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1, 2);
         status.Pending.Should().BeEmpty();
         status.Drifted.Should().BeEmpty();
     }

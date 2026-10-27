@@ -34,6 +34,10 @@ browser ──signed URL──► Server delivery routes on files.{domain} (deli
 - every instance holds a tenants table; `Single` mode has one row, `Shared` mode many.
 - a tenant owns its key prefix, policies, quotas, hostname, trusted issuers and API keys.
 - storage keys start with the tenant, so a tenant moves by an export bundle plus a byte copy or a bucket re-point.
+- a tenant's bytes are stored once per SHA-256 (`files_blobs`); every upload is its own row (`files_files`), so a
+  rename or delete never touches shared bytes.
+- one process per store in P1: striped in-process locks keep the sweep from deleting bytes an upload is reusing; a
+  second process needs a database lock first.
 
 | Project | Responsibility |
 |---|---|

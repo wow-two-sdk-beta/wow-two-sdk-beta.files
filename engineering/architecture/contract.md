@@ -26,8 +26,8 @@
 
 | Broker | Calls | State |
 |---|---|---|
-| `IFileUploadsBroker` | `UploadAsync(stream, spec)` | declared; v0.1 |
-| `IFileStoreBroker` | `GetAsync` · `OpenReadAsync(id, range?)` · `ListAsync(query)` · `UpdateAsync(patch)` · `DeleteAsync` · `RestoreAsync` | declared; v0.1 |
+| `IFileUploadsBroker` | `UploadAsync(stream, spec)` | Module; Client in v0.1 |
+| `IFileStoreBroker` | `GetAsync` · `OpenReadAsync(id, range?)` · `ListAsync(query)` · `UpdateAsync(patch)` · `DeleteAsync` · `RestoreAsync` | Module; Client in v0.1 |
 | `IFileReferencesBroker` | `AttachAsync(id, ref)` · `DetachAsync` · `ListAsync(id)` | declared; v0.1 |
 | `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, variant?)` | declared; v0.1 |
 | `IFileUploadsBroker` tickets | `BeginAsync(spec)` → ticket · `CompleteAsync(uploadId)` · `CancelAsync` | planned |
@@ -40,6 +40,9 @@
 - models today: `FileModel`, `FileQuery`, `FilePage`, `FilePatch`, `FileContent`, `ByteRange`, `UploadSpec`,
   `FileReference`, `UrlSpec`, `SignedFileUrl`; enums `FileKind`, `FileState`, `FileVisibility`, `FileDisposition`.
 - `FileState`: `Uploading` → `Pending` → `Ready`, or `Rejected` · `Quarantined`; a soft delete sets `DeletedAtUtc`.
+- the stored content type is the registry's for the recognized type, never the uploader's; a rename may change the
+  extension only to one of the same content type.
+- an expired file, or a deleted one past its app's retention, is gone for every call before the sweep purges it.
 - share gates, once declared, are a closed set: expiry, password, max downloads, sign-in, email; later IP and terms.
 
 ## HTTP API
@@ -90,7 +93,8 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 ## Errors
 
 `FilesErrors` today: `FileNotFound` · `FileNotReady` · `FileTooLarge` · `TypeNotAllowed` · `ContentMismatch` ·
-`NameInvalid` · `ReferenceNotFound` · `UrlInvalid` · `TenantSuspended`. Planned: `QuotaExceeded` · `ScanFailed` ·
+`NameInvalid` · `ReferenceNotFound` · `UrlInvalid` · `TenantSuspended` · `TenantInvalid` · `CursorInvalid` ·
+`RangeInvalid`. Planned: `QuotaExceeded` · `ScanFailed` ·
 `UploadExpired` · `ChecksumMismatch` · `ShareExpired` · `ShareLocked` · `ShareExhausted`.
 
 ## Forms

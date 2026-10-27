@@ -37,4 +37,15 @@ public static class FilesErrors
 
     /// <summary>Creates the error for a tenant the instance has suspended.</summary>
     public static AppError TenantSuspended() => AppErrorFactory.Forbidden("The files tenant is suspended.");
+
+    /// <summary>Creates the error for a tenant id that is not a safe storage key segment.</summary>
+    public static AppError TenantInvalid() => AppErrorFactory.Forbidden("The files tenant is not valid.");
+
+    /// <summary>Creates the error for a list cursor no previous page returned.</summary>
+    public static AppError CursorInvalid() => AppErrorFactory.Validation("The list cursor is not valid.");
+
+    /// <summary>Creates the error for a byte range outside the file.</summary>
+    /// <param name="size">The file's size in bytes.</param>
+    public static AppError RangeInvalid(long size) =>
+        AppErrorFactory.Validation($"The byte range must lie within the file's {size} bytes.");
 }
