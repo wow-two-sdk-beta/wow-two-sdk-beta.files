@@ -9,7 +9,8 @@
 The repo is public on GitHub since 2026-10-27, with the `main-guard` ruleset, scaffolded from the domain template. v0.1
 (File store) is built and in verification: file types and icons, tenant-scoped deduplicated storage, references,
 signed and public delivery, the HTTP API with key and token callers, the audit trail; the template's sample is gone.
-The image releases from `main`; no package is published yet.
+The image releases from `main`. CI published the packages first on 2026-10-27: NuGet `WoW2.Sdk.Beta.Be.Files.*`
+`10.0.0-beta` and npm `@wow-two-beta/fe-files` `0.0.2`, both through trusted publishing.
 
 ## Active tasks
 
@@ -20,7 +21,6 @@ The image releases from `main`; no package is published yet.
 | Shares as containers | proposed | [T11](../engineering/research/files-analysis-2026-10/t11-next-and-shares.md) § 3; N1–N3 wait for the developer |
 | Identity contracts C1–C15 | in progress | prompt ready; the developer forwards it; integration as we go |
 | Wheelhouse migration module prompt | draft | refined once the import API exists, then forwarded |
-| NuGet and npm first publish | in progress | policy, npm `0.0.1`, npm trust and `PUBLISH_PACKAGES` set 2026-10-27; the first CI publish (a dispatch, by the developer) runs by 2026-10-29, before npm drops the trust |
 
 ## Open questions
 
