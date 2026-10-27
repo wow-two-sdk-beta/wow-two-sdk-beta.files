@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { RouterHistoryMode } from '@wow-two-beta/fe/router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { fileTypeRows } from '@wow-two-beta/fe-files/icons';
 import AppRoot from '../src/bootstrap/AppRoot.vue';
 import { createWebRouter } from '../src/bootstrap/router/Routes';
 
@@ -51,5 +52,23 @@ describe('hosted greeting route', () => {
 
     expect(wrapper.find('input[name="name"]').exists()).toBe(true);
     expect(wrapper.find('a').exists()).toBe(false);
+  });
+});
+
+describe('icons route', () => {
+  it('shows every registry extension with its icon', async () => {
+    const wrapper = await renderAt('/icons');
+
+    const tiles = wrapper.findAll('section[aria-labelledby] li');
+    expect(tiles.map((tile) => tile.get('span').text())).toEqual(fileTypeRows.map(([ext]) => `.${ext}`));
+    expect(tiles.every((tile) => tile.find('svg[role="img"]').exists())).toBe(true);
+  });
+
+  it('filters by extension', async () => {
+    const wrapper = await renderAt('/icons');
+
+    await wrapper.get('input[name="filter"]').setValue('.docx');
+
+    expect(wrapper.findAll('section[aria-labelledby] li').map((tile) => tile.get('span').text())).toEqual(['.docx']);
   });
 });

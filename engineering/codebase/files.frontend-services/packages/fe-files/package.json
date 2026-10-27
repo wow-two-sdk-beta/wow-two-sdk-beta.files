@@ -1,7 +1,7 @@
 {
   "name": "@wow-two-beta/fe-files",
   "version": "0.0.0",
-  "description": "Files domain UI: the Greetings contract, an embeddable greeting widget and the forward to the hosted page.",
+  "description": "Files domain UI: the contract mirror, the file icon pack, an embeddable greeting widget and the forward to the hosted page.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -25,6 +25,11 @@
       "types": "./dist/kit/index.d.ts",
       "import": "./dist/kit/index.js",
       "default": "./dist/kit/index.js"
+    },
+    "./icons": {
+      "types": "./dist/icons/index.d.ts",
+      "import": "./dist/icons/index.js",
+      "default": "./dist/icons/index.js"
     }
   },
   "scripts": {
@@ -34,7 +39,8 @@
     "lint": "eslint .",
     "format": "prettier --write src tests scripts *.ts *.mjs *.json",
     "format:check": "prettier --check src tests scripts *.ts *.mjs *.json",
-    "check:package": "node scripts/check-package.mjs"
+    "check:package": "node scripts/check-package.mjs",
+    "gen:file-types": "node scripts/gen-file-types.mjs"
   },
   "peerDependencies": {
     "@wow-two-beta/fe": ">=0.0.32 <0.1.0",

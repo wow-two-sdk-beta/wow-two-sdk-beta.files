@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\packages\Formats\WoW.Two.Sdk.Beta.Be.Files.Formats.csproj" />
     <ProjectReference Include="..\..\packages\Module\WoW.Two.Sdk.Beta.Be.Files.Module.csproj" />
     <ProjectReference Include="..\..\packages\Client\WoW.Two.Sdk.Beta.Be.Files.Client.csproj" />
   </ItemGroup>

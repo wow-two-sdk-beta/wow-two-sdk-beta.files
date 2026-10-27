@@ -40,7 +40,7 @@
 | Project | What it is |
 |---|---|
 | `packages/Abstractions` | the contract: `IFile*Broker`s, models, constants, scopes, errors; the template's `IGreetingsBroker` until v0.1 removes it |
-| `packages/Formats` | the file-type registry (`Registry/file-types.json`), sniffing, kinds, safe names |
+| `packages/Formats` | the file-type registry (`Registry/file-types.json`), `FileTypeMapper`, `FileContentValidator`, `FileNameMapper` |
 | `packages/Module` | Form 1: the broker over the module's store, `AddFiles()`, embedded SQL migrations |
 | `packages/Client` | Forms 2/3: the broker over the service's HTTP API, `AddFilesClient()` |
 | `packages/Server` | delivery, share and request routes, upload protocols, tenancy and admin API |
@@ -51,5 +51,5 @@
 ### `codebase/files.frontend-services/`
 | Project | What it is |
 |---|---|
-| `packages/fe-files` | `@wow-two-beta/fe-files`: contract mirror, `GreetingWidget`, forward to the hosted page |
-| `apps/web` | hosted pages (`/greet`) and the console (`/`), served by `Files.Api` |
+| `packages/fe-files` | `@wow-two-beta/fe-files`: contract mirror, `/icons` (generated type table, `FileIcon`), `GreetingWidget` |
+| `apps/web` | the console (`/`), the icon page (`/icons`) and hosted pages (`/greet`), served by `Files.Api` |

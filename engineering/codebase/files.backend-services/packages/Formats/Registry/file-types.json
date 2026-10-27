@@ -1,488 +1,370 @@
 {
-  "$comment": "The one file-type registry: Files.Formats and fe-files/icons are built from it. Seeded 2026-10-26 from the legacy wow-two-platform.storage.file rows; v0.1 iteration 1 widens it (mime-db, dev, 3D, CAD, design formats). Fields: wow-two-ws/workbench/wow-two-sdk-beta/wow-two-sdk-beta.files/engineering/research/files-analysis-2026-10/t7-file-icons.md.",
-  "version": 1,
+  "$comment": "The one file-type registry: Files.Formats and fe-files/icons are built from it; a new type is a row, never code. One row per extension. magic: alternative signatures, each 'offset:hex' parts that must all match; a '~' prefix accepts the signature for a claimed type but never detects it from bytes alone. kind: one of the Files kinds. preview: none, image, video, audio, pdf, text. risk: none, active (forced download), executable.",
+  "version": 2,
   "types": [
-    {
-      "ext": "jpg",
-      "mime": "image/jpeg",
-      "kind": "image",
-      "label": "JPG",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "FFD8FF"
-        }
-      ],
-      "preview": "image",
-      "risk": "none"
-    },
-    {
-      "ext": "jpeg",
-      "mime": "image/jpeg",
-      "kind": "image",
-      "label": "JPEG",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "FFD8FF"
-        }
-      ],
-      "preview": "image",
-      "risk": "none"
-    },
-    {
-      "ext": "png",
-      "mime": "image/png",
-      "kind": "image",
-      "label": "PNG",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "89504E470D0A1A0A"
-        }
-      ],
-      "preview": "image",
-      "risk": "none"
-    },
-    {
-      "ext": "gif",
-      "mime": "image/gif",
-      "kind": "image",
-      "label": "GIF",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "47494638"
-        }
-      ],
-      "preview": "image",
-      "risk": "none"
-    },
-    {
-      "ext": "svg",
-      "mime": "image/svg+xml",
-      "kind": "vector",
-      "label": "SVG",
-      "preview": "image",
-      "risk": "active"
-    },
-    {
-      "ext": "webp",
-      "mime": "image/webp",
-      "kind": "image",
-      "label": "WEBP",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "52494646"
-        },
-        {
-          "offset": 8,
-          "hex": "57454250"
-        }
-      ],
-      "preview": "image",
-      "risk": "none"
-    },
-    {
-      "ext": "mp4",
-      "mime": "video/mp4",
-      "kind": "video",
-      "label": "MP4",
-      "magic": [
-        {
-          "offset": 4,
-          "hex": "66747970"
-        }
-      ],
-      "preview": "video",
-      "risk": "none"
-    },
-    {
-      "ext": "avi",
-      "mime": "video/x-msvideo",
-      "kind": "video",
-      "label": "AVI",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "52494646"
-        },
-        {
-          "offset": 8,
-          "hex": "41564920"
-        }
-      ],
-      "preview": "video",
-      "risk": "none"
-    },
-    {
-      "ext": "mov",
-      "mime": "video/quicktime",
-      "kind": "video",
-      "label": "MOV",
-      "magic": [
-        {
-          "offset": 4,
-          "hex": "66747970"
-        }
-      ],
-      "preview": "video",
-      "risk": "none"
-    },
-    {
-      "ext": "webm",
-      "mime": "video/webm",
-      "kind": "video",
-      "label": "WEBM",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "1A45DFA3"
-        }
-      ],
-      "preview": "video",
-      "risk": "none"
-    },
-    {
-      "ext": "mp3",
-      "mime": "audio/mpeg",
-      "kind": "audio",
-      "label": "MP3",
-      "preview": "audio",
-      "risk": "none"
-    },
-    {
-      "ext": "wav",
-      "mime": "audio/wav",
-      "kind": "audio",
-      "label": "WAV",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "52494646"
-        },
-        {
-          "offset": 8,
-          "hex": "57415645"
-        }
-      ],
-      "preview": "audio",
-      "risk": "none"
-    },
-    {
-      "ext": "aac",
-      "mime": "audio/aac",
-      "kind": "audio",
-      "label": "AAC",
-      "preview": "audio",
-      "risk": "none"
-    },
-    {
-      "ext": "zip",
-      "mime": "application/zip",
-      "kind": "archive",
-      "label": "ZIP",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "504B0304"
-        }
-      ],
-      "preview": "archive",
-      "risk": "none"
-    },
-    {
-      "ext": "rar",
-      "mime": "application/x-rar-compressed",
-      "kind": "archive",
-      "label": "RAR",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "526172211A07"
-        }
-      ],
-      "preview": "archive",
-      "risk": "none"
-    },
-    {
-      "ext": "7z",
-      "mime": "application/x-7z-compressed",
-      "kind": "archive",
-      "label": "7Z",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "377ABCAF271C"
-        }
-      ],
-      "preview": "archive",
-      "risk": "none"
-    },
-    {
-      "ext": "pdf",
-      "mime": "application/pdf",
-      "kind": "pdf",
-      "label": "PDF",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "25504446"
-        }
-      ],
-      "preview": "pdf",
-      "risk": "none"
-    },
-    {
-      "ext": "doc",
-      "mime": "application/msword",
-      "kind": "document",
-      "label": "DOC",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "D0CF11E0A1B11AE1"
-        }
-      ],
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "docx",
-      "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "kind": "document",
-      "label": "DOCX",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "504B0304"
-        }
-      ],
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "xls",
-      "mime": "application/vnd.ms-excel",
-      "kind": "spreadsheet",
-      "label": "XLS",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "D0CF11E0A1B11AE1"
-        }
-      ],
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "xlsx",
-      "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "kind": "spreadsheet",
-      "label": "XLSX",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "504B0304"
-        }
-      ],
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "ppt",
-      "mime": "application/vnd.ms-powerpoint",
-      "kind": "presentation",
-      "label": "PPT",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "D0CF11E0A1B11AE1"
-        }
-      ],
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "epub",
-      "mime": "application/epub+zip",
-      "kind": "ebook",
-      "label": "EPUB",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "504B0304"
-        }
-      ],
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "dwg",
-      "mime": "application/x-dwg",
-      "kind": "cad",
-      "label": "DWG",
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "shp",
-      "mime": "application/x-shapefile",
-      "kind": "cad",
-      "label": "SHP",
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "json",
-      "mime": "application/json",
-      "kind": "data",
-      "label": "JSON",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "xml",
-      "mime": "application/xml",
-      "kind": "data",
-      "label": "XML",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "csv",
-      "mime": "text/csv",
-      "kind": "data",
-      "label": "CSV",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "sqlite",
-      "mime": "application/x-sqlite3",
-      "kind": "database",
-      "label": "SQLITE",
-      "magic": [
-        {
-          "offset": 0,
-          "hex": "53514C69746520666F726D6174203300"
-        }
-      ],
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "cs",
-      "mime": "text/x-csharp",
-      "kind": "code",
-      "label": "CS",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "html",
-      "mime": "text/html",
-      "kind": "code",
-      "label": "HTML",
-      "preview": "text",
-      "risk": "active"
-    },
-    {
-      "ext": "yaml",
-      "mime": "text/yaml",
-      "kind": "config",
-      "label": "YAML",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "css",
-      "mime": "text/css",
-      "kind": "code",
-      "label": "CSS",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "js",
-      "mime": "text/javascript",
-      "kind": "code",
-      "label": "JS",
-      "preview": "text",
-      "risk": "active"
-    },
-    {
-      "ext": "sln",
-      "mime": "text/plain",
-      "kind": "code",
-      "label": "SLN",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "crt",
-      "mime": "application/x-x509-ca-cert",
-      "kind": "certificate",
-      "label": "CRT",
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "log",
-      "mime": "text/plain",
-      "kind": "text",
-      "label": "LOG",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "txt",
-      "mime": "text/plain",
-      "kind": "text",
-      "label": "TXT",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "eml",
-      "mime": "message/rfc822",
-      "kind": "email",
-      "label": "EML",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "ics",
-      "mime": "text/calendar",
-      "kind": "calendar",
-      "label": "ICS",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "vcf",
-      "mime": "text/vcard",
-      "kind": "calendar",
-      "label": "VCF",
-      "preview": "text",
-      "risk": "none"
-    },
-    {
-      "ext": "bak",
-      "mime": "application/octet-stream",
-      "kind": "generic",
-      "label": "BAK",
-      "preview": "none",
-      "risk": "none"
-    },
-    {
-      "ext": "vhd",
-      "mime": "application/x-vhd",
-      "kind": "disk-image",
-      "label": "VHD",
-      "preview": "none",
-      "risk": "none"
-    }
+    {"ext": "jpg", "mime": "image/jpeg", "kind": "image", "label": "JPG", "magic": ["0:FFD8FF"], "preview": "image", "risk": "none"},
+    {"ext": "jpeg", "mime": "image/jpeg", "kind": "image", "label": "JPEG", "magic": ["~0:FFD8FF"], "preview": "image", "risk": "none"},
+    {"ext": "jfif", "mime": "image/jpeg", "kind": "image", "label": "JFIF", "magic": ["~0:FFD8FF"], "preview": "image", "risk": "none"},
+    {"ext": "png", "mime": "image/png", "kind": "image", "label": "PNG", "magic": ["0:89504E470D0A1A0A"], "preview": "image", "risk": "none"},
+    {"ext": "apng", "mime": "image/apng", "kind": "image", "label": "APNG", "magic": ["~0:89504E470D0A1A0A"], "preview": "image", "risk": "none"},
+    {"ext": "gif", "mime": "image/gif", "kind": "image", "label": "GIF", "magic": ["0:47494638"], "preview": "image", "risk": "none"},
+    {"ext": "webp", "mime": "image/webp", "kind": "image", "label": "WEBP", "magic": ["0:52494646 8:57454250"], "preview": "image", "risk": "none"},
+    {"ext": "avif", "mime": "image/avif", "kind": "image", "label": "AVIF", "magic": ["4:6674797061766966", "4:6674797061766973", "~4:66747970"], "preview": "image", "risk": "none"},
+    {"ext": "heic", "mime": "image/heic", "kind": "image", "label": "HEIC", "magic": ["4:6674797068656963", "4:6674797068656978", "~4:667479706D696631", "~4:66747970"], "preview": "none", "risk": "none"},
+    {"ext": "heif", "mime": "image/heif", "kind": "image", "label": "HEIF", "magic": ["4:667479706D696631", "4:667479706D736631", "~4:66747970"], "preview": "none", "risk": "none"},
+    {"ext": "bmp", "mime": "image/bmp", "kind": "image", "label": "BMP", "magic": ["~0:424D"], "preview": "image", "risk": "none"},
+    {"ext": "ico", "mime": "image/vnd.microsoft.icon", "kind": "image", "label": "ICO", "magic": ["0:00000100"], "preview": "image", "risk": "none"},
+    {"ext": "tif", "mime": "image/tiff", "kind": "image", "label": "TIF", "magic": ["0:49492A00", "0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "tiff", "mime": "image/tiff", "kind": "image", "label": "TIFF", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "jxl", "mime": "image/jxl", "kind": "image", "label": "JXL", "magic": ["0:FF0A", "0:0000000C4A584C200D0A870A"], "preview": "none", "risk": "none"},
+    {"ext": "jp2", "mime": "image/jp2", "kind": "image", "label": "JP2", "magic": ["0:0000000C6A5020200D0A870A"], "preview": "none", "risk": "none"},
+    {"ext": "tga", "mime": "image/x-tga", "kind": "image", "label": "TGA", "preview": "none", "risk": "none"},
+    {"ext": "dds", "mime": "image/vnd.ms-dds", "kind": "image", "label": "DDS", "magic": ["0:44445320"], "preview": "none", "risk": "none"},
+    {"ext": "exr", "mime": "image/x-exr", "kind": "image", "label": "EXR", "magic": ["0:762F3101"], "preview": "none", "risk": "none"},
+    {"ext": "hdr", "mime": "image/vnd.radiance", "kind": "image", "label": "HDR", "magic": ["0:233F52414449414E4345"], "preview": "none", "risk": "none"},
+    {"ext": "qoi", "mime": "image/qoi", "kind": "image", "label": "QOI", "magic": ["0:716F6966"], "preview": "none", "risk": "none"},
+    {"ext": "dng", "mime": "image/x-adobe-dng", "kind": "raw-photo", "label": "DNG", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "cr2", "mime": "image/x-canon-cr2", "kind": "raw-photo", "label": "CR2", "magic": ["0:49492A00 8:4352"], "preview": "none", "risk": "none"},
+    {"ext": "cr3", "mime": "image/x-canon-cr3", "kind": "raw-photo", "label": "CR3", "magic": ["4:6674797063727820"], "preview": "none", "risk": "none"},
+    {"ext": "crw", "mime": "image/x-canon-crw", "kind": "raw-photo", "label": "CRW", "magic": ["6:4845415043434452"], "preview": "none", "risk": "none"},
+    {"ext": "nef", "mime": "image/x-nikon-nef", "kind": "raw-photo", "label": "NEF", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "nrw", "mime": "image/x-nikon-nrw", "kind": "raw-photo", "label": "NRW", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "arw", "mime": "image/x-sony-arw", "kind": "raw-photo", "label": "ARW", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "sr2", "mime": "image/x-sony-sr2", "kind": "raw-photo", "label": "SR2", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "srf", "mime": "image/x-sony-srf", "kind": "raw-photo", "label": "SRF", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "orf", "mime": "image/x-olympus-orf", "kind": "raw-photo", "label": "ORF", "magic": ["0:4949524F", "0:49495253", "0:4D4D4F52"], "preview": "none", "risk": "none"},
+    {"ext": "rw2", "mime": "image/x-panasonic-rw2", "kind": "raw-photo", "label": "RW2", "magic": ["0:49495500"], "preview": "none", "risk": "none"},
+    {"ext": "raf", "mime": "image/x-fuji-raf", "kind": "raw-photo", "label": "RAF", "magic": ["0:46554A4946494C4D"], "preview": "none", "risk": "none"},
+    {"ext": "pef", "mime": "image/x-pentax-pef", "kind": "raw-photo", "label": "PEF", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "srw", "mime": "image/x-samsung-srw", "kind": "raw-photo", "label": "SRW", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "3fr", "mime": "image/x-hasselblad-3fr", "kind": "raw-photo", "label": "3FR", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "iiq", "mime": "image/x-phaseone-iiq", "kind": "raw-photo", "label": "IIQ", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "erf", "mime": "image/x-epson-erf", "kind": "raw-photo", "label": "ERF", "magic": ["~0:49492A00", "~0:4D4D002A"], "preview": "none", "risk": "none"},
+    {"ext": "mrw", "mime": "image/x-minolta-mrw", "kind": "raw-photo", "label": "MRW", "magic": ["0:004D524D"], "preview": "none", "risk": "none"},
+    {"ext": "x3f", "mime": "image/x-sigma-x3f", "kind": "raw-photo", "label": "X3F", "magic": ["0:464F5662"], "preview": "none", "risk": "none"},
+    {"ext": "svg", "mime": "image/svg+xml", "kind": "vector", "label": "SVG", "preview": "image", "risk": "active"},
+    {"ext": "svgz", "mime": "image/svg+xml", "kind": "vector", "label": "SVGZ", "magic": ["~0:1F8B"], "preview": "none", "risk": "active"},
+    {"ext": "eps", "mime": "application/postscript", "kind": "vector", "label": "EPS", "magic": ["0:25215053", "0:C5D0D3C6"], "preview": "none", "risk": "none"},
+    {"ext": "emf", "mime": "image/emf", "kind": "vector", "label": "EMF", "magic": ["0:01000000 40:20454D46"], "preview": "none", "risk": "none"},
+    {"ext": "wmf", "mime": "image/wmf", "kind": "vector", "label": "WMF", "magic": ["0:D7CDC69A", "0:01000900", "0:02000900"], "preview": "none", "risk": "none"},
+    {"ext": "mp4", "mime": "video/mp4", "kind": "video", "label": "MP4", "magic": ["4:66747970"], "preview": "video", "risk": "none"},
+    {"ext": "m4v", "mime": "video/x-m4v", "kind": "video", "label": "M4V", "magic": ["4:667479704D345620", "~4:66747970"], "preview": "video", "risk": "none"},
+    {"ext": "mov", "mime": "video/quicktime", "kind": "video", "label": "MOV", "magic": ["4:6674797071742020", "4:6D6F6F76", "4:66726565", "4:6D646174", "4:77696465", "~4:66747970"], "preview": "video", "risk": "none"},
+    {"ext": "webm", "mime": "video/webm", "kind": "video", "label": "WEBM", "magic": ["0:1A45DFA3"], "preview": "video", "risk": "none"},
+    {"ext": "mkv", "mime": "video/x-matroska", "kind": "video", "label": "MKV", "magic": ["~0:1A45DFA3"], "preview": "none", "risk": "none"},
+    {"ext": "avi", "mime": "video/x-msvideo", "kind": "video", "label": "AVI", "magic": ["0:52494646 8:41564920"], "preview": "none", "risk": "none"},
+    {"ext": "wmv", "mime": "video/x-ms-wmv", "kind": "video", "label": "WMV", "magic": ["0:3026B2758E66CF11"], "preview": "none", "risk": "none"},
+    {"ext": "flv", "mime": "video/x-flv", "kind": "video", "label": "FLV", "magic": ["0:464C5601"], "preview": "none", "risk": "none"},
+    {"ext": "mpg", "mime": "video/mpeg", "kind": "video", "label": "MPG", "magic": ["0:000001BA", "0:000001B3"], "preview": "none", "risk": "none"},
+    {"ext": "mpeg", "mime": "video/mpeg", "kind": "video", "label": "MPEG", "magic": ["~0:000001BA", "~0:000001B3"], "preview": "none", "risk": "none"},
+    {"ext": "m2ts", "mime": "video/mp2t", "kind": "video", "label": "M2TS", "preview": "none", "risk": "none"},
+    {"ext": "mts", "mime": "video/mp2t", "kind": "video", "label": "MTS", "preview": "none", "risk": "none"},
+    {"ext": "3gp", "mime": "video/3gpp", "kind": "video", "label": "3GP", "magic": ["4:66747970336770", "~4:66747970"], "preview": "none", "risk": "none"},
+    {"ext": "3g2", "mime": "video/3gpp2", "kind": "video", "label": "3G2", "magic": ["4:66747970336732", "~4:66747970"], "preview": "none", "risk": "none"},
+    {"ext": "ogv", "mime": "video/ogg", "kind": "video", "label": "OGV", "magic": ["~0:4F676753"], "preview": "video", "risk": "none"},
+    {"ext": "vob", "mime": "video/mpeg", "kind": "video", "label": "VOB", "magic": ["~0:000001BA"], "preview": "none", "risk": "none"},
+    {"ext": "f4v", "mime": "video/x-f4v", "kind": "video", "label": "F4V", "magic": ["~4:66747970"], "preview": "none", "risk": "none"},
+    {"ext": "mp3", "mime": "audio/mpeg", "kind": "audio", "label": "MP3", "magic": ["0:494433", "0:FFFB", "0:FFF3", "0:FFF2", "0:FFFA"], "preview": "audio", "risk": "none"},
+    {"ext": "wav", "mime": "audio/wav", "kind": "audio", "label": "WAV", "magic": ["0:52494646 8:57415645"], "preview": "audio", "risk": "none"},
+    {"ext": "flac", "mime": "audio/flac", "kind": "audio", "label": "FLAC", "magic": ["0:664C6143"], "preview": "audio", "risk": "none"},
+    {"ext": "ogg", "mime": "audio/ogg", "kind": "audio", "label": "OGG", "magic": ["0:4F676753"], "preview": "audio", "risk": "none"},
+    {"ext": "oga", "mime": "audio/ogg", "kind": "audio", "label": "OGA", "magic": ["~0:4F676753"], "preview": "audio", "risk": "none"},
+    {"ext": "opus", "mime": "audio/opus", "kind": "audio", "label": "OPUS", "magic": ["~0:4F676753"], "preview": "audio", "risk": "none"},
+    {"ext": "m4a", "mime": "audio/mp4", "kind": "audio", "label": "M4A", "magic": ["4:667479704D344120", "~4:66747970"], "preview": "audio", "risk": "none"},
+    {"ext": "aac", "mime": "audio/aac", "kind": "audio", "label": "AAC", "magic": ["0:FFF1", "0:FFF9", "0:41444946"], "preview": "audio", "risk": "none"},
+    {"ext": "weba", "mime": "audio/webm", "kind": "audio", "label": "WEBA", "magic": ["~0:1A45DFA3"], "preview": "audio", "risk": "none"},
+    {"ext": "aiff", "mime": "audio/aiff", "kind": "audio", "label": "AIFF", "magic": ["0:464F524D 8:41494646", "0:464F524D 8:41494643"], "preview": "none", "risk": "none"},
+    {"ext": "aif", "mime": "audio/aiff", "kind": "audio", "label": "AIF", "magic": ["~0:464F524D 8:41494646", "~0:464F524D 8:41494643"], "preview": "none", "risk": "none"},
+    {"ext": "wma", "mime": "audio/x-ms-wma", "kind": "audio", "label": "WMA", "magic": ["~0:3026B2758E66CF11"], "preview": "none", "risk": "none"},
+    {"ext": "mid", "mime": "audio/midi", "kind": "audio", "label": "MID", "magic": ["0:4D546864"], "preview": "none", "risk": "none"},
+    {"ext": "midi", "mime": "audio/midi", "kind": "audio", "label": "MIDI", "magic": ["~0:4D546864"], "preview": "none", "risk": "none"},
+    {"ext": "amr", "mime": "audio/amr", "kind": "audio", "label": "AMR", "magic": ["0:2321414D52"], "preview": "none", "risk": "none"},
+    {"ext": "caf", "mime": "audio/x-caf", "kind": "audio", "label": "CAF", "magic": ["0:63616666"], "preview": "none", "risk": "none"},
+    {"ext": "m4b", "mime": "audio/mp4", "kind": "audio", "label": "M4B", "magic": ["4:667479704D344220", "~4:66747970"], "preview": "none", "risk": "none"},
+    {"ext": "ape", "mime": "audio/x-ape", "kind": "audio", "label": "APE", "magic": ["0:4D414320"], "preview": "none", "risk": "none"},
+    {"ext": "wv", "mime": "audio/x-wavpack", "kind": "audio", "label": "WV", "magic": ["0:7776706B"], "preview": "none", "risk": "none"},
+    {"ext": "dsf", "mime": "audio/x-dsf", "kind": "audio", "label": "DSF", "magic": ["0:44534420"], "preview": "none", "risk": "none"},
+    {"ext": "pdf", "mime": "application/pdf", "kind": "pdf", "label": "PDF", "magic": ["0:25504446"], "preview": "pdf", "risk": "none"},
+    {"ext": "doc", "mime": "application/msword", "kind": "document", "label": "DOC", "magic": ["0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "docx", "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "kind": "document", "label": "DOCX", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "docm", "mime": "application/vnd.ms-word.document.macroEnabled.12", "kind": "document", "label": "DOCM", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "dot", "mime": "application/msword", "kind": "document", "label": "DOT", "magic": ["~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "dotx", "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.template", "kind": "document", "label": "DOTX", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "dotm", "mime": "application/vnd.ms-word.template.macroEnabled.12", "kind": "document", "label": "DOTM", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "odt", "mime": "application/vnd.oasis.opendocument.text", "kind": "document", "label": "ODT", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "ott", "mime": "application/vnd.oasis.opendocument.text-template", "kind": "document", "label": "OTT", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "rtf", "mime": "application/rtf", "kind": "document", "label": "RTF", "magic": ["0:7B5C727466"], "preview": "none", "risk": "none"},
+    {"ext": "pages", "mime": "application/vnd.apple.pages", "kind": "document", "label": "PAGES", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "wpd", "mime": "application/vnd.wordperfect", "kind": "document", "label": "WPD", "magic": ["0:FF575043"], "preview": "none", "risk": "none"},
+    {"ext": "xps", "mime": "application/vnd.ms-xpsdocument", "kind": "document", "label": "XPS", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "xls", "mime": "application/vnd.ms-excel", "kind": "spreadsheet", "label": "XLS", "magic": ["~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "xlsx", "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "kind": "spreadsheet", "label": "XLSX", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "xlsm", "mime": "application/vnd.ms-excel.sheet.macroEnabled.12", "kind": "spreadsheet", "label": "XLSM", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "xlsb", "mime": "application/vnd.ms-excel.sheet.binary.macroEnabled.12", "kind": "spreadsheet", "label": "XLSB", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "xltx", "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.template", "kind": "spreadsheet", "label": "XLTX", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "ods", "mime": "application/vnd.oasis.opendocument.spreadsheet", "kind": "spreadsheet", "label": "ODS", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "numbers", "mime": "application/vnd.apple.numbers", "kind": "spreadsheet", "label": "NUMBERS", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "ppt", "mime": "application/vnd.ms-powerpoint", "kind": "presentation", "label": "PPT", "magic": ["~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "pptx", "mime": "application/vnd.openxmlformats-officedocument.presentationml.presentation", "kind": "presentation", "label": "PPTX", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "pptm", "mime": "application/vnd.ms-powerpoint.presentation.macroEnabled.12", "kind": "presentation", "label": "PPTM", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "pps", "mime": "application/vnd.ms-powerpoint", "kind": "presentation", "label": "PPS", "magic": ["~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "ppsx", "mime": "application/vnd.openxmlformats-officedocument.presentationml.slideshow", "kind": "presentation", "label": "PPSX", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "potx", "mime": "application/vnd.openxmlformats-officedocument.presentationml.template", "kind": "presentation", "label": "POTX", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "odp", "mime": "application/vnd.oasis.opendocument.presentation", "kind": "presentation", "label": "ODP", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "txt", "mime": "text/plain", "kind": "text", "label": "TXT", "preview": "text", "risk": "none"},
+    {"ext": "log", "mime": "text/plain", "kind": "text", "label": "LOG", "preview": "text", "risk": "none"},
+    {"ext": "text", "mime": "text/plain", "kind": "text", "label": "TEXT", "preview": "text", "risk": "none"},
+    {"ext": "nfo", "mime": "text/plain", "kind": "text", "label": "NFO", "preview": "text", "risk": "none"},
+    {"ext": "rst", "mime": "text/x-rst", "kind": "text", "label": "RST", "preview": "text", "risk": "none"},
+    {"ext": "adoc", "mime": "text/asciidoc", "kind": "text", "label": "ADOC", "preview": "text", "risk": "none"},
+    {"ext": "srt", "mime": "application/x-subrip", "kind": "text", "label": "SRT", "preview": "text", "risk": "none"},
+    {"ext": "vtt", "mime": "text/vtt", "kind": "text", "label": "VTT", "preview": "text", "risk": "none"},
+    {"ext": "md", "mime": "text/markdown", "kind": "markdown", "label": "MD", "preview": "text", "risk": "none"},
+    {"ext": "markdown", "mime": "text/markdown", "kind": "markdown", "label": "MD", "preview": "text", "risk": "none"},
+    {"ext": "mdx", "mime": "text/mdx", "kind": "markdown", "label": "MDX", "preview": "text", "risk": "none"},
+    {"ext": "epub", "mime": "application/epub+zip", "kind": "ebook", "label": "EPUB", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "mobi", "mime": "application/x-mobipocket-ebook", "kind": "ebook", "label": "MOBI", "magic": ["60:424F4F4B4D4F4249"], "preview": "none", "risk": "none"},
+    {"ext": "azw3", "mime": "application/vnd.amazon.mobi8-ebook", "kind": "ebook", "label": "AZW3", "magic": ["~60:424F4F4B4D4F4249"], "preview": "none", "risk": "none"},
+    {"ext": "azw", "mime": "application/vnd.amazon.ebook", "kind": "ebook", "label": "AZW", "preview": "none", "risk": "none"},
+    {"ext": "fb2", "mime": "application/x-fictionbook+xml", "kind": "ebook", "label": "FB2", "preview": "none", "risk": "active"},
+    {"ext": "djvu", "mime": "image/vnd.djvu", "kind": "ebook", "label": "DJVU", "magic": ["0:41542654464F524D"], "preview": "none", "risk": "none"},
+    {"ext": "cbz", "mime": "application/vnd.comicbook+zip", "kind": "ebook", "label": "CBZ", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "cbr", "mime": "application/vnd.comicbook-rar", "kind": "ebook", "label": "CBR", "magic": ["~0:526172211A07"], "preview": "none", "risk": "none"},
+    {"ext": "ibooks", "mime": "application/x-ibooks+zip", "kind": "ebook", "label": "IBOOKS", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "html", "mime": "text/html", "kind": "code", "label": "HTML", "preview": "text", "risk": "active"},
+    {"ext": "htm", "mime": "text/html", "kind": "code", "label": "HTM", "preview": "text", "risk": "active"},
+    {"ext": "xhtml", "mime": "application/xhtml+xml", "kind": "code", "label": "XHTML", "preview": "text", "risk": "active"},
+    {"ext": "js", "mime": "text/javascript", "kind": "code", "label": "JS", "preview": "text", "risk": "active"},
+    {"ext": "mjs", "mime": "text/javascript", "kind": "code", "label": "MJS", "preview": "text", "risk": "active"},
+    {"ext": "cjs", "mime": "text/javascript", "kind": "code", "label": "CJS", "preview": "text", "risk": "active"},
+    {"ext": "ts", "mime": "text/x-typescript", "kind": "code", "label": "TS", "preview": "text", "risk": "none"},
+    {"ext": "tsx", "mime": "text/x-typescript", "kind": "code", "label": "TSX", "preview": "text", "risk": "none"},
+    {"ext": "jsx", "mime": "text/jsx", "kind": "code", "label": "JSX", "preview": "text", "risk": "none"},
+    {"ext": "vue", "mime": "text/x-vue", "kind": "code", "label": "VUE", "preview": "text", "risk": "none"},
+    {"ext": "svelte", "mime": "text/x-svelte", "kind": "code", "label": "SVELTE", "preview": "text", "risk": "none"},
+    {"ext": "css", "mime": "text/css", "kind": "code", "label": "CSS", "preview": "text", "risk": "none"},
+    {"ext": "scss", "mime": "text/x-scss", "kind": "code", "label": "SCSS", "preview": "text", "risk": "none"},
+    {"ext": "sass", "mime": "text/x-sass", "kind": "code", "label": "SASS", "preview": "text", "risk": "none"},
+    {"ext": "less", "mime": "text/less", "kind": "code", "label": "LESS", "preview": "text", "risk": "none"},
+    {"ext": "cs", "mime": "text/x-csharp", "kind": "code", "label": "CS", "preview": "text", "risk": "none"},
+    {"ext": "csx", "mime": "text/x-csharp", "kind": "code", "label": "CSX", "preview": "text", "risk": "none"},
+    {"ext": "razor", "mime": "text/x-razor", "kind": "code", "label": "RAZOR", "preview": "text", "risk": "none"},
+    {"ext": "cshtml", "mime": "text/x-razor", "kind": "code", "label": "CSHTML", "preview": "text", "risk": "none"},
+    {"ext": "vb", "mime": "text/x-vb", "kind": "code", "label": "VB", "preview": "text", "risk": "none"},
+    {"ext": "fs", "mime": "text/x-fsharp", "kind": "code", "label": "FS", "preview": "text", "risk": "none"},
+    {"ext": "csproj", "mime": "text/plain", "kind": "code", "label": "CSPROJ", "preview": "text", "risk": "none"},
+    {"ext": "fsproj", "mime": "text/plain", "kind": "code", "label": "FSPROJ", "preview": "text", "risk": "none"},
+    {"ext": "sln", "mime": "text/plain", "kind": "code", "label": "SLN", "preview": "text", "risk": "none"},
+    {"ext": "slnx", "mime": "text/plain", "kind": "code", "label": "SLNX", "preview": "text", "risk": "none"},
+    {"ext": "props", "mime": "text/plain", "kind": "code", "label": "PROPS", "preview": "text", "risk": "none"},
+    {"ext": "targets", "mime": "text/plain", "kind": "code", "label": "TARGETS", "preview": "text", "risk": "none"},
+    {"ext": "java", "mime": "text/x-java-source", "kind": "code", "label": "JAVA", "preview": "text", "risk": "none"},
+    {"ext": "kt", "mime": "text/x-kotlin", "kind": "code", "label": "KT", "preview": "text", "risk": "none"},
+    {"ext": "kts", "mime": "text/x-kotlin", "kind": "code", "label": "KTS", "preview": "text", "risk": "none"},
+    {"ext": "scala", "mime": "text/x-scala", "kind": "code", "label": "SCALA", "preview": "text", "risk": "none"},
+    {"ext": "groovy", "mime": "text/x-groovy", "kind": "code", "label": "GROOVY", "preview": "text", "risk": "none"},
+    {"ext": "gradle", "mime": "text/x-groovy", "kind": "code", "label": "GRADLE", "preview": "text", "risk": "none"},
+    {"ext": "py", "mime": "text/x-python", "kind": "code", "label": "PY", "preview": "text", "risk": "none"},
+    {"ext": "ipynb", "mime": "application/x-ipynb+json", "kind": "code", "label": "IPYNB", "preview": "text", "risk": "none"},
+    {"ext": "rb", "mime": "text/x-ruby", "kind": "code", "label": "RB", "preview": "text", "risk": "none"},
+    {"ext": "php", "mime": "text/x-php", "kind": "code", "label": "PHP", "preview": "text", "risk": "none"},
+    {"ext": "pl", "mime": "text/x-perl", "kind": "code", "label": "PL", "preview": "text", "risk": "none"},
+    {"ext": "go", "mime": "text/x-go", "kind": "code", "label": "GO", "preview": "text", "risk": "none"},
+    {"ext": "rs", "mime": "text/x-rust", "kind": "code", "label": "RS", "preview": "text", "risk": "none"},
+    {"ext": "swift", "mime": "text/x-swift", "kind": "code", "label": "SWIFT", "preview": "text", "risk": "none"},
+    {"ext": "m", "mime": "text/x-objectivec", "kind": "code", "label": "M", "preview": "text", "risk": "none"},
+    {"ext": "c", "mime": "text/x-c", "kind": "code", "label": "C", "preview": "text", "risk": "none"},
+    {"ext": "h", "mime": "text/x-c", "kind": "code", "label": "H", "preview": "text", "risk": "none"},
+    {"ext": "cpp", "mime": "text/x-c++", "kind": "code", "label": "CPP", "preview": "text", "risk": "none"},
+    {"ext": "cc", "mime": "text/x-c++", "kind": "code", "label": "CC", "preview": "text", "risk": "none"},
+    {"ext": "cxx", "mime": "text/x-c++", "kind": "code", "label": "CXX", "preview": "text", "risk": "none"},
+    {"ext": "hpp", "mime": "text/x-c++", "kind": "code", "label": "HPP", "preview": "text", "risk": "none"},
+    {"ext": "dart", "mime": "text/x-dart", "kind": "code", "label": "DART", "preview": "text", "risk": "none"},
+    {"ext": "lua", "mime": "text/x-lua", "kind": "code", "label": "LUA", "preview": "text", "risk": "none"},
+    {"ext": "r", "mime": "text/x-r", "kind": "code", "label": "R", "preview": "text", "risk": "none"},
+    {"ext": "jl", "mime": "text/x-julia", "kind": "code", "label": "JL", "preview": "text", "risk": "none"},
+    {"ext": "ex", "mime": "text/x-elixir", "kind": "code", "label": "EX", "preview": "text", "risk": "none"},
+    {"ext": "exs", "mime": "text/x-elixir", "kind": "code", "label": "EXS", "preview": "text", "risk": "none"},
+    {"ext": "erl", "mime": "text/x-erlang", "kind": "code", "label": "ERL", "preview": "text", "risk": "none"},
+    {"ext": "hs", "mime": "text/x-haskell", "kind": "code", "label": "HS", "preview": "text", "risk": "none"},
+    {"ext": "clj", "mime": "text/x-clojure", "kind": "code", "label": "CLJ", "preview": "text", "risk": "none"},
+    {"ext": "elm", "mime": "text/x-elm", "kind": "code", "label": "ELM", "preview": "text", "risk": "none"},
+    {"ext": "zig", "mime": "text/x-zig", "kind": "code", "label": "ZIG", "preview": "text", "risk": "none"},
+    {"ext": "nim", "mime": "text/x-nim", "kind": "code", "label": "NIM", "preview": "text", "risk": "none"},
+    {"ext": "sql", "mime": "application/sql", "kind": "code", "label": "SQL", "preview": "text", "risk": "none"},
+    {"ext": "graphql", "mime": "application/graphql", "kind": "code", "label": "GQL", "preview": "text", "risk": "none"},
+    {"ext": "proto", "mime": "text/x-protobuf", "kind": "code", "label": "PROTO", "preview": "text", "risk": "none"},
+    {"ext": "tex", "mime": "application/x-tex", "kind": "code", "label": "TEX", "preview": "text", "risk": "none"},
+    {"ext": "asm", "mime": "text/x-asm", "kind": "code", "label": "ASM", "preview": "text", "risk": "none"},
+    {"ext": "mk", "mime": "text/x-makefile", "kind": "code", "label": "MK", "preview": "text", "risk": "none"},
+    {"ext": "cmake", "mime": "text/x-cmake", "kind": "code", "label": "CMAKE", "preview": "text", "risk": "none"},
+    {"ext": "nix", "mime": "text/x-nix", "kind": "code", "label": "NIX", "preview": "text", "risk": "none"},
+    {"ext": "sh", "mime": "application/x-sh", "kind": "code", "label": "SH", "preview": "text", "risk": "executable"},
+    {"ext": "bash", "mime": "application/x-sh", "kind": "code", "label": "BASH", "preview": "text", "risk": "executable"},
+    {"ext": "zsh", "mime": "application/x-sh", "kind": "code", "label": "ZSH", "preview": "text", "risk": "executable"},
+    {"ext": "command", "mime": "application/x-sh", "kind": "code", "label": "COMMAND", "preview": "text", "risk": "executable"},
+    {"ext": "ps1", "mime": "text/x-powershell", "kind": "code", "label": "PS1", "preview": "text", "risk": "executable"},
+    {"ext": "psm1", "mime": "text/x-powershell", "kind": "code", "label": "PSM1", "preview": "text", "risk": "executable"},
+    {"ext": "bat", "mime": "application/x-bat", "kind": "code", "label": "BAT", "preview": "text", "risk": "executable"},
+    {"ext": "cmd", "mime": "application/x-bat", "kind": "code", "label": "CMD", "preview": "text", "risk": "executable"},
+    {"ext": "vbs", "mime": "text/vbscript", "kind": "code", "label": "VBS", "preview": "text", "risk": "executable"},
+    {"ext": "vbe", "mime": "text/vbscript", "kind": "code", "label": "VBE", "preview": "text", "risk": "executable"},
+    {"ext": "jse", "mime": "text/jscript", "kind": "code", "label": "JSE", "preview": "text", "risk": "executable"},
+    {"ext": "wsf", "mime": "text/xml", "kind": "code", "label": "WSF", "preview": "text", "risk": "executable"},
+    {"ext": "json", "mime": "application/json", "kind": "data", "label": "JSON", "preview": "text", "risk": "none"},
+    {"ext": "jsonl", "mime": "application/x-ndjson", "kind": "data", "label": "JSONL", "preview": "text", "risk": "none"},
+    {"ext": "ndjson", "mime": "application/x-ndjson", "kind": "data", "label": "NDJSON", "preview": "text", "risk": "none"},
+    {"ext": "xml", "mime": "application/xml", "kind": "data", "label": "XML", "preview": "text", "risk": "active"},
+    {"ext": "xsd", "mime": "application/xml", "kind": "data", "label": "XSD", "preview": "text", "risk": "active"},
+    {"ext": "xsl", "mime": "application/xslt+xml", "kind": "data", "label": "XSL", "preview": "text", "risk": "active"},
+    {"ext": "xslt", "mime": "application/xslt+xml", "kind": "data", "label": "XSLT", "preview": "text", "risk": "active"},
+    {"ext": "csv", "mime": "text/csv", "kind": "data", "label": "CSV", "preview": "text", "risk": "none"},
+    {"ext": "tsv", "mime": "text/tab-separated-values", "kind": "data", "label": "TSV", "preview": "text", "risk": "none"},
+    {"ext": "yaml", "mime": "application/yaml", "kind": "data", "label": "YAML", "preview": "text", "risk": "none"},
+    {"ext": "yml", "mime": "application/yaml", "kind": "data", "label": "YML", "preview": "text", "risk": "none"},
+    {"ext": "parquet", "mime": "application/vnd.apache.parquet", "kind": "data", "label": "PARQUET", "magic": ["0:50415231"], "preview": "none", "risk": "none"},
+    {"ext": "avro", "mime": "application/avro", "kind": "data", "label": "AVRO", "magic": ["0:4F626A01"], "preview": "none", "risk": "none"},
+    {"ext": "arrow", "mime": "application/vnd.apache.arrow.file", "kind": "data", "label": "ARROW", "magic": ["0:4152524F5731"], "preview": "none", "risk": "none"},
+    {"ext": "sqlite", "mime": "application/vnd.sqlite3", "kind": "database", "label": "SQLITE", "magic": ["0:53514C69746520666F726D6174203300"], "preview": "none", "risk": "none"},
+    {"ext": "sqlite3", "mime": "application/vnd.sqlite3", "kind": "database", "label": "SQLITE3", "magic": ["~0:53514C69746520666F726D6174203300"], "preview": "none", "risk": "none"},
+    {"ext": "db", "mime": "application/vnd.sqlite3", "kind": "database", "label": "DB", "magic": ["~0:53514C69746520666F726D6174203300", "~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "mdb", "mime": "application/x-msaccess", "kind": "database", "label": "MDB", "magic": ["4:5374616E64617264204A6574204442"], "preview": "none", "risk": "none"},
+    {"ext": "accdb", "mime": "application/x-msaccess", "kind": "database", "label": "ACCDB", "magic": ["4:5374616E6461726420414345204442"], "preview": "none", "risk": "none"},
+    {"ext": "dbf", "mime": "application/x-dbf", "kind": "database", "label": "DBF", "preview": "none", "risk": "none"},
+    {"ext": "duckdb", "mime": "application/x-duckdb", "kind": "database", "label": "DUCKDB", "magic": ["8:4455434B"], "preview": "none", "risk": "none"},
+    {"ext": "ini", "mime": "text/plain", "kind": "config", "label": "INI", "preview": "text", "risk": "none"},
+    {"ext": "env", "mime": "text/plain", "kind": "config", "label": "ENV", "preview": "text", "risk": "none"},
+    {"ext": "conf", "mime": "text/plain", "kind": "config", "label": "CONF", "preview": "text", "risk": "none"},
+    {"ext": "cfg", "mime": "text/plain", "kind": "config", "label": "CFG", "preview": "text", "risk": "none"},
+    {"ext": "properties", "mime": "text/x-java-properties", "kind": "config", "label": "PROPS", "preview": "text", "risk": "none"},
+    {"ext": "toml", "mime": "application/toml", "kind": "config", "label": "TOML", "preview": "text", "risk": "none"},
+    {"ext": "tf", "mime": "text/x-terraform", "kind": "config", "label": "TF", "preview": "text", "risk": "none"},
+    {"ext": "hcl", "mime": "text/x-hcl", "kind": "config", "label": "HCL", "preview": "text", "risk": "none"},
+    {"ext": "plist", "mime": "application/x-plist", "kind": "config", "label": "PLIST", "magic": ["0:62706C6973743030", "0:3C3F786D6C"], "preview": "none", "risk": "none"},
+    {"ext": "reg", "mime": "text/plain", "kind": "config", "label": "REG", "preview": "none", "risk": "executable"},
+    {"ext": "zip", "mime": "application/zip", "kind": "archive", "label": "ZIP", "magic": ["0:504B0304", "0:504B0506", "0:504B0708"], "preview": "none", "risk": "none"},
+    {"ext": "rar", "mime": "application/vnd.rar", "kind": "archive", "label": "RAR", "magic": ["0:526172211A07"], "preview": "none", "risk": "none"},
+    {"ext": "7z", "mime": "application/x-7z-compressed", "kind": "archive", "label": "7Z", "magic": ["0:377ABCAF271C"], "preview": "none", "risk": "none"},
+    {"ext": "tar", "mime": "application/x-tar", "kind": "archive", "label": "TAR", "magic": ["257:7573746172"], "preview": "none", "risk": "none"},
+    {"ext": "gz", "mime": "application/gzip", "kind": "archive", "label": "GZ", "magic": ["0:1F8B"], "preview": "none", "risk": "none"},
+    {"ext": "tgz", "mime": "application/gzip", "kind": "archive", "label": "TGZ", "magic": ["~0:1F8B"], "preview": "none", "risk": "none"},
+    {"ext": "bz2", "mime": "application/x-bzip2", "kind": "archive", "label": "BZ2", "magic": ["0:425A68"], "preview": "none", "risk": "none"},
+    {"ext": "tbz2", "mime": "application/x-bzip2", "kind": "archive", "label": "TBZ2", "magic": ["~0:425A68"], "preview": "none", "risk": "none"},
+    {"ext": "xz", "mime": "application/x-xz", "kind": "archive", "label": "XZ", "magic": ["0:FD377A585A00"], "preview": "none", "risk": "none"},
+    {"ext": "txz", "mime": "application/x-xz", "kind": "archive", "label": "TXZ", "magic": ["~0:FD377A585A00"], "preview": "none", "risk": "none"},
+    {"ext": "zst", "mime": "application/zstd", "kind": "archive", "label": "ZST", "magic": ["0:28B52FFD"], "preview": "none", "risk": "none"},
+    {"ext": "lz4", "mime": "application/x-lz4", "kind": "archive", "label": "LZ4", "magic": ["0:04224D18"], "preview": "none", "risk": "none"},
+    {"ext": "lz", "mime": "application/x-lzip", "kind": "archive", "label": "LZ", "magic": ["0:4C5A4950"], "preview": "none", "risk": "none"},
+    {"ext": "z", "mime": "application/x-compress", "kind": "archive", "label": "Z", "magic": ["0:1F9D", "0:1FA0"], "preview": "none", "risk": "none"},
+    {"ext": "cab", "mime": "application/vnd.ms-cab-compressed", "kind": "archive", "label": "CAB", "magic": ["0:4D534346"], "preview": "none", "risk": "none"},
+    {"ext": "arj", "mime": "application/x-arj", "kind": "archive", "label": "ARJ", "magic": ["0:60EA"], "preview": "none", "risk": "none"},
+    {"ext": "cpio", "mime": "application/x-cpio", "kind": "archive", "label": "CPIO", "magic": ["0:303730373037", "0:C771"], "preview": "none", "risk": "none"},
+    {"ext": "iso", "mime": "application/x-iso9660-image", "kind": "disk-image", "label": "ISO", "magic": ["32769:4344303031"], "preview": "none", "risk": "none"},
+    {"ext": "img", "mime": "application/octet-stream", "kind": "disk-image", "label": "IMG", "preview": "none", "risk": "none"},
+    {"ext": "dmg", "mime": "application/x-apple-diskimage", "kind": "disk-image", "label": "DMG", "preview": "none", "risk": "executable"},
+    {"ext": "vhd", "mime": "application/x-vhd", "kind": "disk-image", "label": "VHD", "preview": "none", "risk": "none"},
+    {"ext": "vhdx", "mime": "application/x-vhdx", "kind": "disk-image", "label": "VHDX", "magic": ["0:7668647866696C65"], "preview": "none", "risk": "none"},
+    {"ext": "vmdk", "mime": "application/x-vmdk", "kind": "disk-image", "label": "VMDK", "magic": ["0:4B444D", "0:23204469736B2044657363726970746F72"], "preview": "none", "risk": "none"},
+    {"ext": "qcow2", "mime": "application/x-qemu-disk", "kind": "disk-image", "label": "QCOW2", "magic": ["0:514649FB"], "preview": "none", "risk": "none"},
+    {"ext": "vdi", "mime": "application/x-virtualbox-vdi", "kind": "disk-image", "label": "VDI", "magic": ["64:7F10DABE"], "preview": "none", "risk": "none"},
+    {"ext": "ova", "mime": "application/x-virtualbox-ova", "kind": "disk-image", "label": "OVA", "magic": ["~257:7573746172"], "preview": "none", "risk": "none"},
+    {"ext": "exe", "mime": "application/vnd.microsoft.portable-executable", "kind": "executable", "label": "EXE", "magic": ["0:4D5A"], "preview": "none", "risk": "executable"},
+    {"ext": "dll", "mime": "application/vnd.microsoft.portable-executable", "kind": "executable", "label": "DLL", "magic": ["~0:4D5A"], "preview": "none", "risk": "executable"},
+    {"ext": "scr", "mime": "application/vnd.microsoft.portable-executable", "kind": "executable", "label": "SCR", "magic": ["~0:4D5A"], "preview": "none", "risk": "executable"},
+    {"ext": "cpl", "mime": "application/vnd.microsoft.portable-executable", "kind": "executable", "label": "CPL", "magic": ["~0:4D5A"], "preview": "none", "risk": "executable"},
+    {"ext": "msi", "mime": "application/x-msi", "kind": "executable", "label": "MSI", "magic": ["~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "executable"},
+    {"ext": "msix", "mime": "application/msix", "kind": "executable", "label": "MSIX", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "appx", "mime": "application/appx", "kind": "executable", "label": "APPX", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "lnk", "mime": "application/x-ms-shortcut", "kind": "executable", "label": "LNK", "magic": ["0:4C000000"], "preview": "none", "risk": "executable"},
+    {"ext": "hta", "mime": "application/hta", "kind": "executable", "label": "HTA", "preview": "none", "risk": "executable"},
+    {"ext": "apk", "mime": "application/vnd.android.package-archive", "kind": "executable", "label": "APK", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "ipa", "mime": "application/x-ios-app", "kind": "executable", "label": "IPA", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "jar", "mime": "application/java-archive", "kind": "executable", "label": "JAR", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "class", "mime": "application/java-vm", "kind": "executable", "label": "CLASS", "magic": ["0:CAFEBABE"], "preview": "none", "risk": "executable"},
+    {"ext": "wasm", "mime": "application/wasm", "kind": "executable", "label": "WASM", "magic": ["0:0061736D"], "preview": "none", "risk": "executable"},
+    {"ext": "deb", "mime": "application/vnd.debian.binary-package", "kind": "executable", "label": "DEB", "magic": ["0:213C617263683E"], "preview": "none", "risk": "executable"},
+    {"ext": "rpm", "mime": "application/x-rpm", "kind": "executable", "label": "RPM", "magic": ["0:EDABEEDB"], "preview": "none", "risk": "executable"},
+    {"ext": "pkg", "mime": "application/x-xar", "kind": "executable", "label": "PKG", "magic": ["0:78617221"], "preview": "none", "risk": "executable"},
+    {"ext": "elf", "mime": "application/x-elf", "kind": "executable", "label": "ELF", "magic": ["0:7F454C46"], "preview": "none", "risk": "executable"},
+    {"ext": "so", "mime": "application/x-sharedlib", "kind": "executable", "label": "SO", "magic": ["~0:7F454C46"], "preview": "none", "risk": "executable"},
+    {"ext": "appimage", "mime": "application/vnd.appimage", "kind": "executable", "label": "APPIMG", "magic": ["~0:7F454C46"], "preview": "none", "risk": "executable"},
+    {"ext": "dylib", "mime": "application/x-mach-binary", "kind": "executable", "label": "DYLIB", "magic": ["0:CFFAEDFE", "0:CEFAEDFE", "~0:CAFEBABE"], "preview": "none", "risk": "executable"},
+    {"ext": "run", "mime": "application/x-sh", "kind": "executable", "label": "RUN", "preview": "none", "risk": "executable"},
+    {"ext": "crx", "mime": "application/x-chrome-extension", "kind": "executable", "label": "CRX", "magic": ["0:43723234"], "preview": "none", "risk": "executable"},
+    {"ext": "xpi", "mime": "application/x-xpinstall", "kind": "executable", "label": "XPI", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "vsix", "mime": "application/vsix", "kind": "executable", "label": "VSIX", "magic": ["~0:504B0304"], "preview": "none", "risk": "executable"},
+    {"ext": "ttf", "mime": "font/ttf", "kind": "font", "label": "TTF", "magic": ["0:0001000000"], "preview": "none", "risk": "none"},
+    {"ext": "otf", "mime": "font/otf", "kind": "font", "label": "OTF", "magic": ["0:4F54544F"], "preview": "none", "risk": "none"},
+    {"ext": "woff", "mime": "font/woff", "kind": "font", "label": "WOFF", "magic": ["0:774F4646"], "preview": "none", "risk": "none"},
+    {"ext": "woff2", "mime": "font/woff2", "kind": "font", "label": "WOFF2", "magic": ["0:774F4632"], "preview": "none", "risk": "none"},
+    {"ext": "ttc", "mime": "font/collection", "kind": "font", "label": "TTC", "magic": ["0:74746366"], "preview": "none", "risk": "none"},
+    {"ext": "eot", "mime": "application/vnd.ms-fontobject", "kind": "font", "label": "EOT", "magic": ["~34:4C50"], "preview": "none", "risk": "none"},
+    {"ext": "glb", "mime": "model/gltf-binary", "kind": "model-3d", "label": "GLB", "magic": ["0:676C5446"], "preview": "none", "risk": "none"},
+    {"ext": "gltf", "mime": "model/gltf+json", "kind": "model-3d", "label": "GLTF", "preview": "none", "risk": "none"},
+    {"ext": "obj", "mime": "model/obj", "kind": "model-3d", "label": "OBJ", "preview": "none", "risk": "none"},
+    {"ext": "stl", "mime": "model/stl", "kind": "model-3d", "label": "STL", "preview": "none", "risk": "none"},
+    {"ext": "fbx", "mime": "model/x-fbx", "kind": "model-3d", "label": "FBX", "preview": "none", "risk": "none"},
+    {"ext": "blend", "mime": "application/x-blender", "kind": "model-3d", "label": "BLEND", "magic": ["0:424C454E444552", "~0:28B52FFD", "~0:1F8B"], "preview": "none", "risk": "none"},
+    {"ext": "usdz", "mime": "model/vnd.usdz+zip", "kind": "model-3d", "label": "USDZ", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "usd", "mime": "model/vnd.usd", "kind": "model-3d", "label": "USD", "preview": "none", "risk": "none"},
+    {"ext": "3mf", "mime": "model/3mf", "kind": "model-3d", "label": "3MF", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "ply", "mime": "model/x-ply", "kind": "model-3d", "label": "PLY", "magic": ["0:706C790A", "0:706C790D"], "preview": "none", "risk": "none"},
+    {"ext": "dae", "mime": "model/vnd.collada+xml", "kind": "model-3d", "label": "DAE", "preview": "none", "risk": "active"},
+    {"ext": "3ds", "mime": "application/x-3ds", "kind": "model-3d", "label": "3DS", "magic": ["~0:4D4D"], "preview": "none", "risk": "none"},
+    {"ext": "max", "mime": "application/x-3dsmax", "kind": "model-3d", "label": "MAX", "magic": ["~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "wrl", "mime": "model/vrml", "kind": "model-3d", "label": "WRL", "magic": ["0:2356524D4C"], "preview": "none", "risk": "none"},
+    {"ext": "dwg", "mime": "image/vnd.dwg", "kind": "cad", "label": "DWG", "magic": ["0:41433130"], "preview": "none", "risk": "none"},
+    {"ext": "dxf", "mime": "image/vnd.dxf", "kind": "cad", "label": "DXF", "preview": "none", "risk": "none"},
+    {"ext": "step", "mime": "model/step", "kind": "cad", "label": "STEP", "magic": ["0:49534F2D31303330332D3231"], "preview": "none", "risk": "none"},
+    {"ext": "stp", "mime": "model/step", "kind": "cad", "label": "STP", "magic": ["~0:49534F2D31303330332D3231"], "preview": "none", "risk": "none"},
+    {"ext": "iges", "mime": "model/iges", "kind": "cad", "label": "IGES", "preview": "none", "risk": "none"},
+    {"ext": "igs", "mime": "model/iges", "kind": "cad", "label": "IGS", "preview": "none", "risk": "none"},
+    {"ext": "ifc", "mime": "model/x-ifc", "kind": "cad", "label": "IFC", "magic": ["~0:49534F2D31303330332D3231"], "preview": "none", "risk": "none"},
+    {"ext": "skp", "mime": "application/vnd.sketchup.skp", "kind": "cad", "label": "SKP", "preview": "none", "risk": "none"},
+    {"ext": "3dm", "mime": "model/vnd.3dm", "kind": "cad", "label": "3DM", "preview": "none", "risk": "none"},
+    {"ext": "sldprt", "mime": "application/x-sldprt", "kind": "cad", "label": "SLDPRT", "preview": "none", "risk": "none"},
+    {"ext": "sldasm", "mime": "application/x-sldasm", "kind": "cad", "label": "SLDASM", "preview": "none", "risk": "none"},
+    {"ext": "shp", "mime": "application/vnd.shp", "kind": "cad", "label": "SHP", "magic": ["0:0000270A"], "preview": "none", "risk": "none"},
+    {"ext": "geojson", "mime": "application/geo+json", "kind": "cad", "label": "GEOJSON", "preview": "text", "risk": "none"},
+    {"ext": "kml", "mime": "application/vnd.google-earth.kml+xml", "kind": "cad", "label": "KML", "preview": "none", "risk": "active"},
+    {"ext": "kmz", "mime": "application/vnd.google-earth.kmz", "kind": "cad", "label": "KMZ", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "gpx", "mime": "application/gpx+xml", "kind": "cad", "label": "GPX", "preview": "none", "risk": "active"},
+    {"ext": "gpkg", "mime": "application/geopackage+sqlite3", "kind": "cad", "label": "GPKG", "magic": ["~0:53514C69746520666F726D6174203300"], "preview": "none", "risk": "none"},
+    {"ext": "psd", "mime": "image/vnd.adobe.photoshop", "kind": "design", "label": "PSD", "magic": ["0:38425053"], "preview": "none", "risk": "none"},
+    {"ext": "psb", "mime": "image/vnd.adobe.photoshop", "kind": "design", "label": "PSB", "magic": ["~0:38425053"], "preview": "none", "risk": "none"},
+    {"ext": "ai", "mime": "application/postscript", "kind": "design", "label": "AI", "magic": ["~0:25504446", "~0:25215053"], "preview": "none", "risk": "none"},
+    {"ext": "indd", "mime": "application/x-indesign", "kind": "design", "label": "INDD", "magic": ["0:0606EDF5D81D46E5BD31EFE7FE74B71D"], "preview": "none", "risk": "none"},
+    {"ext": "xd", "mime": "application/vnd.adobe.xd", "kind": "design", "label": "XD", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "sketch", "mime": "application/x-sketch", "kind": "design", "label": "SKETCH", "magic": ["~0:504B0304", "~0:53514C69746520666F726D6174203300"], "preview": "none", "risk": "none"},
+    {"ext": "fig", "mime": "application/x-figma", "kind": "design", "label": "FIG", "preview": "none", "risk": "none"},
+    {"ext": "xcf", "mime": "image/x-xcf", "kind": "design", "label": "XCF", "magic": ["0:67696D7020786366"], "preview": "none", "risk": "none"},
+    {"ext": "kra", "mime": "application/x-krita", "kind": "design", "label": "KRA", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "procreate", "mime": "application/x-procreate", "kind": "design", "label": "PROCR", "magic": ["~0:504B0304"], "preview": "none", "risk": "none"},
+    {"ext": "afdesign", "mime": "application/x-affinity-designer", "kind": "design", "label": "AFDES", "preview": "none", "risk": "none"},
+    {"ext": "afphoto", "mime": "application/x-affinity-photo", "kind": "design", "label": "AFPHO", "preview": "none", "risk": "none"},
+    {"ext": "cdr", "mime": "application/vnd.corel-draw", "kind": "design", "label": "CDR", "magic": ["0:52494646 8:434452"], "preview": "none", "risk": "none"},
+    {"ext": "ics", "mime": "text/calendar", "kind": "calendar", "label": "ICS", "preview": "text", "risk": "none"},
+    {"ext": "vcf", "mime": "text/vcard", "kind": "calendar", "label": "VCF", "preview": "text", "risk": "none"},
+    {"ext": "crt", "mime": "application/x-x509-ca-cert", "kind": "certificate", "label": "CRT", "preview": "none", "risk": "none"},
+    {"ext": "cer", "mime": "application/pkix-cert", "kind": "certificate", "label": "CER", "preview": "none", "risk": "none"},
+    {"ext": "pem", "mime": "application/x-pem-file", "kind": "certificate", "label": "PEM", "preview": "none", "risk": "none"},
+    {"ext": "der", "mime": "application/x-x509-ca-cert", "kind": "certificate", "label": "DER", "magic": ["~0:3082"], "preview": "none", "risk": "none"},
+    {"ext": "key", "mime": "application/x-pem-file", "kind": "certificate", "label": "KEY", "preview": "none", "risk": "none"},
+    {"ext": "csr", "mime": "application/pkcs10", "kind": "certificate", "label": "CSR", "preview": "none", "risk": "none"},
+    {"ext": "p7b", "mime": "application/x-pkcs7-certificates", "kind": "certificate", "label": "P7B", "preview": "none", "risk": "none"},
+    {"ext": "p12", "mime": "application/x-pkcs12", "kind": "certificate", "label": "P12", "magic": ["~0:3082"], "preview": "none", "risk": "none"},
+    {"ext": "pfx", "mime": "application/x-pkcs12", "kind": "certificate", "label": "PFX", "magic": ["~0:3082"], "preview": "none", "risk": "none"},
+    {"ext": "jks", "mime": "application/x-java-keystore", "kind": "certificate", "label": "JKS", "magic": ["0:FEEDFEED"], "preview": "none", "risk": "none"},
+    {"ext": "kdbx", "mime": "application/x-keepass2", "kind": "certificate", "label": "KDBX", "magic": ["0:03D9A29A67FB4BB5"], "preview": "none", "risk": "none"},
+    {"ext": "asc", "mime": "application/pgp-keys", "kind": "certificate", "label": "ASC", "preview": "none", "risk": "none"},
+    {"ext": "gpg", "mime": "application/pgp-encrypted", "kind": "certificate", "label": "GPG", "preview": "none", "risk": "none"},
+    {"ext": "eml", "mime": "message/rfc822", "kind": "email", "label": "EML", "preview": "text", "risk": "none"},
+    {"ext": "msg", "mime": "application/vnd.ms-outlook", "kind": "email", "label": "MSG", "magic": ["~0:D0CF11E0A1B11AE1"], "preview": "none", "risk": "none"},
+    {"ext": "mbox", "mime": "application/mbox", "kind": "email", "label": "MBOX", "preview": "none", "risk": "none"},
+    {"ext": "pst", "mime": "application/vnd.ms-outlook-pst", "kind": "email", "label": "PST", "magic": ["0:2142444E"], "preview": "none", "risk": "none"},
+    {"ext": "bin", "mime": "application/octet-stream", "kind": "generic", "label": "BIN", "preview": "none", "risk": "none"},
+    {"ext": "dat", "mime": "application/octet-stream", "kind": "generic", "label": "DAT", "preview": "none", "risk": "none"},
+    {"ext": "bak", "mime": "application/octet-stream", "kind": "generic", "label": "BAK", "preview": "none", "risk": "none"},
+    {"ext": "tmp", "mime": "application/octet-stream", "kind": "generic", "label": "TMP", "preview": "none", "risk": "none"}
   ]
 }

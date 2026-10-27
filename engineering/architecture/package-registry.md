@@ -12,7 +12,7 @@
 | Package | Layer | References | Heavy deps | Forms | State | Consumers |
 |---|---|---|---|---|---|---|
 | `WoW2.Sdk.Beta.Be.Files.Abstractions` | contract | the kernel `WoW2.Sdk.Beta.Be.Abstractions` only; no framework reference | none | all | contract skeleton | product Domain and Application projects |
-| `WoW2.Sdk.Beta.Be.Files.Formats` | edge | Abstractions | none | all | registry seed | Module, upload checks in any product, `fe-files/icons` (by its registry) |
+| `WoW2.Sdk.Beta.Be.Files.Formats` | edge | Abstractions | none | all | types, detection, mismatch check, safe names | Module, upload checks in any product, `fe-files/icons` (by its registry) |
 | `WoW2.Sdk.Beta.Be.Files.Module` | forms | Abstractions, Formats, core | none | 1 | template sample | products on Form 1, `service/Files.Api` |
 | `WoW2.Sdk.Beta.Be.Files.Client` | forms | Abstractions, core | none | 2, 3 | template sample | products on an owner instance or the shared host |
 | `WoW2.Sdk.Beta.Be.Files.Server` | extension | Module, core | tusdotnet, once resumable uploads land | 1, and the service | project only | Form 1 hosts, `service/Files.Api` |
@@ -22,7 +22,7 @@
 | `WoW2.Sdk.Beta.Be.Files.Documents` | edge | Abstractions | PDFsharp, PdfPig; PDFium later | all | planned: moves from core `Media/Pdf` | Module (previews), products with PDF tools |
 | `WoW2.Sdk.Beta.Be.Files.Video` | extension | Abstractions, core | the FFmpeg binary | 1, and the service | planned: P2 | Module (posters, probes) through a contract port |
 | `WoW2.Sdk.Beta.Be.Files.Scanning` | extension | Abstractions, core | none (ClamAV over TCP) | 1, and the service | planned: P2 | Module through a contract port |
-| `@wow-two-beta/fe-files` | fe | peers `@wow-two-beta/fe` `>=0.0.n <0.1.0`, `vue` | none | all | template sample | product frontends, `apps/web` |
+| `@wow-two-beta/fe-files` | fe | peers `@wow-two-beta/fe` `>=0.0.n <0.1.0`, `vue` | none | all | icons; template sample | product frontends, `apps/web` |
 
 - `fe-files` subpaths: `/contracts` (the TypeScript mirror), `/kit` (upload kit, previews, share UI), `/icons` (the
   file icon pack, usable without a Files instance).

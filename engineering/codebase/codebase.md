@@ -19,7 +19,8 @@ The code lives in `files.backend-services/` (.NET) and `files.frontend-services/
 
 ## Frontend
 
-A pnpm workspace: `packages/fe-files` (`@wow-two-beta/fe-files`, published) and `apps/web` (hosted pages and console,
-private). `scripts/deploy.mjs` copies `apps/web/dist/` to `files.backend-services/service/Files.Api/wwwroot/`.
+A pnpm workspace: `packages/fe-files` (`@wow-two-beta/fe-files`, published: `./contracts`, `./icons`, `./kit`) and
+`apps/web` (console at `/`, icon page at `/icons`, hosted pages; private). `fe-files/src/icons/FileTypeTable.ts` is
+generated from the be registry by `pnpm gen:file-types`. `scripts/deploy.mjs` copies `apps/web/dist/` to `files.backend-services/service/Files.Api/wwwroot/`.
 
 Rules: wow-two-ws/conventions/development/repo/structure/domain-structure.md
