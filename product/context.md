@@ -20,7 +20,7 @@ The image releases from `main`; no package is published yet.
 | Shares as containers | proposed | [T11](../engineering/research/files-analysis-2026-10/t11-next-and-shares.md) § 3; N1–N3 wait for the developer |
 | Identity contracts C1–C15 | in progress | prompt ready; the developer forwards it; integration as we go |
 | Wheelhouse migration module prompt | draft | refined once the import API exists, then forwarded |
-| NuGet and npm first publish | in progress | NuGet policy created 2026-10-27, used within 7 days; arming and the npm first version are the developer's |
+| NuGet and npm first publish | in progress | policy, npm `0.0.1`, npm trust and `PUBLISH_PACKAGES` set 2026-10-27; the first CI publish (a dispatch, by the developer) runs by 2026-10-29, before npm drops the trust |
 
 ## Open questions
 
@@ -43,4 +43,6 @@ The image releases from `main`; no package is published yet.
 - 2026-10-27 — Files serves files to products, service to service; a person-facing drive is a separate server built
   later on the same packages; expiry and shares stay in Files ([T11](../engineering/research/files-analysis-2026-10/t11-next-and-shares.md)).
 - 2026-10-27 — console stats keep a daily rollup from the first console build (T10 U3).
+- 2026-10-27 — a "container" is a share: the owner edits its file set, the link shows the current set; no
+  collection entity (T11 N1).
 - 2026-10-27 — the service serves every file icon from its web root at `/icons/{ext}.svg`, embeddable by any origin.

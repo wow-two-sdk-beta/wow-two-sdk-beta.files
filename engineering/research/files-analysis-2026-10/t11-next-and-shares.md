@@ -79,7 +79,7 @@ removes files later and the link shows the current set; no separate collection e
 Open decisions, parents before children. **F** = a fork only the developer can settle; **V** = a claim to validate.
 Format: question → pick.
 
-- [ ] N1 · F · a "container": one share whose file set the owner edits, or a collection entity that shares point at → one share (§ 3)
+- [x] N1 · F · a "container": one share whose file set the owner edits, or a collection entity that shares point at → one share (§ 3) — answered 2026-10-27: one share
 - [ ] N2 · V · park the drive-shaped backlog rows (§ 1 table) until the drive exists → park
 - [ ] N3 · F · after v0.1: v0.2 Console then v0.3 Shares, or Shares first → Console first (§ 2)
 

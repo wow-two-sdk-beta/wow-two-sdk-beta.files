@@ -81,6 +81,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 
 | Item | Type | Notes |
 |---|---|---|
+| Shares as containers: a link over a file set the owner edits | feature | P1; [T11](../research/files-analysis-2026-10/t11-next-and-shares.md) § 3 |
 | Share links with expiry, password, download limits, one-time, revoke | feature | P1; D7 |
 | Share page: tenant brand, preview, download, download all as ZIP | feature | P1; fe-files |
 | Sign-in gate: members of an organization only | feature | P2; Identity OIDC |
