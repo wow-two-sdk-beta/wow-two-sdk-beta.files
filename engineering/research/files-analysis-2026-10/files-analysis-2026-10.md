@@ -45,6 +45,7 @@
 | T8 | Identity contracts C1–C15, with the prompt for the Identity chat | [t8-identity-contracts.md](t8-identity-contracts.md) · [prompt](prompt-identity-chat.md) | ✅ |
 | T9 | Wheelhouse migration module: features, integrations, security, with a draft prompt for the Wheelhouse chat | [t9-wheelhouse-migration.md](t9-wheelhouse-migration.md) · [prompt draft](prompt-wheelhouse-migration.md) | ✅ |
 | T10 | Console: audiences, pages, stats, shell, sign-in last, first slice; its decision points live in the track | [t10-console.md](t10-console.md) | ✅ |
+| T11 | Next work while Identity and migrations build; shares as containers; the product-service direction | [t11-next-and-shares.md](t11-next-and-shares.md) | ✅ |
 
 ---
 

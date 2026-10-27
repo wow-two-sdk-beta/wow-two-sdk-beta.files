@@ -390,7 +390,7 @@ Format: question → pick.
 
 - [ ] U1 · V · one console app serves `Single` and `Shared` (nav and scope by mode and scopes), not two apps → one (§ 1)
 - [ ] U2 · F · what the operator reaches on B: aggregates in All tenants, a tenant's file list after entering it (audited to the tenant), content only by break-glass → that (§ 4.4)
-- [ ] U3 · F · stats: live queries only, or nightly snapshot plus rollup from the first slice → rollup from day one, since storage history cannot be rebuilt (§ 3.1)
+- [x] U3 · F · stats: live queries only, or nightly snapshot plus rollup from the first slice → rollup from day one, since storage history cannot be rebuilt (§ 3.1) — answered 2026-10-27: rollup from day one
 - [ ] U4 · V · v0.1 iteration 5's audit row carries `outcome`, `error_code`, `app_id`, `client_id`, `bytes`, `hits`, one row per signed-URL redemption → yes, before the row is written (§ 3.3)
 - [ ] U5 · F · sign-in before Identity: dev bypass plus an instance admin key with a cookie session, read-only first, behind the tailnet → that, over no console on B (§ 5.2)
 - [ ] U6 · F · shell kit: lift Wheelhouse's `Panel`, `StatusPill`, `ScopeBar`, console nav into the fe sdk first, or copy them a third time → lift (§ 4.2)

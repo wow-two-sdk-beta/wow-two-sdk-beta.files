@@ -17,9 +17,10 @@ The image releases from `main`; no package is published yet.
 |---|---|---|
 | v0.1 File store | verification | `engineering/planning/version-track/v0.1/v0.1.md`; the developer runs the checks |
 | Console slice | proposed | [T10](../engineering/research/files-analysis-2026-10/t10-console.md) § 6; its points wait for the developer |
+| Shares as containers | proposed | [T11](../engineering/research/files-analysis-2026-10/t11-next-and-shares.md) § 3; N1–N3 wait for the developer |
 | Identity contracts C1–C15 | in progress | prompt ready; the developer forwards it; integration as we go |
 | Wheelhouse migration module prompt | draft | refined once the import API exists, then forwarded |
-| NuGet and npm first publish | todo | `create-library` phase 4: NuGet consent, npm first version (developer) |
+| NuGet and npm first publish | in progress | NuGet policy created 2026-10-27, used within 7 days; arming and the npm first version are the developer's |
 
 ## Open questions
 
@@ -39,3 +40,7 @@ The image releases from `main`; no package is published yet.
 - 2026-10-26 — the first test migration runs through a Wheelhouse migration module (W1–W9).
 - 2026-10-26 — moved core namespaces become `Files.Images` and `Files.Documents`.
 - 2026-10-26 — planning follows the version track: one backlog with the whole vector, one version doc at a time.
+- 2026-10-27 — Files serves files to products, service to service; a person-facing drive is a separate server built
+  later on the same packages; expiry and shares stay in Files ([T11](../engineering/research/files-analysis-2026-10/t11-next-and-shares.md)).
+- 2026-10-27 — console stats keep a daily rollup from the first console build (T10 U3).
+- 2026-10-27 — the service serves every file icon from its web root at `/icons/{ext}.svg`, embeddable by any origin.
