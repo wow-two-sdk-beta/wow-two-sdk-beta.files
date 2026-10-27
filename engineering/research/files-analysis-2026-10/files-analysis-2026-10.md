@@ -1,6 +1,6 @@
 # Files — full analysis before the build
 
-*Last updated: 2026-10-26*
+*Last updated: 2026-10-27*
 
 > The analysis batch behind the files domain repo (#3 in platform apps (`wow-two-ws/docs/platform-apps.md`)): how many
 > services and instance kinds it needs, what products store today, the whole feature vector, the contract, what it
@@ -44,6 +44,7 @@
 | T7 | File icon pack | [t7-file-icons.md](t7-file-icons.md) | ✅ |
 | T8 | Identity contracts C1–C15, with the prompt for the Identity chat | [t8-identity-contracts.md](t8-identity-contracts.md) · [prompt](prompt-identity-chat.md) | ✅ |
 | T9 | Wheelhouse migration module: features, integrations, security, with a draft prompt for the Wheelhouse chat | [t9-wheelhouse-migration.md](t9-wheelhouse-migration.md) · [prompt draft](prompt-wheelhouse-migration.md) | ✅ |
+| T10 | Console: audiences, pages, stats, shell, sign-in last, first slice; its decision points live in the track | [t10-console.md](t10-console.md) | ✅ |
 
 ---
 
