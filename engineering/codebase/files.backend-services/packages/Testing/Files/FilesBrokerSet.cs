@@ -1,3 +1,4 @@
+using WoW.Two.Sdk.Beta.Be.Files.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
@@ -10,4 +11,5 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
 /// <param name="Store">The store broker.</param>
 /// <param name="References">The references broker.</param>
 /// <param name="Urls">The URLs broker.</param>
-public sealed record FilesBrokerSet(IFileUploadsBroker Uploads, IFileStoreBroker Store, IFileReferencesBroker References, IFileUrlsBroker Urls);
+/// <param name="Audit">The audit broker.</param>
+public sealed record FilesBrokerSet(IFileUploadsBroker Uploads, IFileStoreBroker Store, IFileReferencesBroker References, IFileUrlsBroker Urls, IFileAuditBroker Audit);

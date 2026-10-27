@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace WoW.Two.Sdk.Beta.Be.Files.Store;
 
 /// <summary>Represents a file's identity: a UUIDv7 the instance assigns, which survives every tenant move.</summary>
 /// <param name="Value">The underlying UUID.</param>
+[JsonConverter(typeof(FileIdJsonConverter))]
 public readonly record struct FileId(Guid Value)
 {
     /// <summary>Creates a new, time-ordered file id.</summary>

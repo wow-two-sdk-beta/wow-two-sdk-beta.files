@@ -12,3 +12,13 @@ public sealed class ModuleFilesConformanceTests(ModuleFilesFixture fixture) : Fi
 
     protected override FilesBrokerSet OtherTenant => otherTenant;
 }
+
+/// <summary>Forms 2 and 3: the same suite through the Client against the service host, by two tenants' API keys.</summary>
+public sealed class ClientFilesConformanceTests(ClientFilesFixture fixture) : FilesBrokerConformance, IClassFixture<ClientFilesFixture>
+{
+    protected override FilesBrokerSet Brokers => fixture.Tenant;
+
+    protected override FilesBrokerSet OtherTenant => fixture.OtherTenant;
+
+    protected override TimeProvider Clock => fixture.Clock;
+}

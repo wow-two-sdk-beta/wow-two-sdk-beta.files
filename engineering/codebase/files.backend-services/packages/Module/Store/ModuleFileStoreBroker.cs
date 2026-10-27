@@ -1,7 +1,9 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using WoW.Two.Sdk.Beta.Be.Files.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Formats.Types;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Blobs;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
@@ -16,6 +18,7 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 internal sealed class ModuleFileStoreBroker(
     FilesDbContext db,
     FileContentReader reader,
+    FileAuditWriter audit,
     IFilesCallerService callers,
     IOptions<FilesModuleOptions> options,
     TimeProvider time) : IFileStoreBroker
@@ -27,10 +30,16 @@ internal sealed class ModuleFileStoreBroker(
             : Result<FileModel>.Fail(FilesErrors.FileNotFound());
 
     /// <inheritdoc />
-    public async Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default) =>
-        await FindAsync(id, includeDeleted: false, cancellationToken) is { } row
-            ? await reader.OpenAsync(row, range, cancellationToken)
-            : Result<FileContent>.Fail(FilesErrors.FileNotFound());
+    public async Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default)
+    {
+        if (await FindAsync(id, includeDeleted: false, cancellationToken) is not { } row)
+            return Result<FileContent>.Fail(FilesErrors.FileNotFound());
+
+        var opened = await reader.OpenAsync(row, range, cancellationToken);
+        if (opened is Result<FileContent>.Success { Value: var content })
+            await audit.RecordAsync(row.TenantId, row.Id, FileAuditAction.Download, content.Length, cancellationToken);
+        return opened;
+    }
 
     /// <inheritdoc />
     public async Task<Result<FilePage>> ListAsync(FileQuery query, CancellationToken cancellationToken = default)
@@ -97,6 +106,7 @@ internal sealed class ModuleFileStoreBroker(
         if (patch.ExpiresAtUtc is { } expiresAt)
             row.ExpiresAtUtc = expiresAt.ToUniversalTime();
 
+        audit.Add(row.TenantId, row.Id, FileAuditAction.Update);
         await db.SaveChangesAsync(cancellationToken);
         return Result<FileModel>.Ok(FileEntityMapper.ToModel(row));
     }
@@ -112,6 +122,7 @@ internal sealed class ModuleFileStoreBroker(
             var now = time.GetUtcNow();
             row.DeletedAtUtc = now;
             row.PurgeAtUtc = now + options.Value.PolicyFor(row.AppId).DeletedRetention;
+            audit.Add(row.TenantId, row.Id, FileAuditAction.Delete);
             await db.SaveChangesAsync(cancellationToken);
         }
 
@@ -128,6 +139,7 @@ internal sealed class ModuleFileStoreBroker(
         {
             row.DeletedAtUtc = null;
             row.PurgeAtUtc = null;
+            audit.Add(row.TenantId, row.Id, FileAuditAction.Restore);
             await db.SaveChangesAsync(cancellationToken);
         }
 

@@ -50,6 +50,9 @@ public static class FilesErrors
     /// <summary>Creates the error for a tenant the instance has suspended.</summary>
     public static AppError TenantSuspended() => AppErrorFactory.Forbidden("The files tenant is suspended.");
 
+    /// <summary>Creates the error for an upload naming an app other than the calling one.</summary>
+    public static AppError AppNotAllowed() => AppErrorFactory.Forbidden("The caller may upload under its own app only.");
+
     /// <summary>Creates the error for a tenant id that is not a safe storage key segment.</summary>
     public static AppError TenantInvalid() => AppErrorFactory.Forbidden("The files tenant is not valid.");
 

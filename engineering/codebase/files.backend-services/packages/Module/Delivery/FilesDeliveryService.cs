@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WoW.Two.Sdk.Beta.Be.Files.Formats.Types;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Blobs;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Store;
@@ -15,6 +16,7 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module.Delivery;
 internal sealed class FilesDeliveryService(
     FilesDbContext db,
     FileContentReader reader,
+    FileAuditWriter audit,
     SignedFileUrlIssuer issuer,
     IOptions<FilesModuleOptions> options,
     TimeProvider time) : IFilesDeliveryService
@@ -58,9 +60,13 @@ internal sealed class FilesDeliveryService(
 
         var rowId = FileEntityMapper.ToRowId(file.Id);
         var row = await db.Files.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == rowId && entity.TenantId == file.TenantId, cancellationToken);
-        return row is null
-            ? Result<FileContent>.Fail(FilesErrors.FileNotFound())
-            : await reader.OpenAsync(row, range, cancellationToken);
+        if (row is null)
+            return Result<FileContent>.Fail(FilesErrors.FileNotFound());
+
+        var opened = await reader.OpenAsync(row, range, cancellationToken);
+        if (opened is Result<FileContent>.Success { Value: var content })
+            await audit.RecordRedemptionAsync(row.TenantId, row.Id, content.Length, cancellationToken);
+        return opened;
     }
 
     private static DeliverableFileModel ToDeliverable(FileEntity row, FileDisposition disposition, DateTimeOffset? expiresAtUtc) => new()

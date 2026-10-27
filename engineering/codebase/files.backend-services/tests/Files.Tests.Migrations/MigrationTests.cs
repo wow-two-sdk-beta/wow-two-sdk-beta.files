@@ -9,11 +9,11 @@ namespace Files.Tests.Migrations;
 /// <summary>The module's embedded migrations over a throwaway SQLite file: apply, idempotency, and the Apply → Rollback → Apply round trip.</summary>
 public sealed class MigrationTests : IDisposable
 {
-    private static readonly string[] Names = ["baseline", "files", "references"];
+    private static readonly string[] Names = ["baseline", "files", "references", "audit"];
 
-    private static readonly string[] Applied = ["001-baseline", "002-files", "003-references"];
+    private static readonly string[] Applied = ["001-baseline", "002-files", "003-references", "004-audit"];
 
-    private static readonly string[] Tables = ["files_greeting_logs", "files_files", "files_blobs", "files_references"];
+    private static readonly string[] Tables = ["files_greeting_logs", "files_files", "files_blobs", "files_references", "files_audit"];
 
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"files-migrations-{Guid.NewGuid():N}.db");
 
@@ -40,7 +40,7 @@ public sealed class MigrationTests : IDisposable
         foreach (var table in Tables)
             (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var history = await migrator.ReadHistoryAsync();
-        history.Select(row => row.Ordinal).Should().Equal(1, 2, 3);
+        history.Select(row => row.Ordinal).Should().Equal(1, 2, 3, 4);
         history.Select(row => row.Name).Should().Equal(Names);
         history.Should().OnlyContain(row => row.AppliedBy == "startup" && row.Checksum.Length == 64);
 
@@ -64,7 +64,7 @@ public sealed class MigrationTests : IDisposable
         foreach (var table in Tables)
             (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var status = Unwrap(await migrator.Runner.GetStatusAsync(CancellationToken.None));
-        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1, 2, 3);
+        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1, 2, 3, 4);
         status.Pending.Should().BeEmpty();
         status.Drifted.Should().BeEmpty();
     }

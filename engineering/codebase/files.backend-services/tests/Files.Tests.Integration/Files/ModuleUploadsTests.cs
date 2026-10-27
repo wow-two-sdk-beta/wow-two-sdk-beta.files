@@ -113,6 +113,31 @@ public sealed class ModuleUploadsTests : IAsyncLifetime
         Directory.GetFiles(harness.TempRoot).Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task UploadAsync_ShouldRecordTheRefusal_WhenACheckRefusesTheFile()
+    {
+        Error(await harness.UploadAsync(Jpeg, "photo.png", appId: "gallery"));
+
+        var trail = Value(await harness.WithAsync<WoW.Two.Sdk.Beta.Be.Files.Audit.IFileAuditBroker, WoW.Two.Sdk.Beta.Be.Foundation.Results.Result<WoW.Two.Sdk.Beta.Be.Files.Audit.FileAuditPage>>(
+            audit => audit.ListAsync(new WoW.Two.Sdk.Beta.Be.Files.Audit.FileAuditQuery())));
+
+        trail.Items.Should().ContainSingle().Which.Should().Match<WoW.Two.Sdk.Beta.Be.Files.Audit.FileAuditEntryModel>(entry =>
+            entry.Action == WoW.Two.Sdk.Beta.Be.Files.Audit.FileAuditAction.Upload
+            && entry.Outcome == WoW.Two.Sdk.Beta.Be.Files.Audit.FileAuditOutcome.Refused
+            && entry.ErrorCode == "Validation" && entry.FileId == null && entry.AppId == "gallery" && entry.SubjectId == "user-1");
+    }
+
+    [Fact]
+    public async Task UploadAsync_ShouldFailWithAppNotAllowed_WhenTheCallerNamesAnotherApp()
+    {
+        await using var scope = harness.As("t1", appId: "gallery");
+        using var content = new MemoryStream(Png);
+        var result = await scope.ServiceProvider.GetRequiredService<WoW.Two.Sdk.Beta.Be.Files.Uploads.IFileUploadsBroker>()
+            .UploadAsync(content, new() { Name = "a.png", AppId = "tools" });
+
+        Error(result).Type.Should().Be(AppErrorType.Forbidden);
+    }
+
     private Task<int> CountAsync<TEntity>() where TEntity : class =>
         harness.WithAsync<FilesDbContext, int>(db => db.Set<TEntity>().CountAsync());
 }

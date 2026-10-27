@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using WoW.Two.Sdk.Beta.Be.Files.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
@@ -11,14 +12,20 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
 
 /// <summary>The conformance suite of the Files brokers: one set of rules every implementation passes.</summary>
 /// <remarks>Derive a test class per implementation — the module, the client against a host — and supply two callers in
-/// different tenants. Each test instance should get tenants of its own, so tests never see each other's files.</remarks>
+/// different tenants. Each test uploads under an app of its own and lists by it, so tests sharing a tenant never see
+/// each other's files.</remarks>
 public abstract class FilesBrokerConformance
 {
+    private readonly string app = $"conformance-{Guid.NewGuid():N}";
+
     /// <summary>Gets the brokers as the tenant under test reaches them.</summary>
     protected abstract FilesBrokerSet Brokers { get; }
 
     /// <summary>Gets the brokers as another tenant reaches them.</summary>
     protected abstract FilesBrokerSet OtherTenant { get; }
+
+    /// <summary>Gets the clock the implementation stamps files and URLs with; the system clock unless overridden.</summary>
+    protected virtual TimeProvider Clock => TimeProvider.System;
 
     /// <summary>An upload is stored as the type its bytes prove.</summary>
     [Fact]
@@ -80,8 +87,8 @@ public abstract class FilesBrokerConformance
         var older = Value(await UploadAsync(FilesSamples.Png, "older.png"));
         var newer = Value(await UploadAsync(FilesSamples.Png, "newer.png"));
 
-        var first = Value(await Brokers.Store.ListAsync(new FileQuery { Limit = 1 }));
-        var second = Value(await Brokers.Store.ListAsync(new FileQuery { Limit = 1, Cursor = first.NextCursor }));
+        var first = Value(await Brokers.Store.ListAsync(new FileQuery { AppId = app, Limit = 1 }));
+        var second = Value(await Brokers.Store.ListAsync(new FileQuery { AppId = app, Limit = 1, Cursor = first.NextCursor }));
 
         first.Items.Select(file => file.Id).Should().Equal(newer.Id);
         second.Items.Select(file => file.Id).Should().Equal(older.Id);
@@ -108,10 +115,10 @@ public abstract class FilesBrokerConformance
 
         Value(await Brokers.Store.DeleteAsync(file.Id)).DeletedAtUtc.Should().NotBeNull();
         Error(await Brokers.Store.OpenReadAsync(file.Id)).Type.Should().Be(AppErrorType.FileNotFound);
-        Value(await Brokers.Store.ListAsync(new FileQuery())).Items.Should().NotContain(listed => listed.Id == file.Id);
+        Value(await Brokers.Store.ListAsync(new FileQuery { AppId = app })).Items.Should().NotContain(listed => listed.Id == file.Id);
 
         Value(await Brokers.Store.RestoreAsync(file.Id)).DeletedAtUtc.Should().BeNull();
-        Value(await Brokers.Store.ListAsync(new FileQuery())).Items.Should().Contain(listed => listed.Id == file.Id);
+        Value(await Brokers.Store.ListAsync(new FileQuery { AppId = app })).Items.Should().Contain(listed => listed.Id == file.Id);
     }
 
     /// <summary>Another tenant neither reads nor lists the file.</summary>
@@ -122,10 +129,11 @@ public abstract class FilesBrokerConformance
 
         Error(await OtherTenant.Store.GetAsync(file.Id)).Type.Should().Be(AppErrorType.FileNotFound);
         Error(await OtherTenant.Store.DeleteAsync(file.Id)).Type.Should().Be(AppErrorType.FileNotFound);
-        Value(await OtherTenant.Store.ListAsync(new FileQuery())).Items.Should().NotContain(listed => listed.Id == file.Id);
+        Value(await OtherTenant.Store.ListAsync(new FileQuery { AppId = app })).Items.Should().NotContain(listed => listed.Id == file.Id);
     }
 
-    /// <summary>A record attaches once however often it asks, and detaches once.</summary>
+    /// <summary>A record attaches once however often it asks, and detaches once; references attached in the same
+    /// instant may list in either order.</summary>
     [Fact]
     public async Task References_ShouldAttachListAndDetach_OncePerRecord()
     {
@@ -137,7 +145,7 @@ public abstract class FilesBrokerConformance
         Done(await Brokers.References.AttachAsync(file.Id, product));
         Done(await Brokers.References.AttachAsync(file.Id, post));
 
-        Value(await Brokers.References.ListAsync(file.Id)).Should().Equal(product, post);
+        Value(await Brokers.References.ListAsync(file.Id)).Should().BeEquivalentTo([product, post]);
         Done(await Brokers.References.DetachAsync(file.Id, product));
         Error(await Brokers.References.DetachAsync(file.Id, product)).Type.Should().Be(AppErrorType.NotFound);
         Value(await Brokers.References.ListAsync(file.Id)).Should().Equal(post);
@@ -166,13 +174,12 @@ public abstract class FilesBrokerConformance
     public async Task Urls_ShouldIssueASignedUrl_ForAReadyFile()
     {
         var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
-        var before = DateTimeOffset.UtcNow;
 
         var url = Value(await Brokers.Urls.IssueAsync(file.Id, new UrlSpec { Lifetime = TimeSpan.FromMinutes(10) }));
 
         url.Url.IsAbsoluteUri.Should().BeTrue();
         url.Url.Query.Should().Contain("sig=");
-        url.ExpiresAtUtc.Should().BeCloseTo(before.AddMinutes(10), TimeSpan.FromDays(1));
+        url.ExpiresAtUtc.Should().BeCloseTo(Clock.GetUtcNow().AddMinutes(10), TimeSpan.FromMinutes(1));
     }
 
     /// <summary>A public URL is refused for a private file and issued for a public one.</summary>
@@ -195,10 +202,26 @@ public abstract class FilesBrokerConformance
         Error(await OtherTenant.Urls.IssueAsync(file.Id, new UrlSpec())).Type.Should().Be(AppErrorType.FileNotFound);
     }
 
+    /// <summary>An upload, a read and a delete each leave an audit entry for the file, newest first.</summary>
+    [Fact]
+    public async Task Audit_ShouldRecordUploadDownloadAndDelete()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Pdf, "a.pdf"));
+        (await ReadAsync(Value(await Brokers.Store.OpenReadAsync(file.Id)))).Should().Equal(FilesSamples.Pdf);
+        Value(await Brokers.Store.DeleteAsync(file.Id));
+
+        var trail = Value(await Brokers.Audit.ListAsync(new FileAuditQuery { FileId = file.Id }));
+
+        trail.Items.Select(entry => entry.Action).Should().Equal(FileAuditAction.Delete, FileAuditAction.Download, FileAuditAction.Upload);
+        trail.Items.Should().OnlyContain(entry => entry.Outcome == FileAuditOutcome.Ok);
+        trail.Items.Single(entry => entry.Action == FileAuditAction.Download).Bytes.Should().Be(FilesSamples.Pdf.Length);
+        Value(await OtherTenant.Audit.ListAsync(new FileAuditQuery { FileId = file.Id })).Items.Should().BeEmpty();
+    }
+
     private async Task<Result<FileModel>> UploadAsync(byte[] bytes, string name, string? idempotencyKey = null)
     {
         using var content = new MemoryStream(bytes);
-        return await Brokers.Uploads.UploadAsync(content, new UploadSpec { Name = name, IdempotencyKey = idempotencyKey });
+        return await Brokers.Uploads.UploadAsync(content, new UploadSpec { Name = name, AppId = app, IdempotencyKey = idempotencyKey });
     }
 
     private static async Task<byte[]> ReadAsync(FileContent content)

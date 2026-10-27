@@ -20,6 +20,9 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
     /// <summary>Gets the records' uses of files.</summary>
     public DbSet<FileReferenceEntity> References => Set<FileReferenceEntity>();
 
+    /// <summary>Gets the audit trail.</summary>
+    public DbSet<FileAuditEntity> Audit => Set<FileAuditEntity>();
+
     /// <summary>Gets a tenant's live files: not past their purge or orphan time, and not expired unless a record still
     /// references them.</summary>
     /// <param name="tenantId">The tenant.</param>
@@ -90,5 +93,19 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         reference.Property(row => row.RecordType).HasColumnName("record_type");
         reference.Property(row => row.RecordId).HasColumnName("record_id");
         reference.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
+
+        var audit = modelBuilder.Entity<FileAuditEntity>();
+        audit.ToTable(FileAuditEntity.TableName);
+        audit.HasKey(row => row.Seq);
+        audit.Property(row => row.Seq).HasColumnName("seq").ValueGeneratedOnAdd();
+        audit.Property(row => row.TenantId).HasColumnName("tenant_id");
+        audit.Property(row => row.FileId).HasColumnName("file_id");
+        audit.Property(row => row.Action).HasColumnName("action");
+        audit.Property(row => row.Outcome).HasColumnName("outcome");
+        audit.Property(row => row.ErrorCode).HasColumnName("error_code");
+        audit.Property(row => row.SubjectId).HasColumnName("subject_id");
+        audit.Property(row => row.AppId).HasColumnName("app_id");
+        audit.Property(row => row.Bytes).HasColumnName("bytes");
+        audit.Property(row => row.OccurredAtUtc).HasColumnName("occurred_at_utc");
     }
 }

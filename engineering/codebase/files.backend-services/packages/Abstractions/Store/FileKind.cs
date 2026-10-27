@@ -1,6 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace WoW.Two.Sdk.Beta.Be.Files.Store;
 
 /// <summary>Classifies a file for its icon, its preview and its policy group; the file-type registry assigns it.</summary>
+/// <remarks>The wire and the registry name a kind in kebab case: <c>raw-photo</c>, <c>disk-image</c>, <c>model-3d</c>.</remarks>
 public enum FileKind
 {
     /// <summary>A type the registry does not know.</summary>
@@ -10,6 +13,7 @@ public enum FileKind
     Image,
 
     /// <summary>A camera RAW photo.</summary>
+    [JsonStringEnumMemberName("raw-photo")]
     RawPhoto,
 
     /// <summary>A vector image: SVG, EPS.</summary>
@@ -58,6 +62,7 @@ public enum FileKind
     Archive,
 
     /// <summary>A disk image or virtual disk.</summary>
+    [JsonStringEnumMemberName("disk-image")]
     DiskImage,
 
     /// <summary>An executable or installer.</summary>
@@ -67,6 +72,7 @@ public enum FileKind
     Font,
 
     /// <summary>A 3D model: GLB, glTF, OBJ, STL.</summary>
+    [JsonStringEnumMemberName("model-3d")]
     Model3D,
 
     /// <summary>A CAD or GIS drawing.</summary>

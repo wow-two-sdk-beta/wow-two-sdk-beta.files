@@ -25,7 +25,13 @@ public static partial class HostConfiguration
             ResolveStorageRoot(provider.GetRequiredService<IConfiguration>(), provider.GetRequiredService<IHostEnvironment>())));
         builder.Services.AddFiles()
             .BindConfiguration(FilesSection)
-            .Configure<DatabaseSettings>((options, database) => options.ConnectionString = database.ConnectionString);
+            .Configure<DatabaseSettings>((options, database) => options.ConnectionString = database.ConnectionString)
+            .PostConfigure<IConfiguration>((options, configuration) =>
+            {
+                // Without its own content host, the service links files on the app site Wheelhouse derives.
+                if (options.Delivery.BaseUrl is null && configuration["Sites:app:Url"] is { Length: > 0 } site)
+                    options.Delivery.BaseUrl = new Uri(site);
+            });
         builder.Services.AddDatabaseBespokeMigrations(typeof(FilesModuleAssembly).Assembly, migrations =>
         {
             migrations.Provider = DatabaseProvider.Sqlite;
@@ -41,7 +47,8 @@ public static partial class HostConfiguration
         return builder;
     }
 
-    /// <summary>Holds the section the module's settings bind from: default tenant, policies by app, sweep interval.</summary>
+    /// <summary>Holds the section the module's settings bind from: default tenant, policies by app, sweep interval,
+    /// delivery.</summary>
     private const string FilesSection = "Files";
 
     /// <summary>Resolves the folder the bytes live in: <c>Storage:Root</c>, relative to the content root; <c>data/blobs</c> when unset.</summary>

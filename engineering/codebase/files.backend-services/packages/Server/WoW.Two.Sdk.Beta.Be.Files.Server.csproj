@@ -22,6 +22,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Files.Tests.Unit" />
     <InternalsVisibleTo Include="Files.Tests.E2E" />
+    <InternalsVisibleTo Include="Files.Api" />
   </ItemGroup>
 
 </Project>

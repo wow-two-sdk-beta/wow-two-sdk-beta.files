@@ -6,6 +6,7 @@
   -->
   <ItemGroup>
     <PackageReference Include="WoW2.Sdk.Beta.Be" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
   </ItemGroup>
 
   <ItemGroup>

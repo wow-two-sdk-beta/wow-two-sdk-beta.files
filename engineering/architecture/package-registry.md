@@ -13,10 +13,10 @@
 |---|---|---|---|---|---|---|
 | `WoW2.Sdk.Beta.Be.Files.Abstractions` | contract | the kernel `WoW2.Sdk.Beta.Be.Abstractions` only; no framework reference | none | all | contract skeleton | product Domain and Application projects |
 | `WoW2.Sdk.Beta.Be.Files.Formats` | edge | Abstractions | none | all | types, detection, mismatch check, safe names | Module, upload checks in any product, `fe-files/icons` (by its registry) |
-| `WoW2.Sdk.Beta.Be.Files.Module` | forms | Abstractions, Formats, core | none | 1 | uploads, store, references, URLs, delivery seam, sweep; template sample | products on Form 1, `service/Files.Api` |
-| `WoW2.Sdk.Beta.Be.Files.Client` | forms | Abstractions, core | none | 2, 3 | template sample | products on an owner instance or the shared host |
+| `WoW2.Sdk.Beta.Be.Files.Module` | forms | Abstractions, Formats, core | none | 1 | uploads, store, references, URLs, audit, delivery seam, sweep; template sample | products on Form 1, `service/Files.Api` |
+| `WoW2.Sdk.Beta.Be.Files.Client` | forms | Abstractions, core | none | 2, 3 | every broker by key or token; template sample | products on an owner instance or the shared host |
 | `WoW2.Sdk.Beta.Be.Files.Server` | extension | Module, core | tusdotnet, once resumable uploads land | 1, and the service | delivery routes | Form 1 hosts, `service/Files.Api` |
-| `WoW2.Sdk.Beta.Be.Files.Testing` | test kit | Abstractions, `WoW2.Sdk.Beta.Be.Testing` | xunit (via be Testing) | all | conformance: uploads, store, references, URLs; template sample | test projects |
+| `WoW2.Sdk.Beta.Be.Files.Testing` | test kit | Abstractions, `WoW2.Sdk.Beta.Be.Testing` | xunit (via be Testing) | all | conformance: every broker; template sample | test projects |
 | `WoW2.Sdk.Beta.Be.Files.Compression` | edge | Abstractions | SharpCompress, ZstdSharp (unverified) | all | planned: streamed ZIP | Module (shares, exports), any product alone |
 | `WoW2.Sdk.Beta.Be.Files.Images` | edge | Abstractions | SkiaSharp | all | planned: moves from core `Media/Images` | Module (variants), products that edit images |
 | `WoW2.Sdk.Beta.Be.Files.Documents` | edge | Abstractions | PDFsharp, PdfPig; PDFium later | all | planned: moves from core `Media/Pdf` | Module (previews), products with PDF tools |

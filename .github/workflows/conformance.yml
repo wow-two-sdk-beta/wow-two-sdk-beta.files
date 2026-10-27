@@ -1,5 +1,6 @@
 # The contract's conformance suite against the released image: pulls the image, starts it on a throwaway SQLite
-# volume, and runs the Client side of Files.Tests.Conformance against it (CONFORMANCE_BASE_URL). Runs after each
+# volume with two test tenants' API keys, and runs the Client side of Files.Tests.Conformance against it
+# (CONFORMANCE_BASE_URL). Runs after each
 # image publish on main, nightly and on dispatch. It cannot block a publish; the descriptor's verify dev check is the
 # promotion gate.
 name: conformance
@@ -52,8 +53,20 @@ jobs:
         run: |
           set -euo pipefail
           image="ghcr.io/${GITHUB_REPOSITORY,,}/files:$TAG"
+          # Two test-only tenants by API key (ClientFilesFixture's keys); never real credentials.
           docker run --detach --name files --publish 127.0.0.1:8080:8080 \
             --env ASPNETCORE_ENVIRONMENT=Development --env DB_CONNECTION="Data Source=/data/files.db" \
+            --env Storage__Root=/data/blobs \
+            --env Files__Delivery__BaseUrl=http://127.0.0.1:8080 \
+            --env Files__Delivery__SigningKey=conformance-signing-key-0123456789abcdef \
+            --env Files__Auth__ApiKeys__0__Id=conformance-a --env Files__Auth__ApiKeys__0__TenantId=conformance-a \
+            --env Files__Auth__ApiKeys__0__Sha256=214d51e93558b8ac8733017ed6e4b463d616c8c0b06cb8c4ceec98643714bfdf \
+            --env Files__Auth__ApiKeys__0__Scopes__0=files.read --env Files__Auth__ApiKeys__0__Scopes__1=files.write \
+            --env Files__Auth__ApiKeys__0__Scopes__2=files.admin \
+            --env Files__Auth__ApiKeys__1__Id=conformance-b --env Files__Auth__ApiKeys__1__TenantId=conformance-b \
+            --env Files__Auth__ApiKeys__1__Sha256=e286819fce5be69d42322ce24df80b178aa29a5c935f18c078b1c16e0ca9d7b4 \
+            --env Files__Auth__ApiKeys__1__Scopes__0=files.read --env Files__Auth__ApiKeys__1__Scopes__1=files.write \
+            --env Files__Auth__ApiKeys__1__Scopes__2=files.admin \
             --volume files-data:/data "$image"
           for _ in $(seq 1 30); do
             curl --fail --silent http://127.0.0.1:8080/health >/dev/null && exit 0
@@ -67,7 +80,7 @@ jobs:
           CONFORMANCE_BASE_URL: http://127.0.0.1:8080
         run: >-
           dotnet test engineering/codebase/files.backend-services/tests/Files.Tests.Conformance -p:BuildSpa=false
-          --filter "FullyQualifiedName~ClientGreetingsConformanceTests"
+          --filter "FullyQualifiedName~ClientGreetingsConformanceTests|FullyQualifiedName~ClientFilesConformanceTests"
 
       - name: Service log
         if: failure()

@@ -26,19 +26,23 @@
 
 | Broker | Calls | State |
 |---|---|---|
-| `IFileUploadsBroker` | `UploadAsync(stream, spec)` | Module; Client in v0.1 |
-| `IFileStoreBroker` | `GetAsync` · `OpenReadAsync(id, range?)` · `ListAsync(query)` · `UpdateAsync(patch)` · `DeleteAsync` · `RestoreAsync` | Module; Client in v0.1 |
-| `IFileReferencesBroker` | `AttachAsync(id, ref)` · `DetachAsync` · `ListAsync(id)` | Module; Client in v0.1 |
-| `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, variant?)` | Module; Client in v0.1 |
+| `IFileUploadsBroker` | `UploadAsync(stream, spec)` | Module, Client |
+| `IFileStoreBroker` | `GetAsync` · `OpenReadAsync(id, range?)` · `ListAsync(query)` · `UpdateAsync(patch)` · `DeleteAsync` · `RestoreAsync` | Module, Client |
+| `IFileReferencesBroker` | `AttachAsync(id, ref)` · `DetachAsync` · `ListAsync(id)` | Module, Client |
+| `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, variant?)` | Module, Client |
 | `IFileUploadsBroker` tickets | `BeginAsync(spec)` → ticket · `CompleteAsync(uploadId)` · `CancelAsync` | planned |
 | `IFileSharesBroker` | `CreateAsync(spec with gates)` · `UpdateAsync` · `RevokeAsync` · `ListAsync` · `AccessLogAsync` | planned |
 | `IFileTransformsBroker` | `GetVariantAsync(id, name)` · `RequestAsync(spec)` → job | planned |
 | `IFileArchivesBroker` | `ZipAsync(ids, spec)` → job · `StreamZipAsync(ids, output)` · `ExtractAsync(id, folder)` | planned |
 | `IFileJobsBroker` | `GetAsync(jobId)` · `WaitAsync` | planned |
-| `IFileAdminBroker` | usage, quotas, policies, audit, tenants | planned |
+| `IFileAuditBroker` | `ListAsync(query)` → the tenant's audit trail, newest first | Module, Client |
+| `IFileAdminBroker` | usage, quotas, policies, tenants | planned |
 
 - models today: `FileModel`, `FileQuery`, `FilePage`, `FilePatch`, `FileContent`, `ByteRange`, `UploadSpec`,
-  `FileReference`, `UrlSpec`, `SignedFileUrl`; enums `FileKind`, `FileState`, `FileVisibility`, `FileDisposition`.
+  `FileReference`, `UrlSpec`, `SignedFileUrl`, `FileAuditEntryModel`, `FileAuditQuery`, `FileAuditPage`; enums `FileKind`,
+  `FileState`, `FileVisibility`, `FileDisposition`, `FileAuditAction`, `FileAuditOutcome`.
+- every upload (refused ones too), read, change, delete and restore writes an audit entry; a URL redemption writes one
+  with no subject.
 - `FileState`: `Uploading` → `Pending` → `Ready`, or `Rejected` · `Quarantined`; a soft delete sets `DeletedAtUtc`.
 - the stored content type is the registry's for the recognized type, never the uploader's; a rename may change the
   extension only to one of the same content type.
@@ -58,18 +62,28 @@ Base `/api/files/v1` (`FilesRouteConstants.Api`); the service mirrors the broker
 | `GET /files` · `GET /files/{id}` | `ListAsync` · `GetAsync` | `files.read` |
 | `GET /files/{id}/content` | `OpenReadAsync` | `files.read` |
 | `PATCH /files/{id}` · `DELETE /files/{id}` · `POST /files/{id}/restore` | update · delete · restore | `files.write` |
-| `PUT·DELETE /files/{id}/references/{ref}` · `GET /files/{id}/references` | references | `files.write` · `files.read` |
+| `PUT·DELETE /files/{id}/references/{recordType}/{recordId}` · `GET /files/{id}/references` | references | `files.write` · `files.read` |
 | `POST /files/{id}/urls` · `GET /files/{id}/public-url` | `IssueAsync` · `GetPublicUrlAsync` | `files.read` |
+| `GET /audit?fileId=&action=&cursor=&limit=` | audit `ListAsync` | `files.admin` |
 | `POST /uploads` · `POST /uploads/{id}/complete` · `DELETE /uploads/{id}` | tickets | planned |
 | `POST /shares` · `GET /shares` · `PATCH·DELETE /shares/{id}` | shares | `files.share`; planned |
-| `GET /usage` · `GET /audit` · `PUT /policies/{app}` | admin | `files.admin`; planned |
+| `GET /usage` · `PUT /policies/{app}` | admin | `files.admin`; planned |
 | `GET·POST·PATCH /tenants` · `POST /tenants/{id}/keys` · `POST /tenants/{id}/export` | shared host operator | `files.tenants`; planned |
 | `POST /imports` · `GET /imports/{id}` | migration | `files.admin`; planned |
 
 - scopes: `FilesScopeConstants` (`files.read`, `files.write`, `files.share`, `files.admin`, `files.delegate`,
   `files.tenants`); Identity issues them (T8 C3).
-- `Idempotency-Key` on every creating `POST`; cursor paging; filters `app`, `owner`, `kind`, `state`, `createdAfter`.
-- the Client implements the brokers by hand over the be sdk HTTP client; OpenAPI comes from the host.
+- `Idempotency-Key` on every creating `POST`; cursor paging; filters `app`, `owner`, `kind`, `state`, `createdAfter`,
+  `includeDeleted`.
+- `POST /files` reads its multipart body as a stream: fields (`name`, `appId`, `contentType`, `visibility`,
+  `expiresAtUtc`) before the file part; the app policy's size limit stops the read.
+- wire: the be sdk `{ data }` envelope and JSON preset; `FileId` as its string; `FileKind` in kebab case
+  (`raw-photo`, `model-3d`); a problem carries `code` = the `AppErrorType`, which the Client maps back.
+- callers: a tenant API key in `X-Api-Key`, or a client-credentials token from a trusted issuer (`Files:Auth`); the
+  key's or the issuer's tenant is the caller's tenant, never a claim the caller sends. Each action names its scope.
+- a caller bound to an app (`azp`, a key's app) uploads under that app only (`AppNotAllowed`).
+- the Client implements the brokers by hand over one named `HttpClient` (`files`); its builder takes
+  `AddOAuth2ClientCredentials`. OpenAPI comes from the host.
 
 ## Hosting routes
 
@@ -101,7 +115,7 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 
 `FilesErrors` today: `FileNotFound` · `FileNotReady` · `FileTooLarge` · `TypeNotAllowed` · `ContentMismatch` ·
 `NameInvalid` · `ReferenceNotFound` · `UrlInvalid` · `TenantSuspended` · `TenantInvalid` · `CursorInvalid` ·
-`RangeInvalid` · `ReferenceInvalid` · `FileNotPublic` · `VariantNotFound`. Planned: `QuotaExceeded` · `ScanFailed` ·
+`RangeInvalid` · `ReferenceInvalid` · `FileNotPublic` · `VariantNotFound` · `AppNotAllowed`. Planned: `QuotaExceeded` · `ScanFailed` ·
 `UploadExpired` · `ChecksumMismatch` · `ShareExpired` · `ShareLocked` · `ShareExhausted`.
 
 ## Forms
@@ -117,4 +131,6 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 - `Files.Tests.Conformance` runs one suite (`packages/Testing`) against the module in process and the released image.
 - beyond the brokers: tenant isolation on the shared host, signed URL expiry, gate bypass attempts, range requests,
   magic-byte mismatches, archive bombs.
+- `FilesBrokerConformance` runs against the Module and against the Client over the host by two tenants' API keys;
+  the workflow runs the Client side against the released image with two test-only keys.
 - until v0.1 iteration 6, the template's Greetings sample (`IGreetingsBroker`) still runs its own suite.

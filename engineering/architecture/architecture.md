@@ -52,5 +52,13 @@ browser ──signed URL──► Server delivery routes on files.{domain} (deli
 | `apps/web` | the console (`/`) and the hosted share and request pages, on `fe-files` through its exports |
 
 - planned packages and when they land: [package-registry.md](package-registry.md).
+## Callers
+
+| Caller | Proves itself with | Tenant from |
+|---|---|---|
+| a product server on Form 1 | its own host's auth; the module trusts its process | `IFilesCallerService`: be sdk tenancy or `DefaultTenantId` |
+| a product server on Forms 2/3 | a tenant API key (`X-Api-Key`) or a client-credentials token | the key's tenant, or the trusted issuer's |
+| a browser | a signed or public URL on the content host | the URL |
+
 - Identity is reached through contracts only until the final integration: offline token validation (M8), client
   credentials (M10), token exchange later (M11) — [T8](../research/files-analysis-2026-10/t8-identity-contracts.md).

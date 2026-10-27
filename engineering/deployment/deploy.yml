@@ -43,10 +43,16 @@ services:
     memory: 256m
     # Typed keys (pipelines v0.10.0): Wheelhouse checks each saved value against its type; a required key joins
     # settings.required. The target's settings file (/app/appsettings.Target.json) supplies the SQLite path on the
-    # data volume; the name ends in ConnectionString, so Wheelhouse keeps the value in its vault.
+    # data volume; the name ends in ConnectionString, so Wheelhouse keeps the value in its vault. The bytes live on the
+    # same volume; signed file URLs need the secret signing key, and point at the app site (Sites:app:Url) unless
+    # Files:Delivery:BaseUrl names another content host. API keys and token issuers are optional: without them the
+    # API answers 401 and only the pages and file links serve.
     settings:
       keys:
         DatabaseSettings:ConnectionString: { required: true }
+        Storage:Root: { default: /data/blobs }
+        Files:Delivery:SigningKey: { secret: true, required: true }
+        Files:Delivery:BaseUrl: { type: url }
     volumes:
       data: /data
     # The pages at /, the contract's HTTP mirror under the same host's /api: /api routes ahead of /, never /apiary.

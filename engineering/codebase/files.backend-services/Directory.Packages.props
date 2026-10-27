@@ -19,6 +19,11 @@
     <PackageVersion Include="WoW2.Sdk.Beta.Be.Testing.Data" Version="$(BackendSdkVersion)" />
   </ItemGroup>
 
+  <!-- The service's bearer tokens from trusted issuers. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
+  </ItemGroup>
+
   <!-- Tests. -->
   <ItemGroup>
     <PackageVersion Include="AwesomeAssertions" Version="9.0.0" />

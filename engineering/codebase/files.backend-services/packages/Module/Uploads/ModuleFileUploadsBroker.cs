@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using WoW.Two.Sdk.Beta.Be.Files.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Formats.Types;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Blobs;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
@@ -21,6 +23,7 @@ internal sealed class ModuleFileUploadsBroker(
     IFilesCallerService callers,
     IOptions<FilesModuleOptions> options,
     FileBlobLocks locks,
+    FileAuditWriter audit,
     TimeProvider time) : IFileUploadsBroker
 {
     /// <inheritdoc />
@@ -37,20 +40,23 @@ internal sealed class ModuleFileUploadsBroker(
         if (idempotencyKey is not null && await FindByKeyAsync(caller.TenantId, idempotencyKey, cancellationToken) is { } earlier)
             return Result<FileModel>.Ok(FileEntityMapper.ToModel(earlier));
 
+        if (caller.AppId is not null && spec.AppId is not null && spec.AppId != caller.AppId)
+            return await RefuseAsync(caller.TenantId, FilesErrors.AppNotAllowed(), spec.AppId, cancellationToken);
+
         var appId = spec.AppId ?? caller.AppId;
         var policy = options.Value.PolicyFor(appId);
         var spooled = await UploadSpool.CreateAsync(content, policy.MaxBytes, options.Value.TempPath ?? Path.GetTempPath(), cancellationToken);
         if (spooled is Result<UploadSpool>.Failure tooLarge)
-            return Result<FileModel>.Fail(tooLarge.Error);
+            return await RefuseAsync(caller.TenantId, tooLarge.Error, appId, cancellationToken);
 
         await using var spool = ((Result<UploadSpool>.Success)spooled).Value;
         var recognized = FileContentValidator.Default.Validate(spec.Name, spec.ContentType, spool.Head, spool.HeadIsComplete);
         if (recognized is Result<RecognizedFileModel>.Failure invalid)
-            return Result<FileModel>.Fail(invalid.Error);
+            return await RefuseAsync(caller.TenantId, invalid.Error, appId, cancellationToken);
 
         var file = ((Result<RecognizedFileModel>.Success)recognized).Value;
         if (!Allows(policy, file.Type))
-            return Result<FileModel>.Fail(FilesErrors.TypeNotAllowed(file.Type.MimeType));
+            return await RefuseAsync(caller.TenantId, FilesErrors.TypeNotAllowed(file.Type.MimeType), appId, cancellationToken);
 
         var now = time.GetUtcNow();
         var row = new FileEntity
@@ -77,6 +83,7 @@ internal sealed class ModuleFileUploadsBroker(
         {
             await StoreBytesAsync(caller.TenantId, spool, file.Type.MimeType, now, cancellationToken);
             db.Files.Add(row);
+            audit.Add(caller.TenantId, row.Id, FileAuditAction.Upload, spool.Size, appId);
             try
             {
                 await db.SaveChangesAsync(cancellationToken);
@@ -116,6 +123,13 @@ internal sealed class ModuleFileUploadsBroker(
             CreatedAtUtc = now,
             LastUsedAtUtc = now,
         });
+    }
+
+    /// <summary>Records a refused upload and answers with its error.</summary>
+    private async Task<Result<FileModel>> RefuseAsync(string tenantId, Foundation.Errors.AppError error, string? appId, CancellationToken cancellationToken)
+    {
+        await audit.RecordRefusalAsync(tenantId, FileAuditAction.Upload, error, appId, cancellationToken);
+        return Result<FileModel>.Fail(error);
     }
 
     private Task<FileEntity?> FindByKeyAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken) =>

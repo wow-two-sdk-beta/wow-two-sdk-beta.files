@@ -13,6 +13,24 @@ public sealed class FilesApiFixture : IAsyncLifetime
     /// <summary>Holds the key the test host signs file URLs with.</summary>
     public const string SigningKey = "e2e-signing-key-0123456789abcdef0123456789";
 
+    /// <summary>Holds a test API key with every Files scope, in the <c>e2e</c> tenant.</summary>
+    public const string AdminKey = "e2e-admin-key-0123456789abcdef";
+
+    /// <summary>Holds a test API key with <c>files.read</c> only, in the <c>e2e</c> tenant.</summary>
+    public const string ReadKey = "e2e-read-key-0123456789abcdef";
+
+    /// <summary>Holds a test API key of the <c>tiny</c> app, whose policy accepts 8 bytes.</summary>
+    public const string TinyKey = "e2e-tiny-key-0123456789abcdef";
+
+    /// <summary>Holds the trusted test issuer; its tokens act in the <c>tokens</c> tenant.</summary>
+    public const string Issuer = "https://identity.e2e.test";
+
+    /// <summary>Holds the audience the test issuer's tokens name.</summary>
+    public const string Audience = "https://files.e2e.test";
+
+    /// <summary>Holds the symmetric key the test issuer signs tokens with.</summary>
+    public const string IssuerKey = "e2e-issuer-signing-key-0123456789abcdef";
+
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"files-e2e-{Guid.NewGuid():N}.db");
     private readonly string storageRoot = Path.Combine(Path.GetTempPath(), $"files-e2e-blobs-{Guid.NewGuid():N}");
 
@@ -27,10 +45,34 @@ public sealed class FilesApiFixture : IAsyncLifetime
                 ["Storage:Root"] = storageRoot,
                 ["Files:Delivery:BaseUrl"] = "http://localhost",
                 ["Files:Delivery:SigningKey"] = SigningKey,
+                ["Files:Policies:tiny:MaxBytes"] = "8",
+                ["Files:Auth:Issuers:0:Issuer"] = Issuer,
+                ["Files:Auth:Issuers:0:Audience"] = Audience,
+                ["Files:Auth:Issuers:0:SigningKey"] = IssuerKey,
+                ["Files:Auth:Issuers:0:TenantId"] = "tokens",
+                ["Files:Auth:ApiKeys:0:Id"] = "e2e-admin",
+                ["Files:Auth:ApiKeys:0:Sha256"] = Sha256(AdminKey),
+                ["Files:Auth:ApiKeys:0:TenantId"] = "e2e",
+                ["Files:Auth:ApiKeys:0:Scopes:0"] = "files.read",
+                ["Files:Auth:ApiKeys:0:Scopes:1"] = "files.write",
+                ["Files:Auth:ApiKeys:0:Scopes:2"] = "files.admin",
+                ["Files:Auth:ApiKeys:1:Id"] = "e2e-read",
+                ["Files:Auth:ApiKeys:1:Sha256"] = Sha256(ReadKey),
+                ["Files:Auth:ApiKeys:1:TenantId"] = "e2e",
+                ["Files:Auth:ApiKeys:1:Scopes:0"] = "files.read",
+                ["Files:Auth:ApiKeys:2:Id"] = "e2e-tiny",
+                ["Files:Auth:ApiKeys:2:Sha256"] = Sha256(TinyKey),
+                ["Files:Auth:ApiKeys:2:TenantId"] = "e2e",
+                ["Files:Auth:ApiKeys:2:AppId"] = "tiny",
+                ["Files:Auth:ApiKeys:2:Scopes:0"] = "files.write",
                 ["Logging:LogLevel:Default"] = "Warning",
             }),
         };
     }
+
+    /// <summary>Returns the SHA-256 the service stores for a key.</summary>
+    public static string Sha256(string key) =>
+        Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)));
 
     /// <summary>Gets the booted API host.</summary>
     public WebApiTestHost<Program> Host { get; }

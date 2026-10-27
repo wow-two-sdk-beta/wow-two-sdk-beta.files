@@ -1,3 +1,4 @@
+using Files.Api.Auth;
 using WoW.Two.Sdk.Beta.Be.Data;
 using WoW.Two.Sdk.Beta.Be.Files.Server.Delivery;
 using WoW.Two.Sdk.Beta.Be.Meta;
@@ -23,6 +24,8 @@ public static partial class HostConfiguration
             options.TrustProxiesFrom(builder.Configuration.GetSection("Deployment"));
         });
 
+        builder.Services.AddFilesAuth(builder.Configuration);
+
         return builder
             .AddFilesModule()
             .AddControllers();
@@ -37,7 +40,11 @@ public static partial class HostConfiguration
         await app.Services.MigrateBespokeOnStartupAsync(migrations => migrations.ApplyWhenDeployed = true, app.Lifetime.ApplicationStopping);
 
         // SDK pipeline: secure headers, compression, the SPA bundle, /health (database readiness) and the SPA fallback.
-        app.UseApiDefaults();
+        app.UseApiDefaults(identity =>
+        {
+            identity.UseAuthentication();
+            identity.UseAuthorization();
+        });
         app.MapControllers();
         app.MapFilesDelivery();
 
