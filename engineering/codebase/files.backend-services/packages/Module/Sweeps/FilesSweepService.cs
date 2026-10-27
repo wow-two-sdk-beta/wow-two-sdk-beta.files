@@ -5,8 +5,9 @@ using WoW.Two.Sdk.Beta.Be.Storage.Core;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Sweeps;
 
-/// <summary>Purges file rows past their purge or expiry time, then the bytes no row uses that no upload touched in
-/// the last hour; each blob is deleted under its lock, so a concurrent upload reusing it wins.</summary>
+/// <summary>Purges file rows past their purge or orphan time or expired with no reference, with their references,
+/// then the bytes no row uses that no upload touched in the last hour; each blob is deleted under its lock, so a
+/// concurrent upload reusing it wins.</summary>
 internal sealed class FilesSweepService(FilesDbContext db, IBlobRepository blobs, FileBlobLocks locks, TimeProvider time) : IFilesSweepService
 {
     /// <summary>Holds how long unused bytes are kept after their last upload, covering uploads still in flight.</summary>
@@ -17,7 +18,12 @@ internal sealed class FilesSweepService(FilesDbContext db, IBlobRepository blobs
     {
         var now = time.GetUtcNow();
         var files = await db.Files
-            .Where(file => (file.PurgeAtUtc != null && file.PurgeAtUtc <= now) || (file.ExpiresAtUtc != null && file.ExpiresAtUtc <= now))
+            .Where(file => (file.PurgeAtUtc != null && file.PurgeAtUtc <= now)
+                || (file.OrphanPurgeAtUtc != null && file.OrphanPurgeAtUtc <= now)
+                || (file.ExpiresAtUtc != null && file.ExpiresAtUtc <= now && !db.References.Any(reference => reference.FileId == file.Id)))
+            .ExecuteDeleteAsync(cancellationToken);
+        await db.References
+            .Where(reference => !db.Files.Any(file => file.Id == reference.FileId))
             .ExecuteDeleteAsync(cancellationToken);
 
         var cutoff = now - BlobGrace;

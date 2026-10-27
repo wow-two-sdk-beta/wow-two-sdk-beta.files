@@ -12,8 +12,8 @@ using WoW.Two.Sdk.Beta.Be.Storage.Core;
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 
 /// <summary>Integrates the in-process store: the caller's tenant's file rows and their bytes in the blob store.</summary>
-/// <remarks>An expired file, or a deleted one past its retention, is gone for every call, even before the sweep
-/// purges it.</remarks>
+/// <remarks>A file past its purge or orphan time, or expired with no reference left, is gone for every call, even
+/// before the sweep purges it.</remarks>
 internal sealed class ModuleFileStoreBroker(
     FilesDbContext db,
     IBlobRepository blobs,
@@ -165,18 +165,10 @@ internal sealed class ModuleFileStoreBroker(
         return row is not null && (includeDeleted || row.DeletedAtUtc is null) ? row : null;
     }
 
-    /// <summary>Gets the caller's tenant's files that are neither expired nor past their purge time; none for a
-    /// tenant id that is not a safe key segment.</summary>
+    /// <summary>Gets the caller's tenant's live files; none for a tenant id that is not a safe key segment.</summary>
     private IQueryable<FileEntity>? Live()
     {
         var tenantId = callers.Current.TenantId;
-        if (!FileBlobKeyMapper.IsValidTenant(tenantId))
-            return null;
-
-        var now = time.GetUtcNow();
-        return db.Files.Where(file =>
-            file.TenantId == tenantId
-            && (file.ExpiresAtUtc == null || file.ExpiresAtUtc > now)
-            && (file.PurgeAtUtc == null || file.PurgeAtUtc > now));
+        return FileBlobKeyMapper.IsValidTenant(tenantId) ? db.LiveFiles(tenantId, time.GetUtcNow()) : null;
     }
 }

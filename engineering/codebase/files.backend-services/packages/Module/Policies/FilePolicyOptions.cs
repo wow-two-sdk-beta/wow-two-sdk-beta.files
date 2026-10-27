@@ -19,4 +19,12 @@ public sealed class FilePolicyOptions
 
     /// <summary>Gets or sets how long a deleted file stays restorable before the sweep purges it. Default 30 days.</summary>
     public TimeSpan DeletedRetention { get; set; } = TimeSpan.FromDays(30);
+
+    /// <summary>Gets or sets how long a file with no reference is kept after its upload or its last detach; none keeps
+    /// unreferenced files.</summary>
+    public TimeSpan? OrphanRetention { get; set; }
+
+    /// <summary>Gets or sets how long after upload a file expires when the upload sets no expiry; none keeps it. A
+    /// referenced file outlives its expiry.</summary>
+    public TimeSpan? DefaultLifetime { get; set; }
 }

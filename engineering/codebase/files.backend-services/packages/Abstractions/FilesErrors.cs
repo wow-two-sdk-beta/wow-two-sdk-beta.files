@@ -32,6 +32,11 @@ public static class FilesErrors
     /// <summary>Creates the error for a reference already removed or never attached.</summary>
     public static AppError ReferenceNotFound() => AppErrorFactory.NotFound("The file reference was not found.");
 
+    /// <summary>Creates the error for a record type or id that is blank or longer than
+    /// <see cref="FilesConstants.MaxReferenceLength"/>.</summary>
+    public static AppError ReferenceInvalid() =>
+        AppErrorFactory.Validation($"A file reference needs a record type and id of 1 to {FilesConstants.MaxReferenceLength} characters.");
+
     /// <summary>Creates the error for a signed URL past its expiry or with a bad signature.</summary>
     public static AppError UrlInvalid() => AppErrorFactory.Forbidden("The file link is invalid or expired.");
 

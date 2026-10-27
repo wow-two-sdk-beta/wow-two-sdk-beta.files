@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using WoW.Two.Sdk.Beta.Be.Files.Module;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
+using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
@@ -30,7 +31,8 @@ public sealed class ModuleFilesFixture : IAsyncLifetime
         scope.ServiceProvider.GetRequiredService<TenantCallerService>().TenantId = tenantId;
         return new FilesBrokerSet(
             scope.ServiceProvider.GetRequiredService<IFileUploadsBroker>(),
-            scope.ServiceProvider.GetRequiredService<IFileStoreBroker>());
+            scope.ServiceProvider.GetRequiredService<IFileStoreBroker>(),
+            scope.ServiceProvider.GetRequiredService<IFileReferencesBroker>());
     }
 
     async Task IAsyncLifetime.InitializeAsync()

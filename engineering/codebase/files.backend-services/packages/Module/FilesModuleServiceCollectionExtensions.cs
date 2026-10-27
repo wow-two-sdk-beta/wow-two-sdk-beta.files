@@ -8,9 +8,11 @@ using WoW.Two.Sdk.Beta.Be.Files.Module.Blobs;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Greetings;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
+using WoW.Two.Sdk.Beta.Be.Files.Module.References;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Sweeps;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Uploads;
+using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
 
@@ -37,6 +39,7 @@ public static class FilesModuleServiceCollectionExtensions
         services.AddScoped<IGreetingsBroker, ModuleGreetingsBroker>();
         services.AddScoped<IFileUploadsBroker, ModuleFileUploadsBroker>();
         services.AddScoped<IFileStoreBroker, ModuleFileStoreBroker>();
+        services.AddScoped<IFileReferencesBroker, ModuleFileReferencesBroker>();
         services.AddScoped<IFilesSweepService, FilesSweepService>();
         services.AddHostedService<FilesSweepBackgroundService>();
         services.AddHealthChecks().AddDatabaseReadinessCheck<FilesDbContext>();

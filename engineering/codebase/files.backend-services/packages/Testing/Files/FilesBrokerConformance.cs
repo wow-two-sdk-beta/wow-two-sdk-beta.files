@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
@@ -123,6 +124,42 @@ public abstract class FilesBrokerConformance
         Value(await OtherTenant.Store.ListAsync(new FileQuery())).Items.Should().NotContain(listed => listed.Id == file.Id);
     }
 
+    /// <summary>A record attaches once however often it asks, and detaches once.</summary>
+    [Fact]
+    public async Task References_ShouldAttachListAndDetach_OncePerRecord()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
+        var product = new FileReference("catalogue.product", "p-1");
+        var post = new FileReference("blog.post", "42");
+
+        Done(await Brokers.References.AttachAsync(file.Id, product));
+        Done(await Brokers.References.AttachAsync(file.Id, product));
+        Done(await Brokers.References.AttachAsync(file.Id, post));
+
+        Value(await Brokers.References.ListAsync(file.Id)).Should().Equal(product, post);
+        Done(await Brokers.References.DetachAsync(file.Id, product));
+        Error(await Brokers.References.DetachAsync(file.Id, product)).Type.Should().Be(AppErrorType.NotFound);
+        Value(await Brokers.References.ListAsync(file.Id)).Should().Equal(post);
+    }
+
+    /// <summary>A blank record type is refused.</summary>
+    [Fact]
+    public async Task References_ShouldFailValidation_WhenTheRecordTypeIsBlank()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
+
+        Error(await Brokers.References.AttachAsync(file.Id, new FileReference(" ", "1"))).Type.Should().Be(AppErrorType.Validation);
+    }
+
+    /// <summary>Another tenant cannot attach to the tenant's file.</summary>
+    [Fact]
+    public async Task OtherTenant_ShouldNotAttach_ToTheTenantsFile()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
+
+        Error(await OtherTenant.References.AttachAsync(file.Id, new FileReference("blog.post", "1"))).Type.Should().Be(AppErrorType.FileNotFound);
+    }
+
     private async Task<Result<FileModel>> UploadAsync(byte[] bytes, string name, string? idempotencyKey = null)
     {
         using var content = new MemoryStream(bytes);
@@ -146,4 +183,15 @@ public abstract class FilesBrokerConformance
     /// <summary>Returns the failure's error, failing the test when the call succeeded.</summary>
     private static AppError Error<T>(Result<T> result) where T : notnull =>
         result is Result<T>.Failure failure ? failure.Error : throw new Xunit.Sdk.XunitException("The call succeeded.");
+
+    /// <summary>Returns the failure's error, failing the test when the call succeeded.</summary>
+    private static AppError Error(Result result) =>
+        result is Result.Failure failure ? failure.Error : throw new Xunit.Sdk.XunitException("The call succeeded.");
+
+    /// <summary>Fails the test with the broker's own error unless the call succeeded.</summary>
+    private static void Done(Result result)
+    {
+        if (result is Result.Failure failure)
+            throw new Xunit.Sdk.XunitException(failure.Error.Message);
+    }
 }

@@ -9,6 +9,9 @@ public static class FilesConstants
     /// <summary>Holds the length of a SHA-256 digest in lowercase hex.</summary>
     public const int Sha256HexLength = 64;
 
+    /// <summary>Holds the longest record type or record id a file reference accepts.</summary>
+    public const int MaxReferenceLength = 200;
+
     /// <summary>Holds the most files one list call returns.</summary>
     public const int MaxPageSize = 200;
 

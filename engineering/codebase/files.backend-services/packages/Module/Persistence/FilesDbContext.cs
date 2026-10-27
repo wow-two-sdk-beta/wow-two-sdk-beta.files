@@ -17,6 +17,21 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
     /// <summary>Gets the stored bytes, one row per tenant and SHA-256.</summary>
     public DbSet<FileBlobEntity> Blobs => Set<FileBlobEntity>();
 
+    /// <summary>Gets the records' uses of files.</summary>
+    public DbSet<FileReferenceEntity> References => Set<FileReferenceEntity>();
+
+    /// <summary>Gets a tenant's live files: not past their purge or orphan time, and not expired unless a record still
+    /// references them.</summary>
+    /// <param name="tenantId">The tenant.</param>
+    /// <param name="now">The current time.</param>
+    /// <returns>The query, tracked.</returns>
+    public IQueryable<FileEntity> LiveFiles(string tenantId, DateTimeOffset now) =>
+        Files.Where(file =>
+            file.TenantId == tenantId
+            && (file.PurgeAtUtc == null || file.PurgeAtUtc > now)
+            && (file.OrphanPurgeAtUtc == null || file.OrphanPurgeAtUtc > now)
+            && (file.ExpiresAtUtc == null || file.ExpiresAtUtc > now || References.Any(reference => reference.FileId == file.Id)));
+
     /// <inheritdoc />
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -55,6 +70,7 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         file.Property(row => row.ExpiresAtUtc).HasColumnName("expires_at_utc");
         file.Property(row => row.DeletedAtUtc).HasColumnName("deleted_at_utc");
         file.Property(row => row.PurgeAtUtc).HasColumnName("purge_at_utc");
+        file.Property(row => row.OrphanPurgeAtUtc).HasColumnName("orphan_purge_at_utc");
 
         var blob = modelBuilder.Entity<FileBlobEntity>();
         blob.ToTable(FileBlobEntity.TableName);
@@ -65,5 +81,14 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         blob.Property(row => row.Size).HasColumnName("size");
         blob.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
         blob.Property(row => row.LastUsedAtUtc).HasColumnName("last_used_at_utc");
+
+        var reference = modelBuilder.Entity<FileReferenceEntity>();
+        reference.ToTable(FileReferenceEntity.TableName);
+        reference.HasKey(row => new { row.FileId, row.RecordType, row.RecordId });
+        reference.Property(row => row.TenantId).HasColumnName("tenant_id");
+        reference.Property(row => row.FileId).HasColumnName("file_id");
+        reference.Property(row => row.RecordType).HasColumnName("record_type");
+        reference.Property(row => row.RecordId).HasColumnName("record_id");
+        reference.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
     }
 }

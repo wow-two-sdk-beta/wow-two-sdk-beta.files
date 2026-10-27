@@ -59,4 +59,8 @@ internal sealed class FileEntity
 
     /// <summary>Gets or sets when the sweep purges the deleted file (UTC).</summary>
     public DateTimeOffset? PurgeAtUtc { get; set; }
+
+    /// <summary>Gets or sets when the sweep purges the file for having no reference (UTC); set only under an app
+    /// policy with an orphan retention.</summary>
+    public DateTimeOffset? OrphanPurgeAtUtc { get; set; }
 }

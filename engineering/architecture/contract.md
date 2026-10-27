@@ -28,7 +28,7 @@
 |---|---|---|
 | `IFileUploadsBroker` | `UploadAsync(stream, spec)` | Module; Client in v0.1 |
 | `IFileStoreBroker` | `GetAsync` · `OpenReadAsync(id, range?)` · `ListAsync(query)` · `UpdateAsync(patch)` · `DeleteAsync` · `RestoreAsync` | Module; Client in v0.1 |
-| `IFileReferencesBroker` | `AttachAsync(id, ref)` · `DetachAsync` · `ListAsync(id)` | declared; v0.1 |
+| `IFileReferencesBroker` | `AttachAsync(id, ref)` · `DetachAsync` · `ListAsync(id)` | Module; Client in v0.1 |
 | `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, variant?)` | declared; v0.1 |
 | `IFileUploadsBroker` tickets | `BeginAsync(spec)` → ticket · `CompleteAsync(uploadId)` · `CancelAsync` | planned |
 | `IFileSharesBroker` | `CreateAsync(spec with gates)` · `UpdateAsync` · `RevokeAsync` · `ListAsync` · `AccessLogAsync` | planned |
@@ -42,7 +42,10 @@
 - `FileState`: `Uploading` → `Pending` → `Ready`, or `Rejected` · `Quarantined`; a soft delete sets `DeletedAtUtc`.
 - the stored content type is the registry's for the recognized type, never the uploader's; a rename may change the
   extension only to one of the same content type.
-- an expired file, or a deleted one past its app's retention, is gone for every call before the sweep purges it.
+- a file lives while any record references it: expiry waits for the last reference. Per app, opt-in: an
+  unreferenced file purges `OrphanRetention` after its upload or last detach; uploads expire `DefaultLifetime` after
+  upload unless they set their own expiry.
+- a file past its purge or orphan time, or expired with no reference, is gone for every call before the sweep purges it.
 - share gates, once declared, are a closed set: expiry, password, max downloads, sign-in, email; later IP and terms.
 
 ## HTTP API
@@ -94,7 +97,7 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 
 `FilesErrors` today: `FileNotFound` · `FileNotReady` · `FileTooLarge` · `TypeNotAllowed` · `ContentMismatch` ·
 `NameInvalid` · `ReferenceNotFound` · `UrlInvalid` · `TenantSuspended` · `TenantInvalid` · `CursorInvalid` ·
-`RangeInvalid`. Planned: `QuotaExceeded` · `ScanFailed` ·
+`RangeInvalid` · `ReferenceInvalid`. Planned: `QuotaExceeded` · `ScanFailed` ·
 `UploadExpired` · `ChecksumMismatch` · `ShareExpired` · `ShareLocked` · `ShareExhausted`.
 
 ## Forms

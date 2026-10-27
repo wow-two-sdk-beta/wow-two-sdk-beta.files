@@ -69,7 +69,8 @@ internal sealed class ModuleFileUploadsBroker(
             State = nameof(FileState.Ready),
             IdempotencyKey = idempotencyKey,
             CreatedAtUtc = now,
-            ExpiresAtUtc = spec.ExpiresAtUtc?.ToUniversalTime(),
+            ExpiresAtUtc = spec.ExpiresAtUtc?.ToUniversalTime() ?? now + policy.DefaultLifetime,
+            OrphanPurgeAtUtc = now + policy.OrphanRetention,
         };
 
         using (await locks.AcquireAsync(spool.Sha256, cancellationToken))
