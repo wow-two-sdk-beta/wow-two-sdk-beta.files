@@ -1,4 +1,5 @@
 using Files.Api.Auth;
+using Files.Api.Icons;
 using WoW.Two.Sdk.Beta.Be.Data;
 using WoW.Two.Sdk.Beta.Be.Files.Server.Delivery;
 using WoW.Two.Sdk.Beta.Be.Meta;
@@ -21,6 +22,8 @@ public static partial class HostConfiguration
             options.EnableOtlpExporters = false;
             options.EnableHttpsRedirection = !builder.Environment.IsDevelopment();
             options.SpaHosting = _ => { };
+            // Static files carry no endpoint to mark, so the icon folder other origins embed opts in by path.
+            options.CrossOriginEmbeddingPaths.Add(FileIconEndpoints.Path);
             options.TrustProxiesFrom(builder.Configuration.GetSection("Deployment"));
         });
 
@@ -47,6 +50,7 @@ public static partial class HostConfiguration
         });
         app.MapControllers();
         app.MapFilesDelivery();
+        app.MapFileIcons();
 
         return app;
     }

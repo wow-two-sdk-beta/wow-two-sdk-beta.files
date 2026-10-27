@@ -18,8 +18,9 @@ import { FilesRouteConstants, type FileModel } from '@wow-two-beta/fe-files/cont
 | Export | Holds |
 |---|---|
 | `./contracts` | `FileKind`, `FileModel`, `FilePage`, `FileReference`, `SignedFileUrl`, `FileAuditEntryModel`, `FilesRouteConstants`, `FilesScopeConstants` |
-| `./icons` | `FileIcon`, `fileTypeOf`, `fileKind`, `extensionOf`, `fileTypes` |
+| `./icons` | `FileIcon`, `renderFileIconSvg`, `renderFileKindIconSvg`, `fileTypeOf`, `fileKind`, `extensionOf`, `fileTypes` |
 
 `<FileIcon :name | :ext | :mime :size :monochrome>` draws a page in the kind's colour, the kind's glyph and, from 24 px,
 the extension label; recolour a kind with `--files-icon-{kind}`. The type table is generated from the be registry
-(`pnpm gen:file-types`), and a test fails while the two differ. The upload kit, previews and share UI join as `./kit`.
+(`pnpm gen:file-types`), and a test fails while the two differ. `renderFileIconSvg` returns the same drawing as
+standalone SVG markup; a Files service serves it for every extension at `/icons/{ext}.svg`. The upload kit, previews and share UI join as `./kit`.

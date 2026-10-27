@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import {
+  fileIconFold,
+  fileIconGlyphTransform,
+  fileIconLabelLength,
+  fileIconLabelSize,
+  fileIconPage,
+} from './FileIconDrawing';
 import { fileKindVisuals } from './FileKindVisuals';
 import { fileTypeOf } from './FileTypes';
 
@@ -30,11 +37,9 @@ const color = computed(() =>
   props.monochrome ? 'currentColor' : `var(--files-icon-${type.value.kind}, ${fileKindVisuals[type.value.kind].color})`,
 );
 const glyph = computed(() => fileKindVisuals[type.value.kind].glyph);
-const showsLabel = computed(() => props.size >= 24 && type.value.label.length > 0);
-const glyphTransform = computed(() =>
-  showsLabel.value ? 'translate(10 6) scale(0.5)' : 'translate(9 10) scale(0.5833)',
-);
-const fitsLabel = computed(() => (type.value.label.length > 4 ? 23 : undefined));
+const showsLabel = computed(() => props.size >= fileIconLabelSize && type.value.label.length > 0);
+const glyphTransform = computed(() => fileIconGlyphTransform(showsLabel.value));
+const fitsLabel = computed(() => fileIconLabelLength(type.value.label));
 const title = computed(() => (type.value.label ? `${type.value.label} file` : 'File'));
 const dataAttributes = computed<Record<string, string>>(() => ({ 'data-kind': type.value.kind }));
 </script>
@@ -50,14 +55,14 @@ const dataAttributes = computed<Record<string, string>>(() => ({ 'data-kind': ty
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
-      d="M8 2h12l7 7v19a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"
+      :d="fileIconPage"
       :fill="color"
       fill-opacity="0.1"
       :stroke="color"
       stroke-width="1.25"
       stroke-linejoin="round"
     />
-    <path d="M20 2v5a2 2 0 0 0 2 2h5" fill="none" :stroke="color" stroke-width="1.25" stroke-linejoin="round" />
+    <path :d="fileIconFold" fill="none" :stroke="color" stroke-width="1.25" stroke-linejoin="round" />
     <path
       :d="glyph"
       :transform="glyphTransform"

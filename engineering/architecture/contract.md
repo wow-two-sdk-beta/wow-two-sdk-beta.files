@@ -103,6 +103,16 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 - one `Range` is served as `206`, several as the whole file, one outside the file as `416`; the `ETag` is the SHA-256.
 - `GET` and `HEAD`; the delivery seam is `IFilesDeliveryService` in the Module, the routes `MapFilesDelivery()` in Server.
 
+The service also serves the icon set from its web root, for any origin to embed:
+
+| Route | Serves | Auth |
+|---|---|---|
+| `GET /icons/{ext}.svg` | a registry extension's icon, labelled; static file built by `apps/web` | none; `Cross-Origin-Resource-Policy: cross-origin` |
+| `GET /icons/kinds/{kind}.svg` | a kind's icon, unlabelled, for small sizes | same |
+
+- any other lowercase `{name}.svg` under either path answers the generic kind's icon; anything else under `/icons/` is
+  `404`. Extensions are lowercase, as `extensionOf` returns them.
+
 ## Events
 
 `IEvent` records, published through the be sdk outbox; planned with the events backlog item.

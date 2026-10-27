@@ -23,6 +23,8 @@ The code lives in `files.backend-services/` (.NET) and `files.frontend-services/
 
 A pnpm workspace: `packages/fe-files` (`@wow-two-beta/fe-files`, published: `./contracts`, `./icons`, `./kit`) and
 `apps/web` (console at `/`, icon page at `/icons`, hosted pages; private). `fe-files/src/icons/FileTypeTable.ts` is
-generated from the be registry by `pnpm gen:file-types`. `scripts/deploy.mjs` copies `apps/web/dist/` to `files.backend-services/service/Files.Api/wwwroot/`.
+generated from the be registry by `pnpm gen:file-types`. `apps/web/vite.icons.ts` writes every icon file
+(`icons/{ext}.svg`, `icons/kinds/{kind}.svg`) into the bundle and serves them in dev; `Files.Api/Icons` answers the
+misses. `scripts/deploy.mjs` copies `apps/web/dist/` to `files.backend-services/service/Files.Api/wwwroot/`.
 
 Rules: wow-two-ws/conventions/development/repo/structure/domain-structure.md
