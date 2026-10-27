@@ -37,6 +37,13 @@ public static class FilesErrors
     public static AppError ReferenceInvalid() =>
         AppErrorFactory.Validation($"A file reference needs a record type and id of 1 to {FilesConstants.MaxReferenceLength} characters.");
 
+    /// <summary>Creates the error for a public URL asked of a file that is not public.</summary>
+    public static AppError FileNotPublic() => AppErrorFactory.Forbidden("The file is not public.");
+
+    /// <summary>Creates the error for a variant the file does not have.</summary>
+    /// <param name="variant">The variant asked for.</param>
+    public static AppError VariantNotFound(string variant) => AppErrorFactory.NotFound($"The file has no variant '{variant}'.");
+
     /// <summary>Creates the error for a signed URL past its expiry or with a bad signature.</summary>
     public static AppError UrlInvalid() => AppErrorFactory.Forbidden("The file link is invalid or expired.");
 

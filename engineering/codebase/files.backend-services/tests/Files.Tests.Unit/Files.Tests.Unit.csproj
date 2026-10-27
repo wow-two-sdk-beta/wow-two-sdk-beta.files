@@ -10,12 +10,14 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\packages\Formats\WoW.Two.Sdk.Beta.Be.Files.Formats.csproj" />
     <ProjectReference Include="..\..\packages\Module\WoW.Two.Sdk.Beta.Be.Files.Module.csproj" />
     <ProjectReference Include="..\..\packages\Client\WoW.Two.Sdk.Beta.Be.Files.Client.csproj" />
+    <ProjectReference Include="..\..\packages\Server\WoW.Two.Sdk.Beta.Be.Files.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

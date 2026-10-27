@@ -7,7 +7,6 @@ using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
-using WoW.Two.Sdk.Beta.Be.Storage.Core;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 
@@ -16,7 +15,7 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 /// before the sweep purges it.</remarks>
 internal sealed class ModuleFileStoreBroker(
     FilesDbContext db,
-    IBlobRepository blobs,
+    FileContentReader reader,
     IFilesCallerService callers,
     IOptions<FilesModuleOptions> options,
     TimeProvider time) : IFileStoreBroker
@@ -28,29 +27,10 @@ internal sealed class ModuleFileStoreBroker(
             : Result<FileModel>.Fail(FilesErrors.FileNotFound());
 
     /// <inheritdoc />
-    public async Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default)
-    {
-        if (await FindAsync(id, includeDeleted: false, cancellationToken) is not { } row)
-            return Result<FileContent>.Fail(FilesErrors.FileNotFound());
-        if (row.State != nameof(FileState.Ready))
-            return Result<FileContent>.Fail(FilesErrors.FileNotReady());
-
-        var from = range?.From ?? 0;
-        var to = Math.Min(range?.To ?? row.Size - 1, row.Size - 1);
-        if (range is not null && (from < 0 || from >= row.Size || to < from))
-            return Result<FileContent>.Fail(FilesErrors.RangeInvalid(row.Size));
-
-        var key = await db.Blobs.AsNoTracking()
-            .Where(blob => blob.TenantId == row.TenantId && blob.Sha256 == row.Sha256)
-            .Select(blob => blob.StorageKey)
-            .FirstOrDefaultAsync(cancellationToken) ?? FileBlobKeyMapper.ToKey(row.TenantId, row.Sha256);
-        if (await blobs.OpenReadAsync(key, cancellationToken) is not { } bytes)
-            return Result<FileContent>.Fail(FilesErrors.FileNotFound());
-
-        var length = row.Size == 0 ? 0 : to - from + 1;
-        var content = await RangeReadStream.OpenAsync(bytes, from, length, cancellationToken);
-        return Result<FileContent>.Ok(new FileContent(content, row.ContentType, length, row.Size, range is null ? null : new ByteRange(from, to)));
-    }
+    public async Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default) =>
+        await FindAsync(id, includeDeleted: false, cancellationToken) is { } row
+            ? await reader.OpenAsync(row, range, cancellationToken)
+            : Result<FileContent>.Fail(FilesErrors.FileNotFound());
 
     /// <inheritdoc />
     public async Task<Result<FilePage>> ListAsync(FileQuery query, CancellationToken cancellationToken = default)

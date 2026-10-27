@@ -2,7 +2,8 @@
 
 The Files server role over the Files module.
 
-- delivery: private files through signed `/f/{id}` URLs, public files at immutable `/m/{sha256}` URLs, range requests
+- delivery: private files through signed `/f/{id}` URLs, public files at immutable `/m/{sha256}.{ext}` URLs, one byte
+  range, entity tags, user-content headers that keep uploads from running on the host — `app.MapFilesDelivery()`
 - shares and file requests: `/s/{token}` and `/r/{token}` pages behind their gates
 - upload protocols beside the API's multipart upload
 - tenancy and the admin API of a shared files host

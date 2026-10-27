@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\packages\Module\WoW.Two.Sdk.Beta.Be.Files.Module.csproj" />
+    <ProjectReference Include="..\..\packages\Server\WoW.Two.Sdk.Beta.Be.Files.Server.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -11,7 +11,7 @@ The code lives in `files.backend-services/` (.NET) and `files.frontend-services/
   get a project with their first code: `engineering/architecture/package-registry.md`.
   `Directory.Build.props` makes them packable by path; the core pin in `Directory.Packages.props` is their floor.
 - `service/Files.Api` hosts the module by `ProjectReference`: `AddApiDefaults()` / `UseApiDefaults()`, a local blob
-  folder (`Storage:Root`), the migrator over the module's SQL, `GreetingsController` (the HTTP mirror of the contract), `SystemController`, and the pages in
+  folder (`Storage:Root`), the migrator over the module's SQL, the delivery routes (`MapFilesDelivery()`), `GreetingsController` (the HTTP mirror of the contract), `SystemController`, and the pages in
   `wwwroot/` (filled by the `BuildSpa` target; `-p:BuildSpa=false` skips it).
 - Tests: `Unit` (package logic), `Integration` (the module over a throwaway SQLite file), `E2E` (the host in process:
   wire, pages, `/health`, the descriptor's dev check), `Conformance` (one suite against module, client and fake),

@@ -6,6 +6,7 @@ using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
+using WoW.Two.Sdk.Beta.Be.Files.Urls;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
 using WoW.Two.Sdk.Beta.Be.Testing.Data.Migrations;
@@ -32,7 +33,8 @@ public sealed class ModuleFilesFixture : IAsyncLifetime
         return new FilesBrokerSet(
             scope.ServiceProvider.GetRequiredService<IFileUploadsBroker>(),
             scope.ServiceProvider.GetRequiredService<IFileStoreBroker>(),
-            scope.ServiceProvider.GetRequiredService<IFileReferencesBroker>());
+            scope.ServiceProvider.GetRequiredService<IFileReferencesBroker>(),
+            scope.ServiceProvider.GetRequiredService<IFileUrlsBroker>());
     }
 
     async Task IAsyncLifetime.InitializeAsync()
@@ -50,6 +52,8 @@ public sealed class ModuleFilesFixture : IAsyncLifetime
             options.ConnectionString = ConnectionString;
             options.TempPath = Path.Combine(root, "tmp");
             options.SweepInterval = TimeSpan.Zero;
+            options.Delivery.BaseUrl = new Uri("https://files.example.test");
+            options.Delivery.SigningKey = "conformance-signing-key-0123456789abcdef";
         });
         services = collection.BuildServiceProvider(validateScopes: true);
     }

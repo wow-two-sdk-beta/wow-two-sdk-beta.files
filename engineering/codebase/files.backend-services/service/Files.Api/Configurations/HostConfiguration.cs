@@ -1,4 +1,5 @@
 using WoW.Two.Sdk.Beta.Be.Data;
+using WoW.Two.Sdk.Beta.Be.Files.Server.Delivery;
 using WoW.Two.Sdk.Beta.Be.Meta;
 
 namespace Files.Api.Configurations;
@@ -31,12 +32,14 @@ public static partial class HostConfiguration
     /// <param name="app">The built web application to configure.</param>
     public static async Task<WebApplication> ConfigureAsync(this WebApplication app)
     {
-        // Create the database file if missing and apply the module's pending SQL migrations before serving.
-        await app.Services.MigrateBespokeOnStartupAsync(app.Lifetime.ApplicationStopping);
+        // Create the database file if missing and apply the module's pending SQL migrations before serving. A deployed
+        // host applies at boot too until its deploy runs a migrate step (core logs event 3014 as a reminder).
+        await app.Services.MigrateBespokeOnStartupAsync(migrations => migrations.ApplyWhenDeployed = true, app.Lifetime.ApplicationStopping);
 
         // SDK pipeline: secure headers, compression, the SPA bundle, /health (database readiness) and the SPA fallback.
         app.UseApiDefaults();
         app.MapControllers();
+        app.MapFilesDelivery();
 
         return app;
     }

@@ -43,7 +43,7 @@
 | `packages/Formats` | the file-type registry (`Registry/file-types.json`), `FileTypeMapper`, `FileContentValidator`, `FileNameMapper` |
 | `packages/Module` | Form 1: uploads, store, references and sweep over SQLite + core `IBlobRepository`, `AddFiles()`, callers, policies, embedded SQL migrations |
 | `packages/Client` | Forms 2/3: the broker over the service's HTTP API, `AddFilesClient()` |
-| `packages/Server` | delivery, share and request routes, upload protocols, tenancy and admin API |
+| `packages/Server` | `MapFilesDelivery()`: signed `/f` and public `/m` routes; later share and request routes, upload protocols, admin API |
 | `packages/Testing` | the conformance suites (Files brokers, the Greetings sample) and byte samples |
 | `service/Files.Api` | the deployable host: the module, the HTTP mirror, the hosted pages |
 | `tests/Files.Tests.{Unit,Integration,E2E,Conformance,Migrations}` | the test tiers |

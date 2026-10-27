@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
+using WoW.Two.Sdk.Beta.Be.Files.Urls;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using Xunit;
@@ -158,6 +159,40 @@ public abstract class FilesBrokerConformance
         var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
 
         Error(await OtherTenant.References.AttachAsync(file.Id, new FileReference("blog.post", "1"))).Type.Should().Be(AppErrorType.FileNotFound);
+    }
+
+    /// <summary>A signed URL is issued for a ready file and expires about when asked.</summary>
+    [Fact]
+    public async Task Urls_ShouldIssueASignedUrl_ForAReadyFile()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
+        var before = DateTimeOffset.UtcNow;
+
+        var url = Value(await Brokers.Urls.IssueAsync(file.Id, new UrlSpec { Lifetime = TimeSpan.FromMinutes(10) }));
+
+        url.Url.IsAbsoluteUri.Should().BeTrue();
+        url.Url.Query.Should().Contain("sig=");
+        url.ExpiresAtUtc.Should().BeCloseTo(before.AddMinutes(10), TimeSpan.FromDays(1));
+    }
+
+    /// <summary>A public URL is refused for a private file and issued for a public one.</summary>
+    [Fact]
+    public async Task Urls_ShouldIssueAPublicUrl_OnlyForAPublicFile()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Jpeg, "photo.jpg"));
+
+        Error(await Brokers.Urls.GetPublicUrlAsync(file.Id)).Type.Should().Be(AppErrorType.Forbidden);
+        Value(await Brokers.Store.UpdateAsync(file.Id, new FilePatch { Visibility = FileVisibility.Public }));
+        Value(await Brokers.Urls.GetPublicUrlAsync(file.Id)).AbsolutePath.Should().EndWith($"/m/{file.Sha256}.jpg");
+    }
+
+    /// <summary>Another tenant gets no URL to the tenant's file.</summary>
+    [Fact]
+    public async Task OtherTenant_ShouldGetNoUrl_ToTheTenantsFile()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
+
+        Error(await OtherTenant.Urls.IssueAsync(file.Id, new UrlSpec())).Type.Should().Be(AppErrorType.FileNotFound);
     }
 
     private async Task<Result<FileModel>> UploadAsync(byte[] bytes, string name, string? idempotencyKey = null)

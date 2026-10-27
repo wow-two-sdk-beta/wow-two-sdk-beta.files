@@ -1,4 +1,5 @@
 using WoW.Two.Sdk.Beta.Be.Files.Module.Policies;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Urls;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module;
 
@@ -21,6 +22,9 @@ public sealed class FilesModuleOptions
     /// <summary>Gets or sets the folder uploads spool through while they are hashed and checked; the system temp
     /// folder when empty.</summary>
     public string? TempPath { get; set; }
+
+    /// <summary>Gets the content host and the key its signed URLs carry.</summary>
+    public FileDeliveryOptions Delivery { get; } = new();
 
     /// <summary>Gets or sets how often the sweep purges deleted, expired and unused files; zero turns the background
     /// sweep off.</summary>

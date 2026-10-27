@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\service\Files.Api\Files.Api.csproj" />
+    <ProjectReference Include="..\..\packages\Testing\WoW.Two.Sdk.Beta.Be.Files.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

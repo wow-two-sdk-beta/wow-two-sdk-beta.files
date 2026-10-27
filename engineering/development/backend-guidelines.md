@@ -13,5 +13,6 @@ wow-two-ws/conventions/development/repo/structure/domain-structure.md. Repo delt
   since a Form 1 consumer applies them beside its own. A new table is a new
   `packages/Module/Migrations/NNN-name/{Apply,Rollback}.sql` pair; never edit an applied one.
 - Bytes: the host registers core `IBlobRepository`; `Files.Api` uses a local folder at `Storage:Root` (default
-  `data/blobs`). Module settings bind from the `Files` section: `DefaultTenantId`, `Policies` by app, `SweepInterval`.
+  `data/blobs`). Module settings bind from the `Files` section: `DefaultTenantId`, `Policies` by app, `SweepInterval`,
+  `Delivery:BaseUrl` and the secret `Delivery:SigningKey` (`Files__Delivery__SigningKey`).
 - `dotnet test Files.BackendServices.slnx` runs every tier; the backend build needs Node and pnpm for the pages.

@@ -29,7 +29,7 @@
 | `IFileUploadsBroker` | `UploadAsync(stream, spec)` | Module; Client in v0.1 |
 | `IFileStoreBroker` | `GetAsync` · `OpenReadAsync(id, range?)` · `ListAsync(query)` · `UpdateAsync(patch)` · `DeleteAsync` · `RestoreAsync` | Module; Client in v0.1 |
 | `IFileReferencesBroker` | `AttachAsync(id, ref)` · `DetachAsync` · `ListAsync(id)` | Module; Client in v0.1 |
-| `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, variant?)` | declared; v0.1 |
+| `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, variant?)` | Module; Client in v0.1 |
 | `IFileUploadsBroker` tickets | `BeginAsync(spec)` → ticket · `CompleteAsync(uploadId)` · `CancelAsync` | planned |
 | `IFileSharesBroker` | `CreateAsync(spec with gates)` · `UpdateAsync` · `RevokeAsync` · `ListAsync` · `AccessLogAsync` | planned |
 | `IFileTransformsBroker` | `GetVariantAsync(id, name)` · `RequestAsync(spec)` → job | planned |
@@ -77,13 +77,17 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 
 | Route | Serves | Auth |
 |---|---|---|
-| `GET /f/{fileId}[/{variant}]?exp=&sig=` | a private file through a signed URL | HMAC signature, minutes |
-| `GET /m/{sha256}[/{variant}].{ext}` | a public file, immutable, year-long cache | none |
+| `GET /f/{fileId}?exp=&d=&sig=` | a private file through a signed URL; variants later | HMAC-SHA256 over tenant, id, expiry, disposition; up to `MaxLifetime` |
+| `GET /m/{sha256}.{ext}` | a public file, immutable, year-long cache; variants later | none; a public, ready file of the tenant must hold the bytes |
 | `GET /s/{token}` · `POST /s/{token}/unlock` · `GET /s/{token}/zip` | share page, gate unlock, download all | share gates; planned |
 | `GET /r/{token}` · `POST /r/{token}` | file request page and upload | request gates; planned |
 
-- on the shared host's default hostname the tenant prefixes the path: `/t/{tenant}/m/…`, `/t/{tenant}/s/…`.
-- every served response carries `X-Content-Type-Options: nosniff`, a sandbox CSP, and `attachment` for active types.
+- a tenant other than the instance's default prefixes the path: `/t/{tenant}/f/…`, `/t/{tenant}/m/…`, `/t/{tenant}/s/…`.
+- every served response carries `X-Content-Type-Options: nosniff`, `default-src 'none'; style-src 'unsafe-inline';
+  sandbox`, `Cross-Origin-Resource-Policy: cross-origin` and `no-referrer`; active and executable types are always
+  `attachment`; the routes override the be sdk preset's headers per endpoint.
+- one `Range` is served as `206`, several as the whole file, one outside the file as `416`; the `ETag` is the SHA-256.
+- `GET` and `HEAD`; the delivery seam is `IFilesDeliveryService` in the Module, the routes `MapFilesDelivery()` in Server.
 
 ## Events
 
@@ -97,7 +101,7 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 
 `FilesErrors` today: `FileNotFound` · `FileNotReady` · `FileTooLarge` · `TypeNotAllowed` · `ContentMismatch` ·
 `NameInvalid` · `ReferenceNotFound` · `UrlInvalid` · `TenantSuspended` · `TenantInvalid` · `CursorInvalid` ·
-`RangeInvalid` · `ReferenceInvalid`. Planned: `QuotaExceeded` · `ScanFailed` ·
+`RangeInvalid` · `ReferenceInvalid` · `FileNotPublic` · `VariantNotFound`. Planned: `QuotaExceeded` · `ScanFailed` ·
 `UploadExpired` · `ChecksumMismatch` · `ShareExpired` · `ShareLocked` · `ShareExhausted`.
 
 ## Forms
