@@ -5,7 +5,7 @@
 set -euo pipefail
 
 version=${1:?usage: verify-published-packages.sh <version> [timeout-seconds] [poll-seconds]}
-timeout=${2:-900}
+timeout=${2:-2700}
 poll=${3:-15}
 
 root=$(git rev-parse --show-toplevel)

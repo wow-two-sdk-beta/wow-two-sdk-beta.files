@@ -86,7 +86,7 @@ jobs:
     needs: plan
     if: needs.plan.outputs.be == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 70
     permissions:
       contents: write # push the be-v tag
       id-token: write # mint the OIDC token for NuGet trusted publishing
@@ -167,7 +167,7 @@ jobs:
           --api-key "$NUGET_API_KEY" --skip-duplicate
 
       - name: Verify the published family
-        timeout-minutes: 17
+        timeout-minutes: 47
         run: bash ../../scripts/verify-published-packages.sh "${{ steps.version.outputs.version }}"
 
   fe:
