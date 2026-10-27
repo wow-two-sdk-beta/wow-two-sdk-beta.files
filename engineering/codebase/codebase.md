@@ -12,7 +12,8 @@ The code lives in `files.backend-services/` (.NET) and `files.frontend-services/
   `Directory.Build.props` makes them packable by path; the core pin in `Directory.Packages.props` is their floor.
 - `service/Files.Api` hosts the module by `ProjectReference`: `AddApiDefaults()` / `UseApiDefaults()`, a local blob
   folder (`Storage:Root`), the migrator over the module's SQL, the delivery routes (`MapFilesDelivery()`), the API
-  (`Files/Controllers`: files, audit) behind `Auth/` (API keys, trusted issuers' tokens, one policy per scope), `GreetingsController` (the HTTP mirror of the contract), `SystemController`, and the pages in
+  (`Files/Controllers`: files, audit, the HTTP mirror of the contract) behind `Auth/` (API keys, trusted issuers'
+  tokens, one policy per scope), `SystemController`, and the pages in
   `wwwroot/` (filled by the `BuildSpa` target; `-p:BuildSpa=false` skips it).
 - Tests: `Unit` (package logic), `Integration` (the module over a throwaway SQLite file), `E2E` (the host in process:
   wire, pages, `/health`, the descriptor's dev check), `Conformance` (one suite against module, client and fake),

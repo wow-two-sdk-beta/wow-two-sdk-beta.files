@@ -1,22 +1,14 @@
 <script setup lang="ts">
-import { Button } from '@wow-two-beta/fe/presentation/actions';
 import { Badge, Card } from '@wow-two-beta/fe/presentation/display';
-import { GreetingWidget, forwardToHostedGreeting } from '@wow-two-beta/fe-files/kit';
+import { FileIcon } from '@wow-two-beta/fe-files/icons';
+import { RouterLink } from 'vue-router';
 import { useSystemStatus } from '../../../application/system/UseSystemStatus';
 
-/** Renders the console: the running versions and both modes of the fe-files package, consumed through its exports. */
+/** Renders the console's start: the running versions and the way to the file type registry. */
 defineOptions({ name: 'ConsolePage' });
 
 const appVersion = __APP_VERSION__;
 const { status } = useSystemStatus();
-
-function forward() {
-  forwardToHostedGreeting({
-    serviceUrl: window.location.origin,
-    name: 'Ann',
-    returnUrl: window.location.href,
-  });
-}
 </script>
 
 <template>
@@ -31,15 +23,15 @@ function forward() {
       </div>
     </header>
 
-    <section class="mt-8" aria-labelledby="embed-heading">
-      <h2 id="embed-heading" class="mb-3 text-sm font-medium text-muted-foreground">Embedded widget</h2>
-      <GreetingWidget />
-    </section>
-
-    <section class="mt-8" aria-labelledby="forward-heading">
-      <Card class="p-6">
-        <h2 id="forward-heading" class="text-sm font-medium text-muted-foreground">Forward to the hosted page</h2>
-        <Button class="mt-3" @click="forward">Open the hosted greeting</Button>
+    <section class="mt-8" aria-labelledby="types-heading">
+      <Card class="flex items-center gap-4 p-6">
+        <FileIcon ext="pdf" :size="48" />
+        <div>
+          <h2 id="types-heading" class="text-sm font-medium text-muted-foreground">File types</h2>
+          <RouterLink to="/icons" class="mt-1 inline-block font-medium underline underline-offset-4">
+            Every type Files recognizes, with its icon
+          </RouterLink>
+        </div>
       </Card>
     </section>
   </main>

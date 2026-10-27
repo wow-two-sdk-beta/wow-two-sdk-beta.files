@@ -2,9 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WoW.Two.Sdk.Beta.Be.Files.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Client.Files;
-using WoW.Two.Sdk.Beta.Be.Files.Client.Greetings;
 using WoW.Two.Sdk.Beta.Be.Files.Client.Transport;
-using WoW.Two.Sdk.Beta.Be.Files.Greetings;
 using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
@@ -37,8 +35,6 @@ public static class FilesClientServiceCollectionExtensions
         services.AddTransient<IFileReferencesBroker, ApiFileReferencesBroker>();
         services.AddTransient<IFileUrlsBroker, ApiFileUrlsBroker>();
         services.AddTransient<IFileAuditBroker, ApiFileAuditBroker>();
-        services.AddTransient<IGreetingsBroker>(provider =>
-            new ApiGreetingsBroker(provider.GetRequiredService<IHttpClientFactory>().CreateClient(FilesClientConstants.HttpClientName)));
 
         return services.AddHttpClient(FilesClientConstants.HttpClientName, (provider, http) =>
             {

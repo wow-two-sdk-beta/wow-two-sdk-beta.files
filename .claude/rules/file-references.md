@@ -39,17 +39,17 @@
 ### `codebase/files.backend-services/`
 | Project | What it is |
 |---|---|
-| `packages/Abstractions` | the contract: `IFile*Broker`s, models, constants, scopes, errors; the template's `IGreetingsBroker` until v0.1 removes it |
+| `packages/Abstractions` | the contract: `IFile*Broker`s, models, constants, scopes, errors |
 | `packages/Formats` | the file-type registry (`Registry/file-types.json`), `FileTypeMapper`, `FileContentValidator`, `FileNameMapper` |
 | `packages/Module` | Form 1: uploads, store, references and sweep over SQLite + core `IBlobRepository`, `AddFiles()`, callers, policies, embedded SQL migrations |
 | `packages/Client` | Forms 2/3: every broker over the service's HTTP API, `AddFilesClient()`, API key or token |
 | `packages/Server` | `MapFilesDelivery()`: signed `/f` and public `/m` routes; later share and request routes, upload protocols, admin API |
-| `packages/Testing` | the conformance suites (Files brokers, the Greetings sample) and byte samples |
+| `packages/Testing` | the conformance suite of every Files broker and byte samples |
 | `service/Files.Api` | the deployable host: the module, the HTTP mirror (`Files/Controllers`), auth (`Auth/`), delivery routes, the hosted pages |
 | `tests/Files.Tests.{Unit,Integration,E2E,Conformance,Migrations}` | the test tiers |
 
 ### `codebase/files.frontend-services/`
 | Project | What it is |
 |---|---|
-| `packages/fe-files` | `@wow-two-beta/fe-files`: contract mirror, `/icons` (generated type table, `FileIcon`), `GreetingWidget` |
-| `apps/web` | the console (`/`), the icon page (`/icons`) and hosted pages (`/greet`), served by `Files.Api` |
+| `packages/fe-files` | `@wow-two-beta/fe-files`: contract mirror, `/icons` (generated type table, `FileIcon`) |
+| `apps/web` | the console (`/`) and the icon page (`/icons`), served by `Files.Api` |

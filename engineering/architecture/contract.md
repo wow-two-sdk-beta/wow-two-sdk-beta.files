@@ -133,4 +133,3 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
   magic-byte mismatches, archive bombs.
 - `FilesBrokerConformance` runs against the Module and against the Client over the host by two tenants' API keys;
   the workflow runs the Client side against the released image with two test-only keys.
-- until v0.1 iteration 6, the template's Greetings sample (`IGreetingsBroker`) still runs its own suite.

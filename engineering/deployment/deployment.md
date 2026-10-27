@@ -28,7 +28,7 @@ The packages ship separately, from `publish-packages.yml` (`engineering/scripts/
   migrate step.
 - Database: SQLite on the `data` volume, one instance per environment; the host applies the module's pending
   migrations before it serves. `GET /health` answers 200 only while the database answers.
-- Dev check: after a dev rollout, `verify` curls `$VERIFY_SERVICE_FILES/health` and `/api/greetings` with
+- Dev check: after a dev rollout, `verify` curls `$VERIFY_SERVICE_FILES/health` and `/api/system/status` with
   `Host: localhost`; `HostFilteringTests` replays the descriptor's requests.
 - After each main image publish, `conformance.yml` runs the contract suite against the released image.
 

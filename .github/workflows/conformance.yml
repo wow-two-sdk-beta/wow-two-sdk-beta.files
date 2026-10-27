@@ -80,7 +80,7 @@ jobs:
           CONFORMANCE_BASE_URL: http://127.0.0.1:8080
         run: >-
           dotnet test engineering/codebase/files.backend-services/tests/Files.Tests.Conformance -p:BuildSpa=false
-          --filter "FullyQualifiedName~ClientGreetingsConformanceTests|FullyQualifiedName~ClientFilesConformanceTests"
+          --filter "FullyQualifiedName~ClientFilesConformanceTests"
 
       - name: Service log
         if: failure()

@@ -6,9 +6,9 @@ Defer to `wow-two-ws/conventions/development/frontend/`.
 
 - Frontend root: `engineering/codebase/files.frontend-services/`; Node `24.11.0` from `.nvmrc`, `pnpm@10.33.2`.
 - `packages/fe-files` is `@wow-two-beta/fe-files`, published to npm: `./contracts` (the TypeScript mirror of the be
-  contract) and `./kit` (`GreetingWidget`, `createGreetingsClient`, `forwardToHostedGreeting`). It peers
+  contract) and `./icons` (`FileIcon`, `fileTypeOf`, the type table generated from the be registry). It peers
   `@wow-two-beta/fe` at `>=0.0.n <0.1.0`, `n` the pinned version; `check:package` enforces it.
-- `apps/web` is `@files/web`, private: the hosted pages (`/greet`) and the console (`/`). It takes `fe-files` by
+- `apps/web` is `@files/web`, private: the console (`/`) and the icon page (`/icons`); share and request pages join it. It takes `fe-files` by
   `workspace:*`, through its `exports` only — the way a product would; the package never imports `apps/`.
 - App source uses `bootstrap`, `presentation`, `application`, `domain`, and `integration` layers.
 - Routes live in `src/bootstrap/router/Routes.ts` on the fe sdk router (`createAppRouter`, `lazyPage`); a new hosted

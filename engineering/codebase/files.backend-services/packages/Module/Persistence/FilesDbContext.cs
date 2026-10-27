@@ -8,9 +8,6 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 /// <param name="options">The context options, configured by <c>AddFiles</c>.</param>
 internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) : DbContext(options)
 {
-    /// <summary>Gets the served-greeting log.</summary>
-    public DbSet<GreetingLog> GreetingLogs => Set<GreetingLog>();
-
     /// <summary>Gets the stored files.</summary>
     public DbSet<FileEntity> Files => Set<FileEntity>();
 
@@ -45,13 +42,6 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var log = modelBuilder.Entity<GreetingLog>();
-        log.ToTable(GreetingLog.TableName);
-        log.HasKey(row => row.Id);
-        log.Property(row => row.Id).HasColumnName("id");
-        log.Property(row => row.Message).HasColumnName("message");
-        log.Property(row => row.GreetedAtUtc).HasColumnName("greeted_at_utc");
-
         var file = modelBuilder.Entity<FileEntity>();
         file.ToTable(FileEntity.TableName);
         file.HasKey(row => row.Seq);

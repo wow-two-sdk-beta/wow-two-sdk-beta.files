@@ -3,13 +3,13 @@ using AwesomeAssertions;
 
 namespace Files.Tests.E2E;
 
-/// <summary>The single-host contract: the built Vue app (console and hosted pages) is served at <c>/</c>, its hosted <c>/greet</c> page and any unknown route falls back to it, and an unmatched <c>/api</c> path answers JSON, never the app shell.</summary>
+/// <summary>The single-host contract: the built Vue app (console and hosted pages) is served at <c>/</c>, its <c>/icons</c> page and any unknown route falls back to it, and an unmatched <c>/api</c> path answers JSON, never the app shell.</summary>
 [Collection(FilesApiCollection.Name)]
 public sealed class SpaServingTests(FilesApiFixture fixture)
 {
     [Theory]
     [InlineData("/")]
-    [InlineData("/greet")]
+    [InlineData("/icons")]
     [InlineData("/some/client/route")]
     public async Task Get_ShouldServeTheAppShell_WhenTheRouteIsNotAnApiRoute(string path)
     {

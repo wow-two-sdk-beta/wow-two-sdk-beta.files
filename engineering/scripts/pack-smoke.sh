@@ -44,7 +44,7 @@ cat > "$consumer/Program.cs" <<CS
 using Microsoft.Extensions.DependencyInjection;
 using WoW.Two.Sdk.Beta.Be.Files.Client;
 using WoW.Two.Sdk.Beta.Be.Files.Module;
-using WoW.Two.Sdk.Beta.Be.Files.Testing.Greetings;
+using WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
 
 var formOne = new ServiceCollection();
 formOne.AddFiles().Configure(options => options.ConnectionString = "Data Source=:memory:");
@@ -52,7 +52,7 @@ formOne.AddFiles().Configure(options => options.ConnectionString = "Data Source=
 var formThree = new ServiceCollection();
 formThree.AddFilesClient(options => options.BaseAddress = new Uri("https://service.example.test/"));
 
-Console.WriteLine(\$"pack smoke: {nameof(GreetingsBrokerConformance)} and both forms resolve from the packed family");
+Console.WriteLine(\$"pack smoke: {nameof(FilesBrokerConformance)} and both forms resolve from the packed family");
 CS
 
 # No HTTP cache: a core version published minutes ago must resolve, not a cached index that predates it.

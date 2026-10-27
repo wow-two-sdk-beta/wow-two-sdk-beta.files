@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    The Files contract: the Greetings broker, its model, constants and error catalogue. It references the kernel
+    The Files contract: the brokers, their models, constants, scopes and error catalogue. It references the kernel
     WoW2.Sdk.Beta.Be.Abstractions only (Result, AppError, IEvent) — no core, no framework reference, no third-party
     package — and holds no options binding, DI registration or I/O.
   -->
   <PropertyGroup>
     <RootNamespace>WoW.Two.Sdk.Beta.Be.Files</RootNamespace>
-    <Description>Files contract: the Greetings broker, model, constants and error catalogue every form implements.</Description>
+    <Description>Files contract: the upload, store, reference, URL and audit brokers, their models, scopes and errors, which every form implements.</Description>
   </PropertyGroup>
 
   <ItemGroup>

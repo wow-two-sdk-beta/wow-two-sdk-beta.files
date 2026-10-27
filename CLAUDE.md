@@ -27,8 +27,7 @@ engineering/             ← the HOW
 
 - Shape: wow-two-ws/conventions/development/repo/structure/domain-structure.md; repo-specific deltas only in `engineering/development/`.
 - The contract lives in `packages/Abstractions`; Module (Form 1) and Client (Forms 2/3) implement it, and
-  `Files.Tests.Conformance` runs the one suite (in `packages/Testing`) against both. The template's Greetings sample
-  stays until v0.1 iteration 6 removes it.
+  `Files.Tests.Conformance` runs the one suite (in `packages/Testing`) against both.
 - Core keeps the `Storage/` byte adapters; every Files byte goes through core `IBlobRepository`.
 - Code moved from core `Media/Images` and `Media/Pdf` takes the `Files.Images` and `Files.Documents` namespaces.
 - A package project lands with its first code; planned packages are rows in `engineering/architecture/package-registry.md`.

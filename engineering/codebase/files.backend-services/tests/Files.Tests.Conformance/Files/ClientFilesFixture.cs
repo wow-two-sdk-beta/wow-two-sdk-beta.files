@@ -21,6 +21,9 @@ namespace Files.Tests.Conformance.Files;
 /// <see cref="TenantKey"/> and <see cref="OtherTenantKey"/> (the conformance workflow configures them).</remarks>
 public sealed class ClientFilesFixture : IAsyncLifetime
 {
+    /// <summary>Holds the variable that points the suite at a running host or image.</summary>
+    public const string BaseUrlVariable = "CONFORMANCE_BASE_URL";
+
     /// <summary>Holds the test-only key of the tenant under test.</summary>
     public const string TenantKey = "files-conformance-key-tenant-a-0123456789";
 
@@ -28,7 +31,7 @@ public sealed class ClientFilesFixture : IAsyncLifetime
     public const string OtherTenantKey = "files-conformance-key-tenant-b-0123456789";
 
     private readonly string root = Path.Combine(Path.GetTempPath(), $"files-conformance-client-{Guid.NewGuid():N}");
-    private readonly Uri? runningHost = Environment.GetEnvironmentVariable(Greetings.ServiceFixture.BaseUrlVariable) is { Length: > 0 } url ? new Uri(url) : null;
+    private readonly Uri? runningHost = Environment.GetEnvironmentVariable(BaseUrlVariable) is { Length: > 0 } url ? new Uri(url) : null;
     private readonly List<ServiceProvider> providers = [];
     private WebApiTestHost<Program>? host;
 

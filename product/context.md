@@ -1,26 +1,25 @@
 # wow-two-sdk-beta.files — Product Context
 
-*Last updated: 2026-10-26*
+*Last updated: 2026-10-27*
 
 > Current state — changes often. Durable definition: `product.md`.
 
 ## Current state
 
-The repo exists on GitHub since 2026-10-26, private until its first release, scaffolded from the domain template. The
-spec and the nine-track analysis moved in from the hub, every point confirmed by the developer. The contract skeleton,
-the Formats and Server projects and a 43-row file-type registry seed sit beside the template's Greetings sample; v0.1
-(File store) is planned and not started. Nothing is published.
+The repo is public on GitHub since 2026-10-27, with the `main-guard` ruleset, scaffolded from the domain template. v0.1
+(File store) is built and in verification: file types and icons, tenant-scoped deduplicated storage, references,
+signed and public delivery, the HTTP API with key and token callers, the audit trail; the template's sample is gone.
+The image releases from `main`; no package is published yet.
 
 ## Active tasks
 
 | Task | Status | Notes |
 |---|---|---|
-| v0.1 File store | todo | `engineering/planning/version-track/v0.1/v0.1.md` |
-| Make the repo public, then add the `main-guard` ruleset | todo | developer; the free plan refuses rulesets on a private repo |
-| Archive `wow-two-platform/wow-two-platform.storage.file` | todo | developer; [legacy notes](../engineering/research/legacy-storage-file.md) |
+| v0.1 File store | verification | `engineering/planning/version-track/v0.1/v0.1.md`; the developer runs the checks |
+| Console slice | proposed | [T10](../engineering/research/files-analysis-2026-10/t10-console.md) § 6; its points wait for the developer |
 | Identity contracts C1–C15 | in progress | prompt ready; the developer forwards it; integration as we go |
 | Wheelhouse migration module prompt | draft | refined once the import API exists, then forwarded |
-| NuGet and npm first publish | todo | after v0.1 replaces the sample (`create-library` phase 4) |
+| NuGet and npm first publish | todo | `create-library` phase 4: NuGet consent, npm first version (developer) |
 
 ## Open questions
 

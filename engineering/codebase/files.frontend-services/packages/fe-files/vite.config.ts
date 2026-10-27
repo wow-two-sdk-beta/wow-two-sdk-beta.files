@@ -23,7 +23,6 @@ export default defineConfig({
       entry: {
         'contracts/index': 'src/contracts/index.ts',
         'icons/index': 'src/icons/index.ts',
-        'kit/index': 'src/kit/index.ts',
       },
       formats: ['es'],
     },

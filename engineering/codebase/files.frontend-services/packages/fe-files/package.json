@@ -1,7 +1,7 @@
 {
   "name": "@wow-two-beta/fe-files",
   "version": "0.0.0",
-  "description": "Files domain UI: the contract mirror, the file icon pack, an embeddable greeting widget and the forward to the hosted page.",
+  "description": "Files domain UI: the TypeScript mirror of the Files contract and the file icon pack.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -20,11 +20,6 @@
       "types": "./dist/contracts/index.d.ts",
       "import": "./dist/contracts/index.js",
       "default": "./dist/contracts/index.js"
-    },
-    "./kit": {
-      "types": "./dist/kit/index.d.ts",
-      "import": "./dist/kit/index.js",
-      "default": "./dist/kit/index.js"
     },
     "./icons": {
       "types": "./dist/icons/index.d.ts",
