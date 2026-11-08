@@ -23,7 +23,7 @@ public sealed class SystemController : ControllerBase
     {
         var version = typeof(SystemController).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
-        var status = new SystemStatusDto { Service = ServiceName, Status = "ok", Version = version };
+        var status = new SystemStatusDto { Service = ServiceName, Status = "ok", Version = version, Imaging = ImagingProbe.State };
 
         return Ok(ApiResponse<SystemStatusDto>.Ok(status));
     }

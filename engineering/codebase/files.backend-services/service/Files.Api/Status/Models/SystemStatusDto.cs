@@ -11,4 +11,7 @@ public sealed record SystemStatusDto
 
     /// <summary>Gets the informational version of the running build, with its commit.</summary>
     public required string Version { get; init; }
+
+    /// <summary>Gets whether this process makes WebP variants: <c>ok</c> or <c>unavailable</c>.</summary>
+    public required string Imaging { get; init; }
 }

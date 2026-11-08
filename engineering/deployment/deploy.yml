@@ -11,7 +11,7 @@ dotnetEnvironment: true
 # The dev check: once a dev rollout succeeds, the service's own image asks it for its health and its status over the
 # platform network. A pass lets auto-promote take the release. Each request carries the probe Host (localhost): a
 # target's AllowedHosts names its public hosts plus localhost, so the service's platform-network name in the URL
-# would answer 400 from host filtering.
+# would answer 400 from host filtering. The status must report imaging ok: the image can encode WebP variants.
 verify:
   service: files
   command:
@@ -20,9 +20,9 @@ verify:
     - >-
       curl --fail --silent --show-error --max-time 10 --header "Host: localhost" --output /dev/null
       "$VERIFY_SERVICE_FILES/health"
-      && curl --fail --silent --show-error --max-time 10 --header "Host: localhost" --output /dev/null
-      "$VERIFY_SERVICE_FILES/api/system/status"
-      && echo "health and status answered"
+      && curl --fail --silent --show-error --max-time 10 --header "Host: localhost"
+      "$VERIFY_SERVICE_FILES/api/system/status" | grep -q '"imaging":"ok"'
+      && echo "health and status answered, WebP variants available"
   timeout: 1m
 # Two host roles: the public front door for the API and the hosted pages, and the private admin console. One app
 # serves both; Wheelhouse binds each site to its own host per environment.

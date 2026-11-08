@@ -30,5 +30,6 @@ public sealed class SystemStatusTests(FilesApiFixture fixture)
         status.GetProperty("service").GetString().Should().Be("files");
         status.GetProperty("status").GetString().Should().Be("ok");
         status.GetProperty("version").GetString().Should().NotBeNullOrWhiteSpace().And.NotBe("unknown");
+        status.GetProperty("imaging").GetString().Should().Be("ok");
     }
 }
