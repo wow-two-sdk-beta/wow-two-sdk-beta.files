@@ -37,8 +37,9 @@ public static partial class HostConfiguration
     /// <param name="app">The built web application to configure.</param>
     public static async Task<WebApplication> ConfigureAsync(this WebApplication app)
     {
-        // Create the database file if missing and apply the module's pending SQL migrations before serving. A deployed
-        // host applies at boot too until its deploy runs a migrate step (core logs event 3014 as a reminder).
+        // Create the store's database if missing and apply the module's pending migration set ("files") before serving.
+        // A deployed host applies at boot too, until its deploy runs a migrate step (core logs event 3014 as a reminder);
+        // the image's `migrate` verb is the file mover, so the set has no descriptor migrate step.
         await app.Services.MigrateBespokeOnStartupAsync(migrations => migrations.ApplyWhenDeployed = true, app.Lifetime.ApplicationStopping);
 
         // SDK pipeline: secure headers, compression, the SPA bundle, /health (database readiness) and the SPA fallback.

@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Files.Tests.Lanes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
@@ -9,11 +10,12 @@ using static Files.Tests.Integration.Files.ModuleHarness;
 namespace Files.Tests.Integration.Files;
 
 /// <summary>Uploads through the module: bytes checked, stored once per tenant, retried safely, under the app policy.</summary>
-public sealed class ModuleUploadsTests : IAsyncLifetime
+/// <param name="lane">The lane whose store each test runs over.</param>
+public abstract class ModuleUploadsTests(IFilesLane lane) : IAsyncLifetime
 {
     private ModuleHarness harness = null!;
 
-    public async Task InitializeAsync() => harness = await CreateAsync(options =>
+    public async Task InitializeAsync() => harness = await CreateAsync(lane, options =>
     {
         options.Policies["tiny"] = new() { MaxBytes = 10 };
         options.Policies["gallery"] = new();
@@ -141,3 +143,11 @@ public sealed class ModuleUploadsTests : IAsyncLifetime
     private Task<int> CountAsync<TEntity>() where TEntity : class =>
         harness.WithAsync<FilesDbContext, int>(db => db.Set<TEntity>().CountAsync());
 }
+
+/// <summary>The tests over a SQLite file.</summary>
+public sealed class ModuleUploadsSqliteTests() : ModuleUploadsTests(SqliteLane.Instance);
+
+/// <summary>The tests over a PostgreSQL database.</summary>
+/// <param name="lane">The assembly's container.</param>
+[Collection(PostgresLane.Collection)]
+public sealed class ModuleUploadsPostgresTests(PostgresLane lane) : ModuleUploadsTests(lane);

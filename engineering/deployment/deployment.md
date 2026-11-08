@@ -5,7 +5,7 @@ The packages ship separately, from `publish-packages.yml` (`engineering/scripts/
 
 | File | Role |
 |---|---|
-| `deploy.yml` | descriptor 2: one service, `files` (`/health`, 256 MB, the typed required key `DatabaseSettings:ConnectionString`, a `data` volume); sites `app` (public, primary) and `console` (private), both at `/` and `/api`; `dotnetEnvironment: true` and the `verify` dev check |
+| `deploy.yml` | descriptor 2: one service, `files` (`/health`, 256 MB, `needs: [postgres]`, the typed required key `DatabaseSettings:ConnectionString`, a `data` volume for the bytes); sites `app` (public, primary) and `console` (private), both at `/` and `/api`; `dotnetEnvironment: true` and the `verify` dev check |
 | `Dockerfile` | three stages: build the frontend workspace (`fe-files`, then `apps/web`), publish `service/Files.Api` with its packages and the pages in `wwwroot`, run on `aspnet` with `curl` |
 | `docker-compose.yml` | local verification: the image with its SQLite file on a named volume, on `http://127.0.0.1:8393` |
 
@@ -16,9 +16,10 @@ The packages ship separately, from `publish-packages.yml` (`engineering/scripts/
   setting keys (`settings.keys`) into the bundle, and `generate` for the operator key (since `v0.14.0`).
 - Version: `X.Y` from the newest `planning/version-track/v{X.Y}/`; the image tag and `GET /api/system/status` report the
   same `X.Y.Z`, plus the build's commit after a `+`. Package releases (`be-v*`, `fe-v*`) never move it.
-- Settings a target provides in `/app/appsettings.Target.json`: `DatabaseSettings:ConnectionString`
-  (`Data Source=/data/files.db`); `Deployment:TrustedProxies` or `Deployment:TrustedNetworks` names the ingress.
-- Bytes: `Storage:Root` (default `/data/blobs`) on the `data` volume, beside the SQLite file.
+- Settings a target provides in `/app/appsettings.Target.json`: `DatabaseSettings:ConnectionString`, which Wheelhouse
+  fills from the target's PostgreSQL database (`needs: [postgres]`) and keeps in its vault;
+  `Deployment:TrustedProxies` or `Deployment:TrustedNetworks` names the ingress. `DB_CONNECTION` wins over the key.
+- Bytes: `Storage:Root` (default `/data/blobs`) on the `data` volume.
 - File links: `Files:Delivery:SigningKey` (secret, 32+ characters; rotating it voids issued links); links point at
   `Sites:app:Url` unless `Files:Delivery:BaseUrl` names another content host.
 - Callers: `Files:Auth:Issuers:{n}:{Issuer,TenantId,Audiences:{m},MetadataAddress,Jwks}` (each tenant's issuer and its
@@ -27,10 +28,11 @@ The packages ship separately, from `publish-packages.yml` (`engineering/scripts/
   outside Identity (the SHA-256 of a `files_` key, never the key). With neither, the API answers 401. Both move to the
   tenants table with the admin API.
 - Signals: each tenant's Identity posts to `{audience}signals/identity`, the URL its registry lists as `SignalUrl`.
-- Migrations: the host applies them at boot on every run (`ApplyWhenDeployed`, event 3014) until the deploy runs a
-  migrate step.
-- Database: SQLite on the `data` volume, one instance per environment; the host applies the module's pending
-  migrations before it serves. `GET /health` answers 200 only while the database answers.
+- Migrations: the module's set `files` (`Migrations/Postgres/`, history `files_migration_history`); the host creates
+  the database when missing and applies the set at boot on every run (`ApplyWhenDeployed`, event 3014). The
+  descriptor has no `migrate:` step, since the image's `migrate` verb is the file mover.
+- Database: PostgreSQL, the target's own, one per environment (`DatabaseSettings:Provider` defaults to `Postgres`;
+  SQLite is banned for a deployed service). `GET /health` answers 200 only while the database answers.
 - Dev check: after a dev rollout, `verify` curls `$VERIFY_SERVICE_FILES/health` and `/api/system/status` with
   `Host: localhost`; `HostFilteringTests` replays the descriptor's requests.
 - After each main image publish, `conformance.yml` runs the contract suite against the released image.
@@ -39,6 +41,10 @@ The packages ship separately, from `publish-packages.yml` (`engineering/scripts/
 
 - `appsettings.Development.json` holds a local-only key: send `X-Api-Key: files_LocalDevKey0123456789abcdefghijk` to act in the
   `default` tenant with every scope. No deployment accepts it.
+- The store: `appsettings.Local.json` (this machine's, git-ignored) names it — a local PostgreSQL's
+  `DatabaseSettings:ConnectionString`, or `DatabaseSettings:Provider: Sqlite` with `Data Source=files.db`. Deployed dev
+  runs as .NET Development too, so `appsettings.Development.json` never chooses the engine. A `files.db` from before the
+  set `files` holds its history in `migration_history`; delete it, and the next run rebuilds it.
 
 ```bash
 docker build --build-arg APP_VERSION=0.1.99 --build-arg VCS_REF=$(git rev-parse HEAD) \

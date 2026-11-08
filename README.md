@@ -55,8 +55,8 @@ cd engineering/codebase/files.frontend-services && pnpm install --frozen-lockfil
 ## Test it
 
 ```bash
-# Backend: unit, integration, E2E, conformance and migration tiers (SQLite, no Docker); the build also builds the
-# frontend workspace, so Node and pnpm are required
+# Backend: unit, integration, E2E, conformance and migration tiers on SQLite, plus a PostgreSQL lane when Docker is
+# reachable (FILES_TESTS_POSTGRES=off skips it); the build also builds the frontend workspace, so Node and pnpm are required
 cd engineering/codebase/files.backend-services && dotnet test Files.BackendServices.slnx
 
 # Frontend: lint, tests (builds fe-files first), production build, packed-consumer check

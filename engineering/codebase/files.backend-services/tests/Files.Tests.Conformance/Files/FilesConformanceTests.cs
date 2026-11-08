@@ -1,9 +1,22 @@
+using Files.Tests.Lanes;
 using WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
 
 namespace Files.Tests.Conformance.Files;
 
-/// <summary>Form 1: the Files suite against the in-process module, two fresh tenants per test.</summary>
-public sealed class ModuleFilesConformanceTests(ModuleFilesFixture fixture) : FilesBrokerConformance, IClassFixture<ModuleFilesFixture>
+/// <summary>Form 1: the Files suite against the in-process module over a SQLite file, two fresh tenants per test.</summary>
+public sealed class ModuleFilesConformanceTests(ModuleFilesSqliteFixture fixture) : FilesBrokerConformance, IClassFixture<ModuleFilesSqliteFixture>
+{
+    private readonly FilesBrokerSet brokers = fixture.For($"t-{Guid.NewGuid():N}"[..20]);
+    private readonly FilesBrokerSet otherTenant = fixture.For($"t-{Guid.NewGuid():N}"[..20]);
+
+    protected override FilesBrokerSet Brokers => brokers;
+
+    protected override FilesBrokerSet OtherTenant => otherTenant;
+}
+
+/// <summary>Form 1: the same suite against the module over PostgreSQL; skipped without Docker.</summary>
+[Collection(PostgresLane.Collection)]
+public sealed class ModuleFilesPostgresConformanceTests(ModuleFilesPostgresFixture fixture) : FilesBrokerConformance, IClassFixture<ModuleFilesPostgresFixture>
 {
     private readonly FilesBrokerSet brokers = fixture.For($"t-{Guid.NewGuid():N}"[..20]);
     private readonly FilesBrokerSet otherTenant = fixture.For($"t-{Guid.NewGuid():N}"[..20]);
@@ -23,8 +36,17 @@ public sealed class ClientFilesConformanceTests(ClientFilesFixture fixture) : Fi
     protected override TimeProvider Clock => fixture.Clock;
 }
 
-/// <summary>Form 1: WebP variants through the in-process module, a fresh tenant per test.</summary>
-public sealed class ModuleFileVariantsConformanceTests(ModuleFilesFixture fixture) : FileVariantsConformance, IClassFixture<ModuleFilesFixture>
+/// <summary>Form 1: WebP variants through the in-process module over a SQLite file, a fresh tenant per test.</summary>
+public sealed class ModuleFileVariantsConformanceTests(ModuleFilesSqliteFixture fixture) : FileVariantsConformance, IClassFixture<ModuleFilesSqliteFixture>
+{
+    private readonly FilesBrokerSet brokers = fixture.For($"v-{Guid.NewGuid():N}"[..20]);
+
+    protected override FilesBrokerSet Brokers => brokers;
+}
+
+/// <summary>Form 1: the same variants through the module over PostgreSQL; skipped without Docker.</summary>
+[Collection(PostgresLane.Collection)]
+public sealed class ModuleFileVariantsPostgresConformanceTests(ModuleFilesPostgresFixture fixture) : FileVariantsConformance, IClassFixture<ModuleFilesPostgresFixture>
 {
     private readonly FilesBrokerSet brokers = fixture.For($"v-{Guid.NewGuid():N}"[..20]);
 

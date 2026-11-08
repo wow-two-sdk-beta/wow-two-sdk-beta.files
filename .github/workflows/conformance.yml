@@ -1,6 +1,6 @@
-# The contract's conformance suite against the released image: pulls the image, starts it on a throwaway SQLite
-# volume with two test tenants' API keys, and runs the Client side of Files.Tests.Conformance against it
-# (CONFORMANCE_BASE_URL). Runs after each
+# The contract's conformance suite against the released image: pulls the image, starts it over a throwaway
+# PostgreSQL service container with two test tenants' API keys, and runs the Client side of Files.Tests.Conformance
+# against it (CONFORMANCE_BASE_URL). Runs after each
 # image publish on main, nightly and on dispatch. It cannot block a publish; the descriptor's verify dev check is the
 # promotion gate.
 name: conformance
@@ -34,6 +34,18 @@ jobs:
     timeout-minutes: 20
     env:
       TAG: ${{ inputs.tag || 'latest' }}
+    # The image's store: a throwaway database on the job's network, which the image reaches as `postgres`. Test-only
+    # credentials; never real ones.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: files
+          POSTGRES_PASSWORD: files
+          POSTGRES_DB: files
+        options: >-
+          --health-cmd "pg_isready --username files --dbname files"
+          --health-interval 2s --health-timeout 5s --health-retries 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -48,14 +60,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      # Development mode skips the HTTPS redirect a production host applies behind its ingress.
+      # Development mode skips the HTTPS redirect a production host applies behind its ingress. The image joins the
+      # service container's network and applies the module's migration set "files" at boot.
       - name: Start the released image
+        env:
+          NETWORK: ${{ job.services.postgres.network }}
         run: |
           set -euo pipefail
           image="ghcr.io/${GITHUB_REPOSITORY,,}/files:$TAG"
           # Two test-only tenants by API key (ClientFilesFixture's keys); never real credentials.
-          docker run --detach --name files --publish 127.0.0.1:8080:8080 \
-            --env ASPNETCORE_ENVIRONMENT=Development --env DB_CONNECTION="Data Source=/data/files.db" \
+          docker run --detach --name files --network "$NETWORK" --publish 127.0.0.1:8080:8080 \
+            --env ASPNETCORE_ENVIRONMENT=Development --env DatabaseSettings__Provider=Postgres \
+            --env DB_CONNECTION="Host=postgres;Port=5432;Database=files;Username=files;Password=files" \
             --env Storage__Root=/data/blobs \
             --env Files__Delivery__BaseUrl=http://127.0.0.1:8080 \
             --env Files__Delivery__SigningKey=conformance-signing-key-0123456789abcdef \

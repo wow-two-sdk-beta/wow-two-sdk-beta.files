@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Files.Tests.Lanes;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 using static Files.Tests.Integration.Files.ModuleHarness;
@@ -7,11 +8,12 @@ namespace Files.Tests.Integration.Files;
 
 /// <summary>The module's store: reads whole and ranged, newest-first pages, renames within the type, delete, restore
 /// and expiry on a fake clock.</summary>
-public sealed class ModuleStoreTests : IAsyncLifetime
+/// <param name="lane">The lane whose store each test runs over.</param>
+public abstract class ModuleStoreTests(IFilesLane lane) : IAsyncLifetime
 {
     private ModuleHarness harness = null!;
 
-    public async Task InitializeAsync() => harness = await CreateAsync(options =>
+    public async Task InitializeAsync() => harness = await CreateAsync(lane, options =>
         options.Policies["brief"] = new() { DeletedRetention = TimeSpan.FromMinutes(5) });
 
     public async Task DisposeAsync() => await harness.DisposeAsync();
@@ -171,3 +173,11 @@ public sealed class ModuleStoreTests : IAsyncLifetime
         return copy.ToArray();
     }
 }
+
+/// <summary>The tests over a SQLite file.</summary>
+public sealed class ModuleStoreSqliteTests() : ModuleStoreTests(SqliteLane.Instance);
+
+/// <summary>The tests over a PostgreSQL database.</summary>
+/// <param name="lane">The assembly's container.</param>
+[Collection(PostgresLane.Collection)]
+public sealed class ModuleStorePostgresTests(PostgresLane lane) : ModuleStoreTests(lane);

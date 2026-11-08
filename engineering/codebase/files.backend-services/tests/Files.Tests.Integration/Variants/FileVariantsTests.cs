@@ -1,5 +1,6 @@
 using System.Web;
 using AwesomeAssertions;
+using Files.Tests.Lanes;
 using Files.Tests.Integration.Files;
 using Microsoft.Extensions.DependencyInjection;
 using SkiaSharp;
@@ -15,11 +16,12 @@ namespace Files.Tests.Integration.Variants;
 
 /// <summary>Image variants through the module: one WebP per policy width on upload, never upscaled, served by URL like
 /// the original, and gone with their source.</summary>
-public sealed class FileVariantsTests : IAsyncLifetime
+/// <param name="lane">The lane whose store each test runs over.</param>
+public abstract class FileVariantsTests(IFilesLane lane) : IAsyncLifetime
 {
     private ModuleHarness harness = null!;
 
-    public async Task InitializeAsync() => harness = await CreateAsync(options =>
+    public async Task InitializeAsync() => harness = await CreateAsync(lane, options =>
     {
         options.Policies["shop"] = new() { Variants = { 900, 480 } };
         options.Policies["ocharo"] = new() { Variants = { 480, 900, 1200, 1400 }, VariantQuality = 70 };
@@ -239,3 +241,11 @@ public sealed class FileVariantsTests : IAsyncLifetime
         return data.ToArray();
     }
 }
+
+/// <summary>The tests over a SQLite file.</summary>
+public sealed class FileVariantsSqliteTests() : FileVariantsTests(SqliteLane.Instance);
+
+/// <summary>The tests over a PostgreSQL database.</summary>
+/// <param name="lane">The assembly's container.</param>
+[Collection(PostgresLane.Collection)]
+public sealed class FileVariantsPostgresTests(PostgresLane lane) : FileVariantsTests(lane);

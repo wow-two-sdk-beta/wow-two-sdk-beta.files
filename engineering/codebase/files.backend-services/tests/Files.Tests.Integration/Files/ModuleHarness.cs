@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Microsoft.Data.Sqlite;
+using Files.Tests.Lanes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using WoW.Two.Sdk.Beta.Be.Files.Module;
@@ -10,12 +10,11 @@ using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
-using WoW.Two.Sdk.Beta.Be.Testing.Data.Migrations;
 
 namespace Files.Tests.Integration.Files;
 
-/// <summary>The module wired as a consumer wires it — a throwaway SQLite file its migrations build, a temp blob
-/// folder, a fake clock — with the caller set per scope.</summary>
+/// <summary>The module wired as a consumer wires it — a throwaway store of one lane that its migrations build, a temp
+/// blob folder, a fake clock — with the caller set per scope.</summary>
 public sealed class ModuleHarness : IAsyncDisposable
 {
     public static readonly byte[] Png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D, 0x49, 0x48, 0x44, 0x52, 1, 2, 3, 4];
@@ -23,19 +22,20 @@ public sealed class ModuleHarness : IAsyncDisposable
     public static readonly byte[] Pdf = "%PDF-1.7\n%âã\n1 0 obj\n<<>>\nendobj\n"u8.ToArray();
     public static readonly byte[] Exe = [0x4D, 0x5A, 0x90, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0xFF, 0xFF, 0, 0];
 
-    private readonly string root = Path.Combine(Path.GetTempPath(), $"files-integration-{Guid.NewGuid():N}");
+    private readonly string root;
     private readonly ServiceProvider services;
 
-    private ModuleHarness(Action<FilesModuleOptions>? configure)
+    private ModuleHarness(string root, FilesTestStore store, Action<FilesModuleOptions>? configure)
     {
-        Directory.CreateDirectory(root);
+        this.root = root;
+        Store = store;
         var collection = new ServiceCollection().AddLogging().AddSingleton<TimeProvider>(Clock);
         collection.AddSingleton<IBlobRepository>(new LocalFileBlobRepository(BlobRoot));
         collection.AddScoped<TestFilesCallerService>();
         collection.AddScoped<IFilesCallerService>(provider => provider.GetRequiredService<TestFilesCallerService>());
         collection.AddFiles().Configure(options =>
         {
-            options.ConnectionString = ConnectionString;
+            store.ApplyTo(options);
             options.TempPath = TempRoot;
             options.SweepInterval = TimeSpan.Zero;
             configure?.Invoke(options);
@@ -52,15 +52,17 @@ public sealed class ModuleHarness : IAsyncDisposable
     /// <summary>Gets the folder uploads spool through.</summary>
     public string TempRoot => Path.Combine(root, "tmp");
 
-    private string ConnectionString => $"Data Source={Path.Combine(root, "files.db")}";
+    /// <summary>Gets the store the module runs over.</summary>
+    public FilesTestStore Store { get; }
 
-    /// <summary>Builds the harness over a migrated store.</summary>
-    public static async Task<ModuleHarness> CreateAsync(Action<FilesModuleOptions>? configure = null)
+    /// <summary>Builds the harness over a store of the lane, migrated.</summary>
+    public static async Task<ModuleHarness> CreateAsync(IFilesLane lane, Action<FilesModuleOptions>? configure = null)
     {
-        var harness = new ModuleHarness(configure);
-        await using (var migrator = MigratorHarness.CreateSqlite(harness.ConnectionString, typeof(FilesModuleAssembly).Assembly))
-            await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None);
-        return harness;
+        var root = Path.Combine(Path.GetTempPath(), $"files-integration-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var store = await lane.CreateAsync(root);
+        await store.MigrateAsync();
+        return new ModuleHarness(root, store, configure);
     }
 
     /// <summary>Opens a scope acting for a caller.</summary>
@@ -91,18 +93,7 @@ public sealed class ModuleHarness : IAsyncDisposable
     }
 
     /// <summary>Reads rows straight from the store; each row maps column names to values.</summary>
-    public async Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> RowsAsync(string sql)
-    {
-        await using var connection = new SqliteConnection(ConnectionString);
-        await connection.OpenAsync();
-        await using var command = connection.CreateCommand();
-        command.CommandText = sql;
-        await using var reader = await command.ExecuteReaderAsync();
-        var rows = new List<IReadOnlyDictionary<string, object?>>();
-        while (await reader.ReadAsync())
-            rows.Add(Enumerable.Range(0, reader.FieldCount).ToDictionary(i => reader.GetName(i), i => reader.IsDBNull(i) ? null : reader.GetValue(i)));
-        return rows;
-    }
+    public Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> RowsAsync(string sql) => Store.RowsAsync(sql);
 
     /// <summary>Runs a store call as a caller.</summary>
     public async Task<T> StoreAsync<T>(Func<IFileStoreBroker, Task<T>> call, string tenantId = "t1")
@@ -128,7 +119,7 @@ public sealed class ModuleHarness : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await services.DisposeAsync();
-        SqliteConnection.ClearAllPools();
+        await Store.DisposeAsync();
         Directory.Delete(root, recursive: true);
     }
 

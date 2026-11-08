@@ -41,7 +41,7 @@
 |---|---|
 | `packages/Abstractions` | the contract: `IFile*Broker`s, models, constants, scopes, errors |
 | `packages/Formats` | the file-type registry (`Registry/file-types.json`), `FileTypeMapper`, `FileContentValidator`, `FileNameMapper` |
-| `packages/Module` | Form 1: uploads, store, references and sweep over SQLite + core `IBlobRepository`, `AddFiles()`, callers, policies, embedded SQL migrations |
+| `packages/Module` | Form 1: uploads, store, references and sweep over PostgreSQL (SQLite for tests) + core `IBlobRepository`, `AddFiles()`, callers, policies, embedded SQL migrations |
 | `packages/Client` | Forms 2/3: every broker over the service's HTTP API, `AddFilesClient()`, API key or token |
 | `packages/Server` | `MapFilesDelivery()`: signed `/f` and public `/m` routes; later share and request routes, upload protocols, admin API |
 | `packages/Testing` | the conformance suite of every Files broker and byte samples |

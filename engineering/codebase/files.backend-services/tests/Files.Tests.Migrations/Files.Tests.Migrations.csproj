@@ -5,8 +5,10 @@
   </PropertyGroup>
 
   <!--
-    Migrator-engine suite: the module's embedded Migrations/NNN/*.sql — apply, idempotency, rollback — against a
-    throwaway SQLite file (no Docker). No HTTP, no EF model. Rides the SDK Testing.Data harness (MigratorHarness).
+    Migrator-engine suite: the module's embedded set "files" for each engine — apply, idempotency, rollback — on two
+    lanes: Migrations/Sqlite/ over a throwaway SQLite file (no Docker), and Migrations/Postgres/ over a fresh PostgreSQL
+    database, with the be sdk idempotency proof, the lint over files after 008, the column types and the enum labels
+    against the CLR enums. No HTTP, no EF model. Rides the SDK Testing.Data harness (MigratorHarness, MigrationLint).
   -->
   <ItemGroup>
     <PackageReference Include="WoW2.Sdk.Beta.Be.Testing.Data" />
@@ -22,6 +24,16 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!-- The lanes every DB-touching tier shares (tests/Shared/Lanes): SQLite in process, PostgreSQL in one Testcontainers
+       container per assembly, reported skipped while Docker is unreachable (FilesLaneTestFramework). -->
+  <ItemGroup>
+    <Compile Include="..\Shared\Lanes\*.cs" LinkBase="Lanes" />
+    <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
+      <_Parameter1>Files.Tests.Lanes.FilesLaneTestFramework</_Parameter1>
+      <_Parameter2>$(AssemblyName)</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>

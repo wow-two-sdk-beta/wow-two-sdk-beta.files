@@ -66,9 +66,9 @@ internal sealed class ModuleFileStoreBroker(
         if (query.OwnerId is not null)
             rows = rows.Where(file => file.OwnerId == query.OwnerId);
         if (query.Kind is { } kind)
-            rows = rows.Where(file => file.Kind == kind.ToString());
+            rows = rows.Where(file => file.Kind == kind);
         if (query.State is { } state)
-            rows = rows.Where(file => file.State == state.ToString());
+            rows = rows.Where(file => file.State == state);
         if (query.CreatedAfterUtc is { } createdAfter)
         {
             var after = createdAfter.ToUniversalTime();
@@ -107,7 +107,7 @@ internal sealed class ModuleFileStoreBroker(
         }
 
         if (patch.Visibility is { } visibility)
-            row.Visibility = visibility.ToString();
+            row.Visibility = visibility;
         if (patch.ExpiresAtUtc is { } expiresAt)
             row.ExpiresAtUtc = expiresAt.ToUniversalTime();
 

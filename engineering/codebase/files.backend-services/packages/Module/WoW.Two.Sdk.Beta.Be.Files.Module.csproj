@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Form 1: Files in the consumer's process, over the consumer's database and blob store. Ships its schema as
-    embedded Migrations/NNN-name/{Apply,Rollback}.sql; the host applies them (the service does on boot).
+    Form 1: Files in the consumer's process, over the consumer's database and blob store. Ships its schema once per
+    engine as embedded Migrations/{Postgres,Sqlite}/NNN-name/{Apply,Rollback}.sql, the migration set "files" that
+    AddFilesMigrations registers for the module's provider; the host applies it (the service does on boot).
   -->
   <PropertyGroup>
     <Description>Files Form 1: the in-process store, uploads and sweep over the consumer's database and blob store, with its SQL migrations.</Description>
@@ -18,7 +19,8 @@
     <ProjectReference Include="..\Formats\WoW.Two.Sdk.Beta.Be.Files.Formats.csproj" />
   </ItemGroup>
 
-  <!-- SQL migrations ship embedded (logical name "Migrations/NNN-name/Apply.sql"), resolved by the SDK migrator. -->
+  <!-- SQL migrations ship embedded (logical name "Migrations/Postgres/NNN-name/Apply.sql"); FilesMigrations reads one
+       engine's folder (EmbeddedResourceMigrationBroker with Migrations/Postgres/ or Migrations/Sqlite/). -->
   <ItemGroup>
     <EmbeddedResource Include="Migrations\**\*.sql">
       <LogicalName>Migrations/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>

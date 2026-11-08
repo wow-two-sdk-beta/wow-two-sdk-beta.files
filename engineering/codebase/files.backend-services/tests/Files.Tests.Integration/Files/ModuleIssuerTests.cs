@@ -1,14 +1,16 @@
 using AwesomeAssertions;
+using Files.Tests.Lanes;
 using static Files.Tests.Integration.Files.ModuleHarness;
 
 namespace Files.Tests.Integration.Files;
 
 /// <summary>On a shared host a <c>sub</c> alone is not unique: Files stores the issuer beside the subject, and the acting app on the audit row.</summary>
-public sealed class ModuleIssuerTests : IAsyncLifetime
+/// <param name="lane">The lane whose store each test runs over.</param>
+public abstract class ModuleIssuerTests(IFilesLane lane) : IAsyncLifetime
 {
     private ModuleHarness harness = null!;
 
-    public async Task InitializeAsync() => harness = await ModuleHarness.CreateAsync();
+    public async Task InitializeAsync() => harness = await ModuleHarness.CreateAsync(lane);
 
     public async Task DisposeAsync() => await harness.DisposeAsync();
 
@@ -36,3 +38,11 @@ public sealed class ModuleIssuerTests : IAsyncLifetime
             (string?)row["subject_id"] == "42" && (string?)row["subject_issuer"] == "https://idp-one.test" && (string?)row["actor_id"] == "app-gallery");
     }
 }
+
+/// <summary>The tests over a SQLite file.</summary>
+public sealed class ModuleIssuerSqliteTests() : ModuleIssuerTests(SqliteLane.Instance);
+
+/// <summary>The tests over a PostgreSQL database.</summary>
+/// <param name="lane">The assembly's container.</param>
+[Collection(PostgresLane.Collection)]
+public sealed class ModuleIssuerPostgresTests(PostgresLane lane) : ModuleIssuerTests(lane);

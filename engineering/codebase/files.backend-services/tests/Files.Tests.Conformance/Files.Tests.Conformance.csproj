@@ -6,8 +6,9 @@
 
   <!--
     Conformance tier — the one Files suite (FilesBrokerConformance, shipped in the Testing package) run against every
-    implementation: the in-process Module over SQLite, and the Client against the service host (in process, or a
-    running image when CONFORMANCE_BASE_URL is set) by two tenants' API keys. No Docker needed by default.
+    implementation: the in-process Module over SQLite and over PostgreSQL (the lane skips without Docker), and the
+    Client against the service host (in process over SQLite, or a running image when CONFORMANCE_BASE_URL is set) by
+    two tenants' API keys. No Docker needed by default.
   -->
   <ItemGroup>
     <PackageReference Include="WoW2.Sdk.Beta.Be.Testing.Data" />
@@ -24,6 +25,16 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!-- The lanes every DB-touching tier shares (tests/Shared/Lanes): SQLite in process, PostgreSQL in one Testcontainers
+       container per assembly, reported skipped while Docker is unreachable (FilesLaneTestFramework). -->
+  <ItemGroup>
+    <Compile Include="..\Shared\Lanes\*.cs" LinkBase="Lanes" />
+    <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
+      <_Parameter1>Files.Tests.Lanes.FilesLaneTestFramework</_Parameter1>
+      <_Parameter2>$(AssemblyName)</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>

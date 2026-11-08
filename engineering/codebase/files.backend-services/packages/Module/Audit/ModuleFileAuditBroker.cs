@@ -35,7 +35,7 @@ internal sealed class ModuleFileAuditBroker(FilesDbContext db, IFilesCallerServi
             rows = rows.Where(entry => entry.FileId == rowId);
         }
         if (query.Action is { } action)
-            rows = rows.Where(entry => entry.Action == action.ToString());
+            rows = rows.Where(entry => entry.Action == action);
 
         var limit = Math.Clamp(query.Limit, 1, FilesConstants.MaxPageSize);
         var page = await rows.OrderByDescending(entry => entry.Seq).Take(limit + 1).ToListAsync(cancellationToken);
@@ -48,8 +48,8 @@ internal sealed class ModuleFileAuditBroker(FilesDbContext db, IFilesCallerServi
     {
         Sequence = entry.Seq,
         FileId = entry.FileId is null ? null : new FileId(Guid.Parse(entry.FileId)),
-        Action = Enum.Parse<FileAuditAction>(entry.Action),
-        Outcome = Enum.Parse<FileAuditOutcome>(entry.Outcome),
+        Action = entry.Action,
+        Outcome = entry.Outcome,
         ErrorCode = entry.ErrorCode,
         SubjectId = entry.SubjectId,
         AppId = entry.AppId,

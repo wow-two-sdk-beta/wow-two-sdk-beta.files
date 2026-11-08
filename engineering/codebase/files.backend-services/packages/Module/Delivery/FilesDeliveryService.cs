@@ -56,7 +56,7 @@ internal sealed class FilesDeliveryService(
             return Result<DeliverableFileModel>.Fail(FilesErrors.FileNotFound());
 
         var servable = db.LiveFiles(tenant, time.GetUtcNow()).AsNoTracking()
-            .Where(file => file.DeletedAtUtc == null && file.Visibility == nameof(FileVisibility.Public) && file.State == nameof(FileState.Ready));
+            .Where(file => file.DeletedAtUtc == null && file.Visibility == FileVisibility.Public && file.State == FileState.Ready);
         var row = await servable
             .Where(file => file.Sha256 == sha256)
             .OrderBy(file => file.Seq)
@@ -91,7 +91,7 @@ internal sealed class FilesDeliveryService(
                 .FirstOrDefaultAsync(found => found.TenantId == file.TenantId && found.FileId == rowId && found.Width == width, cancellationToken);
             opened = variant is null
                 ? Result<FileContent>.Fail(FilesErrors.FileNotFound())
-                : row.State != nameof(FileState.Ready)
+                : row.State != FileState.Ready
                     ? Result<FileContent>.Fail(FilesErrors.FileNotReady())
                     : await reader.OpenAsync(variant, range, cancellationToken);
         }

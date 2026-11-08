@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Files.Tests.Lanes;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Sweeps;
 using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
@@ -10,13 +11,14 @@ namespace Files.Tests.Integration.Files;
 
 /// <summary>References keep files alive: orphans purge after their app's retention, expiry waits for the last
 /// reference, and an app's default lifetime stamps uploads.</summary>
-public sealed class ModuleReferencesTests : IAsyncLifetime
+/// <param name="lane">The lane whose store each test runs over.</param>
+public abstract class ModuleReferencesTests(IFilesLane lane) : IAsyncLifetime
 {
     private static readonly FileReference Product = new("catalogue.product", "p-1");
 
     private ModuleHarness harness = null!;
 
-    public async Task InitializeAsync() => harness = await CreateAsync(options =>
+    public async Task InitializeAsync() => harness = await CreateAsync(lane, options =>
     {
         options.Policies["drafts"] = new() { OrphanRetention = TimeSpan.FromHours(1) };
         options.Policies["exports"] = new() { DefaultLifetime = TimeSpan.FromDays(7) };
@@ -124,3 +126,11 @@ public sealed class ModuleReferencesTests : IAsyncLifetime
     private static AppError Failure(Result result) =>
         result is Result.Failure failure ? failure.Error : throw new Xunit.Sdk.XunitException("The call succeeded.");
 }
+
+/// <summary>The tests over a SQLite file.</summary>
+public sealed class ModuleReferencesSqliteTests() : ModuleReferencesTests(SqliteLane.Instance);
+
+/// <summary>The tests over a PostgreSQL database.</summary>
+/// <param name="lane">The assembly's container.</param>
+[Collection(PostgresLane.Collection)]
+public sealed class ModuleReferencesPostgresTests(PostgresLane lane) : ModuleReferencesTests(lane);

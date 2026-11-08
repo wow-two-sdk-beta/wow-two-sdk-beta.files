@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Microsoft.Data.Sqlite;
+using Files.Tests.Lanes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using WoW.Two.Sdk.Beta.Be.Files.Module;
@@ -7,12 +7,12 @@ using WoW.Two.Sdk.Beta.Be.Files.Module.Imports;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
 using WoW.Two.Sdk.Beta.Be.Storage.FileSystem;
-using WoW.Two.Sdk.Beta.Be.Testing.Data.Migrations;
 
 namespace Files.Tests.Integration.Imports;
 
 /// <summary>The module wired as the service wires it — the default caller service, no principal — so an import's push
-/// acts only through its caller override; a throwaway SQLite file its migrations build, a temp blob folder, a fake clock.</summary>
+/// acts only through its caller override; a throwaway store of one lane that its migrations build, a temp blob folder, a
+/// fake clock.</summary>
 public sealed class ImportsHarness : IAsyncDisposable
 {
     /// <summary>Holds the signing key import tokens derive their key from.</summary>
@@ -21,17 +21,18 @@ public sealed class ImportsHarness : IAsyncDisposable
     public static readonly byte[] Png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D, 0x49, 0x48, 0x44, 0x52, 1, 2, 3, 4];
     public static readonly byte[] Pdf = "%PDF-1.7\n%âã\n1 0 obj\n<<>>\nendobj\n"u8.ToArray();
 
-    private readonly string root = Path.Combine(Path.GetTempPath(), $"files-imports-{Guid.NewGuid():N}");
+    private readonly string root;
     private readonly ServiceProvider services;
 
-    private ImportsHarness(string signingKey)
+    private ImportsHarness(string root, FilesTestStore store, string signingKey)
     {
-        Directory.CreateDirectory(root);
+        this.root = root;
+        Store = store;
         var collection = new ServiceCollection().AddLogging().AddSingleton<TimeProvider>(Clock);
         collection.AddSingleton<IBlobRepository>(new LocalFileBlobRepository(Path.Combine(root, "blobs")));
         collection.AddFiles().Configure(options =>
         {
-            options.ConnectionString = ConnectionString;
+            store.ApplyTo(options);
             options.TempPath = Path.Combine(root, "tmp");
             options.SweepInterval = TimeSpan.Zero;
             options.Delivery.SigningKey = signingKey;
@@ -42,15 +43,17 @@ public sealed class ImportsHarness : IAsyncDisposable
     /// <summary>Gets the clock tokens and rows are stamped with.</summary>
     public FakeTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 11, 8, 9, 0, 0, TimeSpan.Zero));
 
-    private string ConnectionString => $"Data Source={Path.Combine(root, "files.db")}";
+    /// <summary>Gets the store the module runs over.</summary>
+    public FilesTestStore Store { get; }
 
-    /// <summary>Builds the harness over a migrated store.</summary>
-    public static async Task<ImportsHarness> CreateAsync(string signingKey = SigningKey)
+    /// <summary>Builds the harness over a store of the lane, migrated.</summary>
+    public static async Task<ImportsHarness> CreateAsync(IFilesLane lane, string signingKey = SigningKey)
     {
-        var harness = new ImportsHarness(signingKey);
-        await using (var migrator = MigratorHarness.CreateSqlite(harness.ConnectionString, typeof(FilesModuleAssembly).Assembly))
-            await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None);
-        return harness;
+        var root = Path.Combine(Path.GetTempPath(), $"files-imports-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var store = await lane.CreateAsync(root);
+        await store.MigrateAsync();
+        return new ImportsHarness(root, store, signingKey);
     }
 
     /// <summary>Opens a scope, as one request does.</summary>
@@ -79,18 +82,7 @@ public sealed class ImportsHarness : IAsyncDisposable
         });
 
     /// <summary>Reads rows straight from the store; each row maps column names to values.</summary>
-    public async Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> RowsAsync(string sql)
-    {
-        await using var connection = new SqliteConnection(ConnectionString);
-        await connection.OpenAsync();
-        await using var command = connection.CreateCommand();
-        command.CommandText = sql;
-        await using var reader = await command.ExecuteReaderAsync();
-        var rows = new List<IReadOnlyDictionary<string, object?>>();
-        while (await reader.ReadAsync())
-            rows.Add(Enumerable.Range(0, reader.FieldCount).ToDictionary(i => reader.GetName(i), i => reader.IsDBNull(i) ? null : reader.GetValue(i)));
-        return rows;
-    }
+    public Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> RowsAsync(string sql) => Store.RowsAsync(sql);
 
     /// <summary>Returns the SHA-256 of bytes, lowercase hex.</summary>
     public static string Sha256(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
@@ -102,7 +94,7 @@ public sealed class ImportsHarness : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await services.DisposeAsync();
-        SqliteConnection.ClearAllPools();
+        await Store.DisposeAsync();
         Directory.Delete(root, recursive: true);
     }
 }

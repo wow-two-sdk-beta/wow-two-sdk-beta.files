@@ -1,3 +1,5 @@
+using WoW.Two.Sdk.Beta.Be.Files.Audit;
+
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 
 /// <summary>Represents one audited call on a tenant's file.</summary>
@@ -15,11 +17,11 @@ internal sealed class FileAuditEntity
     /// <summary>Gets or sets the file's id; none for an upload refused before a file existed.</summary>
     public string? FileId { get; set; }
 
-    /// <summary>Gets or sets the <c>FileAuditAction</c> name.</summary>
-    public required string Action { get; set; }
+    /// <summary>Gets or sets what the call did.</summary>
+    public required FileAuditAction Action { get; set; }
 
-    /// <summary>Gets or sets the <c>FileAuditOutcome</c> name.</summary>
-    public required string Outcome { get; set; }
+    /// <summary>Gets or sets how the call ended.</summary>
+    public required FileAuditOutcome Outcome { get; set; }
 
     /// <summary>Gets or sets the refusal's <c>AppErrorType</c> name.</summary>
     public string? ErrorCode { get; set; }

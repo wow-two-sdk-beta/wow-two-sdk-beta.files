@@ -30,7 +30,7 @@ internal sealed class ModuleFileUrlsBroker(
             return Result<SignedFileUrl>.Fail(WidthInvalid());
         if (await FindAsync(id, cancellationToken) is not { } row)
             return Result<SignedFileUrl>.Fail(FilesErrors.FileNotFound());
-        if (row.State != nameof(FileState.Ready))
+        if (row.State != FileState.Ready)
             return Result<SignedFileUrl>.Fail(FilesErrors.FileNotReady());
 
         var variant = spec.Width is { } width ? await SelectAsync(row, width, cancellationToken) : null;
@@ -44,9 +44,9 @@ internal sealed class ModuleFileUrlsBroker(
             return Result<Uri>.Fail(WidthInvalid());
         if (await FindAsync(id, cancellationToken) is not { } row)
             return Result<Uri>.Fail(FilesErrors.FileNotFound());
-        if (row.Visibility != nameof(FileVisibility.Public))
+        if (row.Visibility != FileVisibility.Public)
             return Result<Uri>.Fail(FilesErrors.FileNotPublic());
-        if (row.State != nameof(FileState.Ready))
+        if (row.State != FileState.Ready)
             return Result<Uri>.Fail(FilesErrors.FileNotReady());
 
         if (width is { } asked && await SelectAsync(row, asked, cancellationToken) is { } variant)

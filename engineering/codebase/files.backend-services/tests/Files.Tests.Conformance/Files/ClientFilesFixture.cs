@@ -16,7 +16,8 @@ namespace Files.Tests.Conformance.Files;
 
 /// <summary>Forms 2 and 3: the Client wired as a consumer wires it, by API key, against the service host — two keys,
 /// two tenants.</summary>
-/// <remarks>By default the host runs in process over a throwaway SQLite file and blob folder. With
+/// <remarks>By default the host runs in process over a throwaway SQLite file (it chooses DatabaseSettings:Provider
+/// Sqlite) and blob folder. With
 /// <c>CONFORMANCE_BASE_URL</c> set, the Client calls that running host or image, which must accept
 /// <see cref="TenantKey"/> and <see cref="OtherTenantKey"/> (the conformance workflow configures them).</remarks>
 public sealed class ClientFilesFixture : IAsyncLifetime
@@ -53,6 +54,7 @@ public sealed class ClientFilesFixture : IAsyncLifetime
             {
                 ConfigureConfigurationHook = configuration => configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
+                    ["DatabaseSettings:Provider"] = "Sqlite",
                     ["DatabaseSettings:ConnectionString"] = $"Data Source={Path.Combine(root, "files.db")}",
                     ["Storage:Root"] = Path.Combine(root, "blobs"),
                     ["Files:Delivery:BaseUrl"] = "http://localhost",

@@ -18,7 +18,7 @@ internal sealed class FileContentReader(FilesDbContext db, IBlobRepository blobs
     /// <returns>The open content; <see cref="FilesErrors.FileNotReady"/>, <see cref="FilesErrors.RangeInvalid"/>, or
     /// <see cref="FilesErrors.FileNotFound"/> when the bytes are missing.</returns>
     public Task<Result<FileContent>> OpenAsync(FileEntity row, ByteRange? range, CancellationToken cancellationToken) =>
-        row.State != nameof(FileState.Ready)
+        row.State != FileState.Ready
             ? Task.FromResult(Result<FileContent>.Fail(FilesErrors.FileNotReady()))
             : OpenAsync(row.TenantId, row.Sha256, row.Size, row.ContentType, range, cancellationToken);
 

@@ -1,7 +1,9 @@
 using AwesomeAssertions;
+using Files.Tests.Lanes;
 using Microsoft.Extensions.DependencyInjection;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Imports;
+using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using static Files.Tests.Integration.Imports.ImportsHarness;
@@ -10,11 +12,12 @@ namespace Files.Tests.Integration.Imports;
 
 /// <summary>Imports through the module: a push uploads as the import, in its tenant, once per (import, source, key);
 /// the bytes are checked against the mover's SHA-256; the id map pages in push order.</summary>
-public sealed class FilesImportsTests : IAsyncLifetime
+/// <param name="lane">The lane whose store each test runs over.</param>
+public abstract class FilesImportsTests(IFilesLane lane) : IAsyncLifetime
 {
     private ImportsHarness harness = null!;
 
-    public async Task InitializeAsync() => harness = await CreateAsync();
+    public async Task InitializeAsync() => harness = await CreateAsync(lane);
 
     public async Task DisposeAsync() => await harness.DisposeAsync();
 
@@ -27,12 +30,12 @@ public sealed class FilesImportsTests : IAsyncLifetime
         var pushed = Value(await harness.PushAsync(import.Id, "logos/logo", Png, reference: $"brand.media:{sha}"));
 
         pushed.Created.Should().BeTrue();
-        var file = (await harness.RowsAsync($"SELECT tenant_id, owner_id, app_id, name, visibility, idempotency_key, orphan_purge_at_utc FROM files_files WHERE id = '{pushed.FileId}'")).Single();
+        var file = (await harness.RowsAsync($"SELECT tenant_id, owner_id, app_id, name, visibility, idempotency_key, {harness.Store.At("orphan_purge_at")} FROM files_files WHERE id = '{pushed.FileId}'")).Single();
         file["tenant_id"].Should().Be("ocharo");
         file["owner_id"].Should().Be($"import:{import.Id}");
         file["app_id"].Should().Be("brand");
         file["name"].Should().Be("logo.png");
-        file["visibility"].Should().Be("Private");
+        file["visibility"].Should().Be(harness.Store.Stored(FileVisibility.Private));
         file["idempotency_key"].Should().Be($"import:{import.Id}:brand-media:logos/logo");
         var audit = (await harness.RowsAsync($"SELECT tenant_id, subject_id, action FROM files_audit WHERE file_id = '{pushed.FileId}'")).Single();
         audit["tenant_id"].Should().Be("ocharo");
@@ -179,7 +182,7 @@ public sealed class FilesImportsTests : IAsyncLifetime
     public async Task Tokens_ShouldReadNothing_WhenTamperedMalformedOrSignedUnderAnotherKey()
     {
         var import = await harness.OpenAsync();
-        await using var elsewhere = await CreateAsync("another-signing-key-0123456789abcdef0123");
+        await using var elsewhere = await CreateAsync(lane, "another-signing-key-0123456789abcdef0123");
         var foreign = elsewhere.Tokens.Issue(import.Id, "ocharo").Token;
         var payload = import.Token["fimp_".Length..import.Token.IndexOf('.')];
         var forged = "fimp_" + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($$"""{"imp":"{{import.Id}}","ten":"other","exp":9999999999}"""))
@@ -196,3 +199,11 @@ public sealed class FilesImportsTests : IAsyncLifetime
     private static AppError ErrorOf<T>(Result<T> result) where T : notnull =>
         result is Result<T>.Failure failure ? failure.Error : throw new Xunit.Sdk.XunitException("The call succeeded.");
 }
+
+/// <summary>The tests over a SQLite file.</summary>
+public sealed class FilesImportsSqliteTests() : FilesImportsTests(SqliteLane.Instance);
+
+/// <summary>The tests over a PostgreSQL database.</summary>
+/// <param name="lane">The assembly's container.</param>
+[Collection(PostgresLane.Collection)]
+public sealed class FilesImportsPostgresTests(PostgresLane lane) : FilesImportsTests(lane);

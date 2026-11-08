@@ -6,8 +6,8 @@ using WoW.Two.Sdk.Beta.Be.Testing;
 
 namespace Files.Tests.E2E;
 
-/// <summary>Boots the real API and its SQL migrations over a throwaway SQLite file, trusting two fake issuers as two
-/// tenants, each with its own audience.</summary>
+/// <summary>Boots the real API and its SQL migrations over a throwaway SQLite file (DatabaseSettings:Provider Sqlite; a
+/// deployed host runs PostgreSQL), trusting two fake issuers as two tenants, each with its own audience.</summary>
 public sealed class FilesApiFixture : IAsyncLifetime
 {
     /// <summary>Holds the public host the test target allows, beside <c>localhost</c>, as a deployed target's <c>AllowedHosts</c> does.</summary>
@@ -52,6 +52,7 @@ public sealed class FilesApiFixture : IAsyncLifetime
         {
             ConfigureConfigurationHook = configuration => configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["DatabaseSettings:Provider"] = "Sqlite",
                 ["DatabaseSettings:ConnectionString"] = $"Data Source={databasePath}",
                 ["AllowedHosts"] = PublicHost + ";localhost",
                 ["Storage:Root"] = storageRoot,

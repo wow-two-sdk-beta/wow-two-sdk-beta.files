@@ -1,3 +1,5 @@
+using WoW.Two.Sdk.Beta.Be.Files.Store;
+
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 
 /// <summary>Represents one stored file — the row an upload creates.</summary>
@@ -33,8 +35,8 @@ internal sealed class FileEntity
     /// <summary>Gets or sets the registry content type.</summary>
     public required string ContentType { get; set; }
 
-    /// <summary>Gets or sets the <c>FileKind</c> name.</summary>
-    public required string Kind { get; set; }
+    /// <summary>Gets or sets the kind of file the registry type belongs to.</summary>
+    public required FileKind Kind { get; set; }
 
     /// <summary>Gets or sets the size in bytes.</summary>
     public long Size { get; set; }
@@ -42,11 +44,11 @@ internal sealed class FileEntity
     /// <summary>Gets or sets the SHA-256 of the bytes, lowercase hex; with the tenant it keys the blob.</summary>
     public required string Sha256 { get; set; }
 
-    /// <summary>Gets or sets the <c>FileVisibility</c> name.</summary>
-    public required string Visibility { get; set; }
+    /// <summary>Gets or sets who may read the file.</summary>
+    public required FileVisibility Visibility { get; set; }
 
-    /// <summary>Gets or sets the <c>FileState</c> name.</summary>
-    public required string State { get; set; }
+    /// <summary>Gets or sets the file's state.</summary>
+    public required FileState State { get; set; }
 
     /// <summary>Gets or sets the key that makes a retried upload return this file.</summary>
     public string? IdempotencyKey { get; set; }

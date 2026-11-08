@@ -1,15 +1,17 @@
 using AwesomeAssertions;
+using Files.Tests.Lanes;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Sweeps;
 using static Files.Tests.Integration.Files.ModuleHarness;
 
 namespace Files.Tests.Integration.Files;
 
 /// <summary>The sweep purges deleted files past retention and expired files, then bytes no file uses after the grace.</summary>
-public sealed class FilesSweepTests : IAsyncLifetime
+/// <param name="lane">The lane whose store each test runs over.</param>
+public abstract class FilesSweepTests(IFilesLane lane) : IAsyncLifetime
 {
     private ModuleHarness harness = null!;
 
-    public async Task InitializeAsync() => harness = await CreateAsync(options =>
+    public async Task InitializeAsync() => harness = await CreateAsync(lane, options =>
         options.Policies["brief"] = new() { DeletedRetention = TimeSpan.FromMinutes(1) });
 
     public async Task DisposeAsync() => await harness.DisposeAsync();
@@ -68,3 +70,11 @@ public sealed class FilesSweepTests : IAsyncLifetime
     private Task<FileSweepResultModel> SweepAsync() =>
         harness.WithAsync<IFilesSweepService, FileSweepResultModel>(sweep => sweep.SweepAsync());
 }
+
+/// <summary>The tests over a SQLite file.</summary>
+public sealed class FilesSweepSqliteTests() : FilesSweepTests(SqliteLane.Instance);
+
+/// <summary>The tests over a PostgreSQL database.</summary>
+/// <param name="lane">The assembly's container.</param>
+[Collection(PostgresLane.Collection)]
+public sealed class FilesSweepPostgresTests(PostgresLane lane) : FilesSweepTests(lane);

@@ -2,21 +2,38 @@
 #
 #   docker compose up -d --build     the service answers on http://127.0.0.1:8393
 #
-# The SQLite file lives on the named volume, so data survives container replacement. A deployed environment's path
-# comes from its Wheelhouse target settings, never from here.
+# The service runs on PostgreSQL, as every deployment does; file bytes live on the named volume. A deployed
+# environment's connection string comes from its Wheelhouse target's database, never from here.
 services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: files
+      POSTGRES_USER: files
+      POSTGRES_PASSWORD: files-local-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U files -d files"]
+      interval: 2s
+      retries: 30
+    volumes:
+      - files-postgres:/var/lib/postgresql
+
   files:
     image: files:local
     build:
       context: ../codebase
       dockerfile: ../deployment/Dockerfile
     restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
     ports:
       - "127.0.0.1:8393:8080"
     environment:
-      DB_CONNECTION: "Data Source=/data/files.db"
+      DB_CONNECTION: "Host=postgres;Database=files;Username=files;Password=files-local-only"
     volumes:
       - files-data:/data
 
 volumes:
   files-data:
+  files-postgres:

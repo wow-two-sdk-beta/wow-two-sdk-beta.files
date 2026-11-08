@@ -42,10 +42,13 @@ services:
     health: /health
     memory: 256m
     # Typed keys (pipelines v0.10.0; generate and from, v0.14.0): Wheelhouse checks each saved value against its type; a required key joins
-    # settings.required. The target's settings file (/app/appsettings.Target.json) supplies the SQLite path on the
-    # data volume; the name ends in ConnectionString, so Wheelhouse keeps the value in its vault. The bytes live on the
-    # same volume; signed file URLs need the secret signing key, and point at the app site (Sites:app:Url) unless
-    # Files:Delivery:BaseUrl names another content host. API keys and token issuers are optional: without them the
+    # settings.required. The service needs the target's PostgreSQL database (needs: [postgres]): Wheelhouse fills the
+    # connection string from it in the target's settings file (/app/appsettings.Target.json), and the name ends in
+    # ConnectionString, so the value stays in its vault. The store is PostgreSQL by default (DatabaseSettings:Provider
+    # in appsettings.json); the host creates the database when missing and applies the module's migration set
+    # "files" at boot, since the image's `migrate` verb is the file mover. The bytes live on the data volume; signed
+    # file URLs need the secret signing key, and point at the app site (Sites:app:Url) unless Files:Delivery:BaseUrl
+    # names another content host. API keys and token issuers are optional: without them the
     # API answers 401 and only the pages and file links serve.
     # Trusted issuers (t8 C8): P1 trusts one, Ocharo's Identity, as the tenant `ocharo`; its tokens name the tenant's own
     # host with its slash (https://files.{domain}/). Identity's revocation signals arrive at {audience}signals/identity,
@@ -69,8 +72,10 @@ services:
         Files:DefaultPolicy:Variants:3: { default: "1400" }
         Files:Operator:ApiKey: { secret: true, generate: { random: 16, encoding: hex } }
         Files:Imports:TokenLifetime: { default: "06:00:00" }
+    # The blob store's folder (Storage:Root); the database lives in the target's PostgreSQL.
     volumes:
       data: /data
+    needs: [postgres]
     # The pages at /, the contract's HTTP mirror under the same host's /api: /api routes ahead of /, never /apiary.
     sites:
       app: { paths: [/, /api] }

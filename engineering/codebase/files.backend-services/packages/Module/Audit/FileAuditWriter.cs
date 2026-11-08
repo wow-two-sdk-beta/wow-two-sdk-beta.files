@@ -40,8 +40,8 @@ internal sealed class FileAuditWriter(FilesDbContext db, IFilesCallerService cal
         {
             TenantId = tenantId,
             FileId = fileId,
-            Action = action.ToString(),
-            Outcome = outcome.ToString(),
+            Action = action,
+            Outcome = outcome,
             ErrorCode = errorCode,
             SubjectId = caller?.SubjectId,
             SubjectIssuer = caller?.Issuer,

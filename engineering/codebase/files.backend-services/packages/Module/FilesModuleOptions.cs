@@ -1,3 +1,4 @@
+using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Policies;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Urls;
 
@@ -6,7 +7,11 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module;
 /// <summary>Holds the settings of the in-process Files module.</summary>
 public sealed class FilesModuleOptions
 {
-    /// <summary>Gets or sets the SQLite connection string of the store that holds the Files tables.</summary>
+    /// <summary>Gets or sets the engine of the store that holds the Files tables: PostgreSQL, or SQLite for tests and
+    /// a host that chooses it; the migration set and the context follow it.</summary>
+    public DatabaseProvider Provider { get; set; } = DatabaseProvider.Postgres;
+
+    /// <summary>Gets or sets the connection string of the store, in the form <see cref="Provider"/> reads.</summary>
     public string ConnectionString { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the tenant a call acts for when neither the request nor the ambient tenant names one;
