@@ -62,6 +62,11 @@ services:
         Files:Auth:Issuers:0:Issuer: { type: url }
         Files:Auth:Issuers:0:TenantId: { default: ocharo }
         Files:Auth:Issuers:0:Audiences:0: { type: url }
+        # WebP variants for every app with no policy of its own: the widths Ocharo's apps show (files-integration #27).
+        Files:DefaultPolicy:Variants:0: { default: "480" }
+        Files:DefaultPolicy:Variants:1: { default: "900" }
+        Files:DefaultPolicy:Variants:2: { default: "1200" }
+        Files:DefaultPolicy:Variants:3: { default: "1400" }
         Files:Operator:ApiKey: { secret: true, generate: { random: 16, encoding: hex } }
         Files:Imports:TokenLifetime: { default: "06:00:00" }
     volumes:
