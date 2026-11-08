@@ -51,6 +51,7 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         file.Property(row => row.OrganizationId).HasColumnName("organization_id");
         file.Property(row => row.AppId).HasColumnName("app_id");
         file.Property(row => row.OwnerId).HasColumnName("owner_id");
+        file.Property(row => row.OwnerIssuer).HasColumnName("owner_issuer");
         file.Property(row => row.Name).HasColumnName("name");
         file.Property(row => row.ContentType).HasColumnName("content_type");
         file.Property(row => row.Kind).HasColumnName("kind");
@@ -94,6 +95,8 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         audit.Property(row => row.Outcome).HasColumnName("outcome");
         audit.Property(row => row.ErrorCode).HasColumnName("error_code");
         audit.Property(row => row.SubjectId).HasColumnName("subject_id");
+        audit.Property(row => row.SubjectIssuer).HasColumnName("subject_issuer");
+        audit.Property(row => row.ActorId).HasColumnName("actor_id");
         audit.Property(row => row.AppId).HasColumnName("app_id");
         audit.Property(row => row.Bytes).HasColumnName("bytes");
         audit.Property(row => row.OccurredAtUtc).HasColumnName("occurred_at_utc");

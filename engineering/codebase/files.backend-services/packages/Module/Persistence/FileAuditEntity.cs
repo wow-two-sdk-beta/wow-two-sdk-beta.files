@@ -27,6 +27,12 @@ internal sealed class FileAuditEntity
     /// <summary>Gets or sets the calling subject.</summary>
     public string? SubjectId { get; set; }
 
+    /// <summary>Gets or sets the issuer of the calling subject.</summary>
+    public string? SubjectIssuer { get; set; }
+
+    /// <summary>Gets or sets the app acting for the subject under token exchange.</summary>
+    public string? ActorId { get; set; }
+
     /// <summary>Gets or sets the calling app.</summary>
     public string? AppId { get; set; }
 

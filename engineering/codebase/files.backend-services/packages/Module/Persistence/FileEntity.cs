@@ -24,6 +24,9 @@ internal sealed class FileEntity
     /// <summary>Gets or sets the uploading subject.</summary>
     public string? OwnerId { get; set; }
 
+    /// <summary>Gets or sets the issuer of the uploading subject; null for this instance's own keys.</summary>
+    public string? OwnerIssuer { get; set; }
+
     /// <summary>Gets or sets the safe name.</summary>
     public required string Name { get; set; }
 

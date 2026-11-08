@@ -64,11 +64,11 @@ public sealed class ModuleHarness : IAsyncDisposable
     }
 
     /// <summary>Opens a scope acting for a caller.</summary>
-    public AsyncServiceScope As(string tenantId = "t1", string? appId = null, string? subjectId = "user-1", string? organizationId = null)
+    public AsyncServiceScope As(string tenantId = "t1", string? appId = null, string? subjectId = "user-1", string? organizationId = null, string? issuer = null, string? actorId = null)
     {
         var scope = services.CreateAsyncScope();
         scope.ServiceProvider.GetRequiredService<TestFilesCallerService>().Current =
-            new FilesCallerModel { TenantId = tenantId, AppId = appId, SubjectId = subjectId, OrganizationId = organizationId };
+            new FilesCallerModel { TenantId = tenantId, AppId = appId, SubjectId = subjectId, Issuer = issuer, ActorId = actorId, OrganizationId = organizationId };
         return scope;
     }
 
@@ -79,6 +79,29 @@ public sealed class ModuleHarness : IAsyncDisposable
         using var content = new MemoryStream(bytes);
         return await scope.ServiceProvider.GetRequiredService<IFileUploadsBroker>()
             .UploadAsync(content, new UploadSpec { Name = name, IdempotencyKey = idempotencyKey, ExpiresAtUtc = expiresAtUtc });
+    }
+
+    /// <summary>Uploads bytes as a person of an issuer, optionally through an acting app.</summary>
+    public async Task<Result<FileModel>> UploadAsAsync(byte[] bytes, string name, string? subjectId, string? issuer, string? actorId = null)
+    {
+        await using var scope = As(subjectId: subjectId, issuer: issuer, actorId: actorId);
+        using var content = new MemoryStream(bytes);
+        return await scope.ServiceProvider.GetRequiredService<IFileUploadsBroker>()
+            .UploadAsync(content, new UploadSpec { Name = name });
+    }
+
+    /// <summary>Reads rows straight from the store; each row maps column names to values.</summary>
+    public async Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> RowsAsync(string sql)
+    {
+        await using var connection = new SqliteConnection(ConnectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        await using var reader = await command.ExecuteReaderAsync();
+        var rows = new List<IReadOnlyDictionary<string, object?>>();
+        while (await reader.ReadAsync())
+            rows.Add(Enumerable.Range(0, reader.FieldCount).ToDictionary(i => reader.GetName(i), i => reader.IsDBNull(i) ? null : reader.GetValue(i)));
+        return rows;
     }
 
     /// <summary>Runs a store call as a caller.</summary>

@@ -66,6 +66,7 @@ internal sealed class ModuleFileUploadsBroker(
             OrganizationId = caller.OrganizationId,
             AppId = appId,
             OwnerId = caller.SubjectId,
+            OwnerIssuer = caller.Issuer,
             Name = file.Name,
             ContentType = file.Type.MimeType,
             Kind = file.Type.Kind.ToString(),

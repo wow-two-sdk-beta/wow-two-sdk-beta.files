@@ -44,6 +44,8 @@ internal sealed class FileAuditWriter(FilesDbContext db, IFilesCallerService cal
             Outcome = outcome.ToString(),
             ErrorCode = errorCode,
             SubjectId = caller?.SubjectId,
+            SubjectIssuer = caller?.Issuer,
+            ActorId = caller?.ActorId,
             AppId = appId ?? caller?.AppId,
             Bytes = bytes,
             OccurredAtUtc = time.GetUtcNow(),

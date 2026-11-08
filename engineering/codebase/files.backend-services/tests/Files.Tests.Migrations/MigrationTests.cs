@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Microsoft.Data.Sqlite;
 using WoW.Two.Sdk.Beta.Be.Files.Module;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
@@ -9,9 +10,9 @@ namespace Files.Tests.Migrations;
 /// <summary>The module's embedded migrations over a throwaway SQLite file: apply, idempotency, and the Apply → Rollback → Apply round trip.</summary>
 public sealed class MigrationTests : IDisposable
 {
-    private static readonly string[] Names = ["baseline", "files", "references", "audit", "greetings-removed"];
+    private static readonly string[] Names = ["baseline", "files", "references", "audit", "greetings-removed", "owner-issuer"];
 
-    private static readonly string[] Applied = ["001-baseline", "002-files", "003-references", "004-audit", "005-greetings-removed"];
+    private static readonly string[] Applied = ["001-baseline", "002-files", "003-references", "004-audit", "005-greetings-removed", "006-owner-issuer"];
 
     private static readonly string[] Tables = ["files_files", "files_blobs", "files_references", "files_audit"];
 
@@ -40,7 +41,7 @@ public sealed class MigrationTests : IDisposable
         foreach (var table in Tables)
             (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var history = await migrator.ReadHistoryAsync();
-        history.Select(row => row.Ordinal).Should().Equal(1, 2, 3, 4, 5);
+        history.Select(row => row.Ordinal).Should().Equal(1, 2, 3, 4, 5, 6);
         (await migrator.HasTableAsync("files_greeting_logs")).Should().BeFalse();
         history.Select(row => row.Name).Should().Equal(Names);
         history.Should().OnlyContain(row => row.AppliedBy == "startup" && row.Checksum.Length == 64);
@@ -65,9 +66,36 @@ public sealed class MigrationTests : IDisposable
         foreach (var table in Tables)
             (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var status = Unwrap(await migrator.Runner.GetStatusAsync(CancellationToken.None));
-        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1, 2, 3, 4, 5);
+        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1, 2, 3, 4, 5, 6);
         status.Pending.Should().BeEmpty();
         status.Drifted.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ApplyPending_ShouldAddTheIssuerAndActorColumns_AndRollbackShouldDropThem()
+    {
+        await using var migrator = CreateMigrator(options => options.AllowRollback = true);
+        Unwrap(await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None));
+
+        Columns("files_files").Should().Contain("owner_issuer");
+        Columns("files_audit").Should().Contain(["subject_issuer", "actor_id"]);
+
+        Unwrap(await migrator.Runner.RollbackAsync(targetOrdinal: 5, CancellationToken.None)).Should().Equal("006-owner-issuer");
+        Columns("files_files").Should().NotContain("owner_issuer").And.Contain("owner_id");
+        Columns("files_audit").Should().NotContain(["subject_issuer", "actor_id"]).And.Contain("subject_id");
+    }
+
+    private List<string> Columns(string table)
+    {
+        using var connection = new SqliteConnection(ConnectionString);
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT name FROM pragma_table_info('{table}')";
+        using var reader = command.ExecuteReader();
+        var names = new List<string>();
+        while (reader.Read())
+            names.Add(reader.GetString(0));
+        return names;
     }
 
     /// <summary>Returns a migrator result's value, failing the test with the migrator's own message otherwise.</summary>
