@@ -5,9 +5,9 @@ using WoW.Two.Sdk.Beta.Be.Storage.Core;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Sweeps;
 
-/// <summary>Purges file rows past their purge or orphan time or expired with no reference, with their references,
-/// then the bytes no row uses that no upload touched in the last hour; each blob is deleted under its lock, so a
-/// concurrent upload reusing it wins.</summary>
+/// <summary>Purges file rows past their purge or orphan time or expired with no reference, with their references and
+/// variants, then the bytes no file or variant uses that no upload touched in the last hour; each blob is deleted under
+/// its lock, so a concurrent upload reusing it wins.</summary>
 internal sealed class FilesSweepService(FilesDbContext db, IBlobRepository blobs, FileBlobLocks locks, TimeProvider time) : IFilesSweepService
 {
     /// <summary>Holds how long unused bytes are kept after their last upload, covering uploads still in flight.</summary>
@@ -24,6 +24,9 @@ internal sealed class FilesSweepService(FilesDbContext db, IBlobRepository blobs
             .ExecuteDeleteAsync(cancellationToken);
         await db.References
             .Where(reference => !db.Files.Any(file => file.Id == reference.FileId))
+            .ExecuteDeleteAsync(cancellationToken);
+        await db.Variants
+            .Where(variant => !db.Files.Any(file => file.Id == variant.FileId))
             .ExecuteDeleteAsync(cancellationToken);
 
         var cutoff = now - BlobGrace;
@@ -47,8 +50,9 @@ internal sealed class FilesSweepService(FilesDbContext db, IBlobRepository blobs
         return new FileSweepResultModel(files, purged);
     }
 
-    /// <summary>Gets the blobs no file row uses and no upload touched since <paramref name="cutoff"/>.</summary>
+    /// <summary>Gets the blobs no file or variant row uses and no upload touched since <paramref name="cutoff"/>.</summary>
     private IQueryable<FileBlobEntity> Unused(DateTimeOffset cutoff) =>
         db.Blobs.Where(blob => blob.LastUsedAtUtc < cutoff
-            && !db.Files.Any(file => file.TenantId == blob.TenantId && file.Sha256 == blob.Sha256));
+            && !db.Files.Any(file => file.TenantId == blob.TenantId && file.Sha256 == blob.Sha256)
+            && !db.Variants.Any(variant => variant.TenantId == blob.TenantId && variant.Sha256 == blob.Sha256));
 }

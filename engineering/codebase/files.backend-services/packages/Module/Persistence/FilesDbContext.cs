@@ -18,6 +18,9 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
     /// <summary>Gets the records' uses of files.</summary>
     public DbSet<FileReferenceEntity> References => Set<FileReferenceEntity>();
 
+    /// <summary>Gets the files' image variants, one row per file and width.</summary>
+    public DbSet<FileVariantEntity> Variants => Set<FileVariantEntity>();
+
     /// <summary>Gets the audit trail.</summary>
     public DbSet<FileAuditEntity> Audit => Set<FileAuditEntity>();
 
@@ -94,6 +97,18 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         reference.Property(row => row.RecordType).HasColumnName("record_type");
         reference.Property(row => row.RecordId).HasColumnName("record_id");
         reference.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
+
+        var variant = modelBuilder.Entity<FileVariantEntity>();
+        variant.ToTable(FileVariantEntity.TableName);
+        variant.HasKey(row => new { row.FileId, row.Width });
+        variant.Property(row => row.TenantId).HasColumnName("tenant_id");
+        variant.Property(row => row.FileId).HasColumnName("file_id");
+        variant.Property(row => row.Width).HasColumnName("width").ValueGeneratedNever();
+        variant.Property(row => row.Height).HasColumnName("height");
+        variant.Property(row => row.ContentType).HasColumnName("content_type");
+        variant.Property(row => row.Size).HasColumnName("size");
+        variant.Property(row => row.Sha256).HasColumnName("sha256");
+        variant.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
 
         var audit = modelBuilder.Entity<FileAuditEntity>();
         audit.ToTable(FileAuditEntity.TableName);

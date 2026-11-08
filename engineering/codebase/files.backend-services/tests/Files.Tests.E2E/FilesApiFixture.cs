@@ -58,6 +58,8 @@ public sealed class FilesApiFixture : IAsyncLifetime
                 ["Files:Delivery:BaseUrl"] = "http://localhost",
                 ["Files:Delivery:SigningKey"] = SigningKey,
                 ["Files:Policies:tiny:MaxBytes"] = "8",
+                ["Files:Policies:wide:Variants:0"] = "480",
+                ["Files:Policies:wide:Variants:1"] = "900",
                 ["Files:Auth:Issuers:0:Issuer"] = Issuer.Issuer,
                 ["Files:Auth:Issuers:0:TenantId"] = "tokens",
                 ["Files:Auth:Issuers:0:Audiences:0"] = Audience,

@@ -22,3 +22,17 @@ public sealed class ClientFilesConformanceTests(ClientFilesFixture fixture) : Fi
 
     protected override TimeProvider Clock => fixture.Clock;
 }
+
+/// <summary>Form 1: WebP variants through the in-process module, a fresh tenant per test.</summary>
+public sealed class ModuleFileVariantsConformanceTests(ModuleFilesFixture fixture) : FileVariantsConformance, IClassFixture<ModuleFilesFixture>
+{
+    private readonly FilesBrokerSet brokers = fixture.For($"v-{Guid.NewGuid():N}"[..20]);
+
+    protected override FilesBrokerSet Brokers => brokers;
+}
+
+/// <summary>Forms 2 and 3: the same variants through the Client against the service host.</summary>
+public sealed class ClientFileVariantsConformanceTests(ClientFilesFixture fixture) : FileVariantsConformance, IClassFixture<ClientFilesFixture>
+{
+    protected override FilesBrokerSet Brokers => fixture.Tenant;
+}

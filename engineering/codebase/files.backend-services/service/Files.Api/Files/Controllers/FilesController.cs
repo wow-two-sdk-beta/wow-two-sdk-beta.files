@@ -179,19 +179,19 @@ public sealed class FilesController(
     public async Task<IActionResult> Detach(string id, string recordType, string recordId, CancellationToken ct) =>
         FileId.TryParse(id, out var fileId) ? Answer(await references.DetachAsync(fileId, new FileReference(recordType, recordId), ct)) : NotFoundProblem();
 
-    /// <summary>Issues a short-lived signed URL on the content host.</summary>
+    /// <summary>Issues a short-lived signed URL on the content host, to the original or the variant a width picks.</summary>
     [HttpPost("{id}/urls")]
     [Authorize(Policy = FilesScopeConstants.Read)]
     [ProducesResponseType<ApiResponse<SignedFileUrl>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> IssueUrl(string id, [FromBody] UrlSpec spec, CancellationToken ct) =>
         FileId.TryParse(id, out var fileId) ? Answer(await urls.IssueAsync(fileId, spec, ct)) : NotFoundProblem();
 
-    /// <summary>Gets the immutable URL of a public file.</summary>
+    /// <summary>Gets the immutable URL of a public file, or of the variant a <c>width</c> picks.</summary>
     [HttpGet("{id}/public-url")]
     [Authorize(Policy = FilesScopeConstants.Read)]
     [ProducesResponseType<ApiResponse<Uri>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> PublicUrl(string id, [FromQuery] string? variant, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await urls.GetPublicUrlAsync(fileId, variant, ct)) : NotFoundProblem();
+    public async Task<IActionResult> PublicUrl(string id, [FromQuery] int? width, CancellationToken ct) =>
+        FileId.TryParse(id, out var fileId) ? Answer(await urls.GetPublicUrlAsync(fileId, width, ct)) : NotFoundProblem();
 
     private IActionResult Answer<T>(Result<T> result) where T : notnull =>
         result.Match<IActionResult>(value => Ok(ApiResponse<T>.Ok(value)), error => this.ToProblem(error));

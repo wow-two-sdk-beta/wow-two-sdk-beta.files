@@ -47,4 +47,8 @@ public sealed record FileModel
 
     /// <summary>Gets when the file was deleted (UTC); a deleted file is restorable until its retention ends.</summary>
     public DateTimeOffset? DeletedAtUtc { get; init; }
+
+    /// <summary>Gets the image variants made on upload, narrowest first; empty for a file that is not a raster image, an
+    /// image no wider than every policy width, or an app whose policy names no widths.</summary>
+    public IReadOnlyList<FileVariantModel> Variants { get; init; } = [];
 }

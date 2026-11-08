@@ -193,6 +193,38 @@ public abstract class FilesBrokerConformance
         Value(await Brokers.Urls.GetPublicUrlAsync(file.Id)).AbsolutePath.Should().EndWith($"/m/{file.Sha256}.jpg");
     }
 
+    /// <summary>A file that is not a raster image lists no variants.</summary>
+    [Fact]
+    public async Task Variants_ShouldListNone_WhenTheFileIsNotAnImage()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Pdf, "doc.pdf"));
+
+        file.Variants.Should().BeEmpty();
+        Value(await Brokers.Store.GetAsync(file.Id)).Variants.Should().BeEmpty();
+    }
+
+    /// <summary>A width asked of a file with no variant serves the original, signed or public.</summary>
+    [Fact]
+    public async Task Urls_ShouldServeTheOriginal_WhenAWidthIsAskedOfAFileWithoutVariants()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Jpeg, "photo.jpg"));
+        Value(await Brokers.Store.UpdateAsync(file.Id, new FilePatch { Visibility = FileVisibility.Public }));
+
+        Value(await Brokers.Urls.IssueAsync(file.Id, new UrlSpec { Width = 480 })).Url.Query.Should().NotContain("&w=");
+        Value(await Brokers.Urls.GetPublicUrlAsync(file.Id, 480)).AbsolutePath.Should().EndWith($"/m/{file.Sha256}.jpg");
+    }
+
+    /// <summary>A width below one pixel is refused.</summary>
+    [Fact]
+    public async Task Urls_ShouldFailValidation_WhenTheWidthIsBelowOne()
+    {
+        var file = Value(await UploadAsync(FilesSamples.Png, "a.png"));
+        Value(await Brokers.Store.UpdateAsync(file.Id, new FilePatch { Visibility = FileVisibility.Public }));
+
+        Error(await Brokers.Urls.IssueAsync(file.Id, new UrlSpec { Width = 0 })).Type.Should().Be(AppErrorType.Validation);
+        Error(await Brokers.Urls.GetPublicUrlAsync(file.Id, -1)).Type.Should().Be(AppErrorType.Validation);
+    }
+
     /// <summary>Another tenant gets no URL to the tenant's file.</summary>
     [Fact]
     public async Task OtherTenant_ShouldGetNoUrl_ToTheTenantsFile()

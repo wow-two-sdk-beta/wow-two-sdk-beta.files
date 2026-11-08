@@ -7,17 +7,20 @@ using WoW.Two.Sdk.Beta.Be.Files.Module.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Blobs;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Variants;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 
-/// <summary>Integrates the in-process store: the caller's tenant's file rows and their bytes in the blob store.</summary>
+/// <summary>Integrates the in-process store: the caller's tenant's file rows, their variants, and their bytes in the
+/// blob store.</summary>
 /// <remarks>A file past its purge or orphan time, or expired with no reference left, is gone for every call, even
-/// before the sweep purges it.</remarks>
+/// before the sweep purges it. Its variants go with it: they are listed, served, deleted and restored with the file.</remarks>
 internal sealed class ModuleFileStoreBroker(
     FilesDbContext db,
     FileContentReader reader,
+    FileVariantReader variants,
     FileAuditWriter audit,
     IFilesCallerService callers,
     IOptions<FilesModuleOptions> options,
@@ -26,7 +29,7 @@ internal sealed class ModuleFileStoreBroker(
     /// <inheritdoc />
     public async Task<Result<FileModel>> GetAsync(FileId id, CancellationToken cancellationToken = default) =>
         await FindAsync(id, includeDeleted: true, cancellationToken) is { } row
-            ? Result<FileModel>.Ok(FileEntityMapper.ToModel(row))
+            ? Result<FileModel>.Ok(await ToModelAsync(row, cancellationToken))
             : Result<FileModel>.Fail(FilesErrors.FileNotFound());
 
     /// <inheritdoc />
@@ -78,7 +81,9 @@ internal sealed class ModuleFileStoreBroker(
         var page = await rows.AsNoTracking().OrderByDescending(file => file.Seq).Take(limit + 1).ToListAsync(cancellationToken);
         var next = page.Count > limit ? page[limit - 1].Seq.ToString(CultureInfo.InvariantCulture) : null;
 
-        return Result<FilePage>.Ok(new FilePage(page.Take(limit).Select(FileEntityMapper.ToModel).ToList(), next));
+        var items = page.Take(limit).ToList();
+        var found = await variants.ListAsync(callers.Current.TenantId, items.Select(file => file.Id).ToList(), cancellationToken);
+        return Result<FilePage>.Ok(new FilePage(items.Select(file => FileEntityMapper.ToModel(file, found[file.Id].ToList())).ToList(), next));
     }
 
     /// <inheritdoc />
@@ -108,7 +113,7 @@ internal sealed class ModuleFileStoreBroker(
 
         audit.Add(row.TenantId, row.Id, FileAuditAction.Update);
         await db.SaveChangesAsync(cancellationToken);
-        return Result<FileModel>.Ok(FileEntityMapper.ToModel(row));
+        return Result<FileModel>.Ok(await ToModelAsync(row, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -126,7 +131,7 @@ internal sealed class ModuleFileStoreBroker(
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        return Result<FileModel>.Ok(FileEntityMapper.ToModel(row));
+        return Result<FileModel>.Ok(await ToModelAsync(row, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -143,8 +148,12 @@ internal sealed class ModuleFileStoreBroker(
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        return Result<FileModel>.Ok(FileEntityMapper.ToModel(row));
+        return Result<FileModel>.Ok(await ToModelAsync(row, cancellationToken));
     }
+
+    /// <summary>Maps a file with its variants.</summary>
+    private async Task<FileModel> ToModelAsync(FileEntity row, CancellationToken cancellationToken) =>
+        FileEntityMapper.ToModel(row, await variants.ListAsync(row.TenantId, row.Id, cancellationToken));
 
     /// <summary>Finds a live file of the caller's tenant, tracked for change.</summary>
     private async Task<FileEntity?> FindAsync(FileId id, bool includeDeleted, CancellationToken cancellationToken)

@@ -69,6 +69,8 @@ public sealed class ClientFilesFixture : IAsyncLifetime
                     ["Files:Auth:ApiKeys:1:Scopes:0"] = "files.read",
                     ["Files:Auth:ApiKeys:1:Scopes:1"] = "files.write",
                     ["Files:Auth:ApiKeys:1:Scopes:2"] = "files.admin",
+                    [$"Files:Policies:{FileVariantsConformance.App}:Variants:0"] = "480",
+                    [$"Files:Policies:{FileVariantsConformance.App}:Variants:1"] = "900",
                     ["Logging:LogLevel:Default"] = "Warning",
                 }),
             };

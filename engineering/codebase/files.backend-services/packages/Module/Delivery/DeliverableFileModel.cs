@@ -33,4 +33,8 @@ public sealed record DeliverableFileModel
 
     /// <summary>Gets when a signed URL stops working; none for a public URL, which never does.</summary>
     public DateTimeOffset? ExpiresAtUtc { get; init; }
+
+    /// <summary>Gets the width of the variant served; none for the original. With a width, the name, content type, size
+    /// and SHA-256 are the variant's.</summary>
+    public int? VariantWidth { get; init; }
 }

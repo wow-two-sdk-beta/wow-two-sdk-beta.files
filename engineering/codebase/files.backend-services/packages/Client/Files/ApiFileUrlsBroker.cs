@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using WoW.Two.Sdk.Beta.Be.Files.Client.Transport;
@@ -23,11 +24,11 @@ internal sealed class ApiFileUrlsBroker(FilesApiTransport transport) : IFileUrls
     }
 
     /// <inheritdoc />
-    public Task<Result<Uri>> GetPublicUrlAsync(FileId id, string? variant = null, CancellationToken cancellationToken = default)
+    public Task<Result<Uri>> GetPublicUrlAsync(FileId id, int? width = null, CancellationToken cancellationToken = default)
     {
         var path = FilesApiRouteMapper.File(id, "public-url");
-        if (variant is not null)
-            path = QueryHelpers.AddQueryString(path, "variant", variant);
+        if (width is { } asked)
+            path = QueryHelpers.AddQueryString(path, "width", asked.ToString(CultureInfo.InvariantCulture));
         return transport.SendAsync<Uri>(new HttpRequestMessage(HttpMethod.Get, path), cancellationToken);
     }
 }

@@ -27,4 +27,11 @@ public sealed class FilePolicyOptions
     /// <summary>Gets or sets how long after upload a file expires when the upload sets no expiry; none keeps it. A
     /// referenced file outlives its expiry.</summary>
     public TimeSpan? DefaultLifetime { get; set; }
+
+    /// <summary>Gets the widths in pixels a raster image upload gets a WebP variant at (<c>Files:Policies:{app}:Variants</c>),
+    /// each 1 to 8192; a width wider than the image is skipped, never upscaled. Empty makes no variants.</summary>
+    public List<int> Variants { get; } = [];
+
+    /// <summary>Gets or sets the WebP quality of the variants, 1 to 100. Default 80.</summary>
+    public int VariantQuality { get; set; } = 80;
 }

@@ -9,15 +9,17 @@ public interface IFileUrlsBroker
 {
     /// <summary>Issues a short-lived signed URL to a file the caller may read.</summary>
     /// <param name="id">The file.</param>
-    /// <param name="spec">The lifetime, disposition and variant.</param>
+    /// <param name="spec">The lifetime, disposition and the width that picks a variant.</param>
     /// <param name="cancellationToken">The token that cancels the call.</param>
-    /// <returns>The signed URL; <see cref="FilesErrors.FileNotReady"/> before the file is ready.</returns>
+    /// <returns>The signed URL; <see cref="FilesErrors.FileNotReady"/> before the file is ready; a validation failure
+    /// for a width below 1.</returns>
     Task<Result<SignedFileUrl>> IssueAsync(FileId id, UrlSpec spec, CancellationToken cancellationToken = default);
 
-    /// <summary>Gets the immutable public URL of a public file.</summary>
+    /// <summary>Gets the immutable public URL of a public file, or of one of its variants.</summary>
     /// <param name="id">The file.</param>
-    /// <param name="variant">The variant, by preset name; the original when none.</param>
+    /// <param name="width">The width in pixels the file is shown at: the narrowest variant at least that wide, else the
+    /// widest; the original when none, or when the file has no variants.</param>
     /// <param name="cancellationToken">The token that cancels the call.</param>
-    /// <returns>The URL; a forbidden failure when the file is not public.</returns>
-    Task<Result<Uri>> GetPublicUrlAsync(FileId id, string? variant = null, CancellationToken cancellationToken = default);
+    /// <returns>The URL; a forbidden failure when the file is not public; a validation failure for a width below 1.</returns>
+    Task<Result<Uri>> GetPublicUrlAsync(FileId id, int? width = null, CancellationToken cancellationToken = default);
 }

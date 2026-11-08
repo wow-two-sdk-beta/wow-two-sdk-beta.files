@@ -67,6 +67,8 @@ jobs:
             --env Files__Auth__ApiKeys__1__Sha256=9dc0ec38d570f867a02e1a23a2d3c7954ec4bfea67bf78e03dead896cec13e7d \
             --env Files__Auth__ApiKeys__1__Scopes__0=files.read --env Files__Auth__ApiKeys__1__Scopes__1=files.write \
             --env Files__Auth__ApiKeys__1__Scopes__2=files.admin \
+            --env Files__Policies__conformance-variants__Variants__0=480 \
+            --env Files__Policies__conformance-variants__Variants__1=900 \
             --volume files-data:/data "$image"
           for _ in $(seq 1 30); do
             curl --fail --silent http://127.0.0.1:8080/health >/dev/null && exit 0

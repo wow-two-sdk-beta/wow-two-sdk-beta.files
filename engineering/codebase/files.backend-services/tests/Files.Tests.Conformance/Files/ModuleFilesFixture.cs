@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WoW.Two.Sdk.Beta.Be.Files.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Module;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Policies;
 using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
@@ -56,6 +57,9 @@ public sealed class ModuleFilesFixture : IAsyncLifetime
             options.SweepInterval = TimeSpan.Zero;
             options.Delivery.BaseUrl = new Uri("https://files.example.test");
             options.Delivery.SigningKey = "conformance-signing-key-0123456789abcdef";
+            var variants = new FilePolicyOptions();
+            variants.Variants.AddRange(FileVariantsConformance.Widths);
+            options.Policies[FileVariantsConformance.App] = variants;
         });
         services = collection.BuildServiceProvider(validateScopes: true);
     }

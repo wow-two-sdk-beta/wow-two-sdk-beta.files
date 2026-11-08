@@ -15,18 +15,20 @@ internal static class FilesDeliveryHandlers
 {
     private const string PublicCaching = "public, max-age=31536000, immutable";
 
-    /// <summary>Serves <c>/f/{id}</c> and <c>/t/{tenant}/f/{id}</c>.</summary>
+    /// <summary>Serves <c>/f/{id}</c> and <c>/t/{tenant}/f/{id}</c>; a <c>w</c> parameter names a variant.</summary>
     public static async Task ServeSignedAsync(HttpContext http, string id, string? tenant, IFilesDeliveryService delivery, TimeProvider time)
     {
         var query = http.Request.Query;
+        int? width = null;
         if (!FileId.TryParse(id, out var fileId)
-            || !long.TryParse(query["exp"], NumberStyles.None, CultureInfo.InvariantCulture, out var expires))
+            || !long.TryParse(query["exp"], NumberStyles.None, CultureInfo.InvariantCulture, out var expires)
+            || (query.ContainsKey("w") && !TryParseWidth(query["w"], out width)))
         {
             Refuse(http.Response, StatusCodes.Status403Forbidden);
             return;
         }
 
-        var found = await delivery.FindSignedAsync(tenant, fileId, expires, query["d"], query["sig"], http.RequestAborted);
+        var found = await delivery.FindSignedAsync(tenant, fileId, expires, query["d"], query["sig"], width, http.RequestAborted);
         await ServeAsync(http, delivery, found, file =>
             $"private, max-age={Math.Max(0, (long)(file.ExpiresAtUtc!.Value - time.GetUtcNow()).TotalSeconds)}");
     }
@@ -89,6 +91,13 @@ internal static class FilesDeliveryHandlers
         response.Headers.ContentDisposition = FileNameMapper.ToContentDisposition(file.Name, disposition);
         if (!HttpMethods.IsHead(http.Request.Method))
             await bytes.CopyToAsync(response.Body, http.RequestAborted);
+    }
+
+    /// <summary>Reads a signed URL's variant width: digits only, at least 1.</summary>
+    private static bool TryParseWidth(string? value, out int? width)
+    {
+        width = int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) && parsed > 0 ? parsed : null;
+        return width is not null;
     }
 
     private static void Refuse(HttpResponse response, int status)

@@ -8,18 +8,20 @@ using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Policies;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Store;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Variants;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
-using WoW.Two.Sdk.Beta.Be.Storage.Core;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Uploads;
 
 /// <summary>Integrates the in-process upload: spools and hashes the bytes, checks them against the name and the app
-/// policy, then stores them once per tenant and records the file.</summary>
+/// policy, then stores them once per tenant, records the file, and makes the image variants the policy names.</summary>
 internal sealed class ModuleFileUploadsBroker(
     FilesDbContext db,
-    IBlobRepository blobs,
+    FileBlobWriter writer,
+    FileVariantService variants,
+    FileVariantReader variantReader,
     IFilesCallerService callers,
     IOptions<FilesModuleOptions> options,
     FileBlobLocks locks,
@@ -38,7 +40,7 @@ internal sealed class ModuleFileUploadsBroker(
 
         var idempotencyKey = string.IsNullOrWhiteSpace(spec.IdempotencyKey) ? null : spec.IdempotencyKey;
         if (idempotencyKey is not null && await FindByKeyAsync(caller.TenantId, idempotencyKey, cancellationToken) is { } earlier)
-            return Result<FileModel>.Ok(FileEntityMapper.ToModel(earlier));
+            return Result<FileModel>.Ok(await ToModelAsync(earlier, cancellationToken));
 
         if (caller.AppId is not null && spec.AppId is not null && spec.AppId != caller.AppId)
             return await RefuseAsync(caller.TenantId, FilesErrors.AppNotAllowed(), spec.AppId, cancellationToken);
@@ -82,7 +84,7 @@ internal sealed class ModuleFileUploadsBroker(
 
         using (await locks.AcquireAsync(spool.Sha256, cancellationToken))
         {
-            await StoreBytesAsync(caller.TenantId, spool, file.Type.MimeType, now, cancellationToken);
+            await writer.StoreAsync(caller.TenantId, spool.Sha256, spool.Size, spool.OpenRead, file.Type.MimeType, now, cancellationToken);
             db.Files.Add(row);
             audit.Add(caller.TenantId, row.Id, FileAuditAction.Upload, spool.Size, appId);
             try
@@ -95,36 +97,18 @@ internal sealed class ModuleFileUploadsBroker(
                 db.ChangeTracker.Clear();
                 if (await FindByKeyAsync(caller.TenantId, idempotencyKey, cancellationToken) is not { } raced)
                     throw;
-                return Result<FileModel>.Ok(FileEntityMapper.ToModel(raced));
+                return Result<FileModel>.Ok(await ToModelAsync(raced, cancellationToken));
             }
         }
 
-        return Result<FileModel>.Ok(FileEntityMapper.ToModel(row));
+        // The file is stored: its variants finish even if the caller goes away, and a failing one is skipped.
+        var made = await variants.CreateAsync(row, file.Type, spool.OpenRead, policy, now, CancellationToken.None);
+        return Result<FileModel>.Ok(FileEntityMapper.ToModel(row, made));
     }
 
-    /// <summary>Reuses the tenant's copy of the bytes, or stores them and adds its row to the pending save.</summary>
-    private async Task StoreBytesAsync(string tenantId, UploadSpool spool, string contentType, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        var reused = await db.Blobs
-            .Where(blob => blob.TenantId == tenantId && blob.Sha256 == spool.Sha256)
-            .ExecuteUpdateAsync(set => set.SetProperty(blob => blob.LastUsedAtUtc, now), cancellationToken);
-        if (reused > 0)
-            return;
-
-        var key = FileBlobKeyMapper.ToKey(tenantId, spool.Sha256);
-        await using (var bytes = spool.OpenRead())
-            await blobs.SaveAsync(key, bytes, contentType, cancellationToken);
-
-        db.Blobs.Add(new FileBlobEntity
-        {
-            TenantId = tenantId,
-            Sha256 = spool.Sha256,
-            StorageKey = key,
-            Size = spool.Size,
-            CreatedAtUtc = now,
-            LastUsedAtUtc = now,
-        });
-    }
+    /// <summary>Maps an earlier upload's file with its variants.</summary>
+    private async Task<FileModel> ToModelAsync(FileEntity row, CancellationToken cancellationToken) =>
+        FileEntityMapper.ToModel(row, await variantReader.ListAsync(row.TenantId, row.Id, cancellationToken));
 
     /// <summary>Records a refused upload and answers with its error.</summary>
     private async Task<Result<FileModel>> RefuseAsync(string tenantId, Foundation.Errors.AppError error, string? appId, CancellationToken cancellationToken)

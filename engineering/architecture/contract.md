@@ -1,6 +1,6 @@
 # wow-two-sdk-beta.files — Contract
 
-*Last updated: 2026-10-26*
+*Last updated: 2026-11-08*
 
 > One broker set, the same in every form: a product moves between Form 1, an owner instance and the shared files host
 > by configuration only. Rules: wow-two-ws/conventions/development/capability-forms.md § Contract. Design evidence:
@@ -18,7 +18,7 @@
 |---|---|---|
 | `FileId` | UUIDv7 | assigned by the instance; survives every tenant move |
 | `TenantId` · `OrganizationId` · `AppId` | string | from the tenant registry and token claims |
-| storage key | `{tenant}/{sha256[..2]}/{sha256}` | variants `{tenant}/v/{sha256}/{variant}.{ext}` |
+| storage key | `{tenant}/{sha256[..2]}/{sha256}` | a variant's bytes too, by their own SHA-256 |
 | `UploadId` | UUIDv7 | valid until the upload session expires |
 | share token | 22+ URL-safe characters | stored hashed |
 
@@ -29,17 +29,17 @@
 | `IFileUploadsBroker` | `UploadAsync(stream, spec)` | Module, Client |
 | `IFileStoreBroker` | `GetAsync` · `OpenReadAsync(id, range?)` · `ListAsync(query)` · `UpdateAsync(patch)` · `DeleteAsync` · `RestoreAsync` | Module, Client |
 | `IFileReferencesBroker` | `AttachAsync(id, ref)` · `DetachAsync` · `ListAsync(id)` | Module, Client |
-| `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, variant?)` | Module, Client |
+| `IFileUrlsBroker` | `IssueAsync(id, spec)` → signed URL · `GetPublicUrlAsync(id, width?)` | Module, Client |
 | `IFileUploadsBroker` tickets | `BeginAsync(spec)` → ticket · `CompleteAsync(uploadId)` · `CancelAsync` | planned |
 | `IFileSharesBroker` | `CreateAsync(spec with gates)` · `UpdateAsync` · `RevokeAsync` · `ListAsync` · `AccessLogAsync` | planned |
-| `IFileTransformsBroker` | `GetVariantAsync(id, name)` · `RequestAsync(spec)` → job | planned |
+| `IFileTransformsBroker` | `RequestAsync(spec)` → job, on-the-fly transforms | planned |
 | `IFileArchivesBroker` | `ZipAsync(ids, spec)` → job · `StreamZipAsync(ids, output)` · `ExtractAsync(id, folder)` | planned |
 | `IFileJobsBroker` | `GetAsync(jobId)` · `WaitAsync` | planned |
 | `IFileAuditBroker` | `ListAsync(query)` → the tenant's audit trail, newest first | Module, Client |
 | `IFileAdminBroker` | usage, quotas, policies, tenants | planned |
 
-- models today: `FileModel`, `FileQuery`, `FilePage`, `FilePatch`, `FileContent`, `ByteRange`, `UploadSpec`,
-  `FileReference`, `UrlSpec`, `SignedFileUrl`, `FileAuditEntryModel`, `FileAuditQuery`, `FileAuditPage`; enums `FileKind`,
+- models today: `FileModel`, `FileVariantModel`, `FileQuery`, `FilePage`, `FilePatch`, `FileContent`, `ByteRange`,
+  `UploadSpec`, `FileReference`, `UrlSpec`, `SignedFileUrl`, `FileAuditEntryModel`, `FileAuditQuery`, `FileAuditPage`; enums `FileKind`,
   `FileState`, `FileVisibility`, `FileDisposition`, `FileAuditAction`, `FileAuditOutcome`.
 - every upload (refused ones too), read, change, delete and restore writes an audit entry; a URL redemption writes one
   with no subject.
@@ -52,6 +52,21 @@
 - a file past its purge or orphan time, or expired with no reference, is gone for every call before the sweep purges it.
 - share gates, once declared, are a closed set: expiry, password, max downloads, sign-in, email; later IP and terms.
 
+### Variants
+
+- an app policy names variant widths, `Files:Policies:{app}:Variants` (each 1–8192; empty makes none), and their WebP
+  quality, `VariantQuality` (1–100, default 80); the instance refuses to start on an out-of-range value.
+- an upload the registry recognizes as JPEG, PNG, WebP or GIF (first frame) gets one WebP per width no wider than the
+  image, upright, without metadata, keeping the aspect ratio; a wider width is skipped, never upscaled. Core's
+  `IImageService` (`AddImageProcessing`, limits in `Media:Images`) makes them; imports get them through the same upload.
+- a failing variant (unreadable bytes, over the image limits, a store error) is logged and skipped; the upload succeeds.
+- `FileModel.Variants` lists them narrowest first: `Width`, `Height`, `ContentType`, `Size`; one `files_variants` row
+  each (migration 008), with its bytes a tenant blob under their own SHA-256.
+- `UrlSpec.Width` and `GetPublicUrlAsync(id, width)` pick the narrowest variant at least that wide, else the widest;
+  the original when no width is asked or the file has none; a width below 1 is a validation failure.
+- a variant goes with its source: served while the source is live, ready and not deleted, public for a public URL;
+  delete, restore and purge follow the source, and the sweep purges its bytes once no file or variant uses them.
+
 ## HTTP API
 
 Base `/api/files/v1` (`FilesRouteConstants.Api`); the service mirrors the brokers.
@@ -63,7 +78,7 @@ Base `/api/files/v1` (`FilesRouteConstants.Api`); the service mirrors the broker
 | `GET /files/{id}/content` | `OpenReadAsync` | `files.read` |
 | `PATCH /files/{id}` · `DELETE /files/{id}` · `POST /files/{id}/restore` | update · delete · restore | `files.write` |
 | `PUT·DELETE /files/{id}/references/{recordType}/{recordId}` · `GET /files/{id}/references` | references | `files.write` · `files.read` |
-| `POST /files/{id}/urls` · `GET /files/{id}/public-url` | `IssueAsync` · `GetPublicUrlAsync` | `files.read` |
+| `POST /files/{id}/urls` (`UrlSpec`) · `GET /files/{id}/public-url?width=` | `IssueAsync` · `GetPublicUrlAsync` | `files.read` |
 | `GET /audit?fileId=&action=&cursor=&limit=` | audit `ListAsync` | `files.admin` |
 | `POST /uploads` · `POST /uploads/{id}/complete` · `DELETE /uploads/{id}` | tickets | planned |
 | `POST /shares` · `GET /shares` · `PATCH·DELETE /shares/{id}` | shares | `files.share`; planned |
@@ -96,8 +111,8 @@ Served by `packages/Server` on the content host (`files.{domain}` or the shared 
 
 | Route | Serves | Auth |
 |---|---|---|
-| `GET /f/{fileId}?exp=&d=&sig=` | a private file through a signed URL; variants later | HMAC-SHA256 over tenant, id, expiry, disposition; up to `MaxLifetime` |
-| `GET /m/{sha256}.{ext}` | a public file, immutable, year-long cache; variants later | none; a public, ready file of the tenant must hold the bytes |
+| `GET /f/{fileId}?exp=&d=&w=&sig=` | a private file through a signed URL; with `w`, its variant of that width | HMAC-SHA256 over tenant, id, expiry, disposition and `w`; up to `MaxLifetime` |
+| `GET /m/{sha256}.{ext}` | a public file, or a public file's variant by the variant's SHA-256; immutable, year-long cache | none; a public, ready file of the tenant must hold the bytes or have the variant |
 | `GET /s/{token}` · `POST /s/{token}/unlock` · `GET /s/{token}/zip` | share page, gate unlock, download all | share gates; planned |
 | `GET /r/{token}` · `POST /r/{token}` | file request page and upload | request gates; planned |
 
@@ -148,3 +163,6 @@ The service also serves the icon set from its web root, for any origin to embed:
   magic-byte mismatches, archive bombs.
 - `FilesBrokerConformance` runs against the Module and against the Client over the host by two tenants' API keys;
   the workflow runs the Client side against the released image with two test-only keys.
+- `FileVariantsConformance` runs where the instance gives the app `conformance-variants` the widths 480 and 900
+  (`Files:Policies:conformance-variants:Variants`): variants per width, never upscaled, the width a URL picks, and a
+  deleted source serving none.

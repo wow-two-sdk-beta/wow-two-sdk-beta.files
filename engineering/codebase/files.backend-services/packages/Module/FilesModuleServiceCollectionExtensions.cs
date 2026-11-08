@@ -15,10 +15,12 @@ using WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Sweeps;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Uploads;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Urls;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Variants;
 using WoW.Two.Sdk.Beta.Be.Files.References;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Uploads;
 using WoW.Two.Sdk.Beta.Be.Files.Urls;
+using WoW.Two.Sdk.Beta.Be.Media.Images;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module;
 
@@ -26,10 +28,12 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module;
 public static class FilesModuleServiceCollectionExtensions
 {
     /// <summary>Registers the Files brokers over the module's store, the delivery seam the content host serves through,
-    /// imports with their tokens, the hourly sweep and the store's readiness check.</summary>
+    /// image variants through core's image service, imports with their tokens, the hourly sweep and the store's
+    /// readiness check.</summary>
     /// <remarks>The host registers the byte store, core <c>IBlobRepository</c> (<c>AddLocalBlobStorage</c>,
     /// <c>AddS3BlobStorage</c>, …); replace <see cref="IFilesCallerService"/> to resolve callers another way, and bind
-    /// <see cref="FileImportOptions"/> to change the import token's lifetime.</remarks>
+    /// <see cref="FileImportOptions"/> to change the import token's lifetime. Variants decode within core's image limits
+    /// (<c>Media:Images</c>, <see cref="ImageOptions"/>).</remarks>
     /// <param name="services">The service collection to configure.</param>
     /// <returns>The options builder, through which the host sets the connection string; it is read on first use.</returns>
     public static OptionsBuilder<FilesModuleOptions> AddFiles(this IServiceCollection services)
@@ -44,7 +48,11 @@ public static class FilesModuleServiceCollectionExtensions
         services.TryAddScoped<IFilesCallerService, PrincipalFilesCallerService>();
         services.TryAddSingleton<FileBlobLocks>();
         services.TryAddSingleton<SignedFileUrlIssuer>();
+        services.AddImageProcessing();
         services.AddScoped<FileContentReader>();
+        services.AddScoped<FileBlobWriter>();
+        services.AddScoped<FileVariantReader>();
+        services.AddScoped<FileVariantService>();
         services.AddScoped<FileAuditWriter>();
         services.AddScoped<IFileUploadsBroker, ModuleFileUploadsBroker>();
         services.AddScoped<IFileStoreBroker, ModuleFileStoreBroker>();
@@ -61,6 +69,9 @@ public static class FilesModuleServiceCollectionExtensions
 
         return services.AddOptions<FilesModuleOptions>()
             .Validate(options => !string.IsNullOrWhiteSpace(options.ConnectionString), "FilesModuleOptions.ConnectionString must be set.")
-            .Validate(options => FileBlobKeyMapper.IsValidTenant(options.DefaultTenantId), $"FilesModuleOptions.DefaultTenantId must match {FilesConstants.TenantIdPattern}.");
+            .Validate(options => FileBlobKeyMapper.IsValidTenant(options.DefaultTenantId), $"FilesModuleOptions.DefaultTenantId must match {FilesConstants.TenantIdPattern}.")
+            .Validate(
+                options => FileVariantWidthMapper.IsValid(options.DefaultPolicy) && options.Policies.Values.All(FileVariantWidthMapper.IsValid),
+                $"Every Files policy's Variants must be widths of 1 to {FileVariantWidthMapper.MaxWidth} pixels, and its VariantQuality 1 to 100.");
     }
 }
