@@ -49,11 +49,10 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Item | Type | Notes |
 |---|---|---|
 | `Shared` tenancy: many tenants on one instance | feature | P1; [T1](../research/files-analysis-2026-10/t1-services-tenancy.md) |
-| Per-tenant issuer trust, hostnames and byte store target | feature | P1 on B |
+| Per-tenant hostnames and byte store target | feature | P1 on B; one tenant on the `app` site's host until host aliases (files-integration #40) |
 | Custom hostname per tenant with TLS | feature | P1; Ocharo's `files.{domain}` from day one |
-| Import from legacy stores: `bytea`, folders, S3, URL list | feature | P1; the Ocharo cutover |
-| `files` CLI mover image for imports | feature | P1; runs on the source host, read-only mounts (T9) |
-| Files-minted import tokens, tenant- and import-scoped | feature | P1; hours long, over stdin (T9 W6) |
+| Import from S3 buckets, URL lists and Git LFS | feature | P2; folders, SQLite and PostgreSQL columns ship in P1 ([imports](../../product/features/imports.md)) |
+| Import freeze, cutover, rollback and retire | feature | P2, with Ocharo prod; files-integration #38 |
 | Tenant export and import between instances | feature | P2; signed bundle plus byte copy or re-point |
 | Dual-write and read-through during a move | feature | P2 |
 | Bring-your-own bucket per tenant | feature | P2 |
@@ -63,7 +62,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 
 | Item | Type | Notes |
 |---|---|---|
-| Variants on upload: thumbnail, preview, WebP, named presets | feature | P1; replaces each app's preview code |
+| Named variant presets beyond an app's widths | feature | P2; P1 makes WebP at each app's widths |
 | EXIF strip on public images, orientation fix | feature | P1 |
 | BlurHash and dominant color for placeholders | feature | P1 |
 | Image limits: max pixels, decompression-bomb guard | feature | P1 |
