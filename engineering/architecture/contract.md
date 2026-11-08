@@ -71,17 +71,21 @@ Base `/api/files/v1` (`FilesRouteConstants.Api`); the service mirrors the broker
 | `GET·POST·PATCH /tenants` · `POST /tenants/{id}/keys` · `POST /tenants/{id}/export` | shared host operator | `files.tenants`; planned |
 | `POST /imports` · `GET /imports/{id}` | migration | `files.admin`; planned |
 
-- scopes: `FilesScopeConstants` (`files.read`, `files.write`, `files.share`, `files.admin`, `files.delegate`,
-  `files.tenants`); Identity issues them (T8 C3).
+- scopes: `FilesScopeConstants` (`files.read`, `files.write`, `files.share`, `files.admin`, `files.tenants`), what the
+  app may ask; a person also needs the matching `FilesPermissionConstants` permission (`files:read`, `files:write`,
+  `files:share`, `files:admin`); Identity issues both (T8 C3, § Policy shape).
 - `Idempotency-Key` on every creating `POST`; cursor paging; filters `app`, `owner`, `kind`, `state`, `createdAfter`,
   `includeDeleted`.
 - `POST /files` reads its multipart body as a stream: fields (`name`, `appId`, `contentType`, `visibility`,
   `expiresAtUtc`) before the file part; the app policy's size limit stops the read.
 - wire: the be sdk `{ data }` envelope and JSON preset; `FileId` as its string; `FileKind` in kebab case
   (`raw-photo`, `model-3d`); a problem carries `code` = the `AppErrorType`, which the Client maps back.
-- callers: a tenant API key in `X-Api-Key`, or a client-credentials token from a trusted issuer (`Files:Auth`); the
-  key's or the issuer's tenant is the caller's tenant, never a claim the caller sends. Each action names its scope.
-- a caller bound to an app (`azp`, a key's app) uploads under that app only (`AppNotAllowed`).
+- callers: a token from a trusted issuer (`Files:Auth:Issuers`) — client credentials for a service, token exchange for a
+  person — or, for a tenant outside Identity, an API key in `X-Api-Key`; the issuer's or the key's tenant is the
+  caller's tenant (`partition`), never a claim the caller sends. Each action names its scope policy.
+- a caller bound to an app (`client_id`, a key's app) uploads under that app only (`AppNotAllowed`).
+- Identity's revocation signals arrive at `POST /signals/identity` under each tenant's host; a revoked person's token is
+  refused until it would have expired.
 - the Client implements the brokers by hand over one named `HttpClient` (`files`); its builder takes
   `AddOAuth2ClientCredentials`. OpenAPI comes from the host.
 

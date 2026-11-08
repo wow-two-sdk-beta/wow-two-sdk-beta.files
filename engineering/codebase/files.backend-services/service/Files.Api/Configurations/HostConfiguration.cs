@@ -27,9 +27,8 @@ public static partial class HostConfiguration
             options.TrustProxiesFrom(builder.Configuration.GetSection("Deployment"));
         });
 
-        builder.Services.AddFilesAuth(builder.Configuration);
-
         return builder
+            .AddFilesAuth()
             .AddFilesModule()
             .AddControllers();
     }
@@ -49,6 +48,7 @@ public static partial class HostConfiguration
             identity.UseAuthorization();
         });
         app.MapControllers();
+        app.MapFilesSignals();
         app.MapFilesDelivery();
         app.MapFileIcons();
 

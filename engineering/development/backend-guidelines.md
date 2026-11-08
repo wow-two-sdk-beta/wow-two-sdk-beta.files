@@ -14,8 +14,9 @@ wow-two-ws/conventions/development/repo/structure/domain-structure.md. Repo delt
   `packages/Module/Migrations/NNN-name/{Apply,Rollback}.sql` pair; never edit an applied one.
 - Bytes: the host registers core `IBlobRepository`; `Files.Api` uses a local folder at `Storage:Root` (default
   `data/blobs`). Module settings bind from the `Files` section: `DefaultTenantId`, `Policies` by app, `SweepInterval`,
-  `Delivery:BaseUrl` and the secret `Delivery:SigningKey` (`Files__Delivery__SigningKey`). Callers: `Files:Auth` API keys
-  (SHA-256 only) and trusted issuers; a new action names its scope policy (`FilesScopeConstants`).
+  `Delivery:BaseUrl` and the secret `Delivery:SigningKey` (`Files__Delivery__SigningKey`). Callers: `Files:Auth` trusted
+  issuers and API keys (SHA-256 only), read through Identity's `Auth` package; a new action names its policy, the scope
+  (`FilesScopeConstants`), which also asks a person for the matching `FilesPermissionConstants` permission.
 - `dotnet test Files.BackendServices.slnx` runs every tier; the backend build needs Node and pnpm for the pages.
 
 ## Traps

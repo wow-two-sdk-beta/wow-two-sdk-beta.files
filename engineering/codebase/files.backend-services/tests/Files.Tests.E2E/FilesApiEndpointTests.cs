@@ -1,11 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 using AwesomeAssertions;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
+using WoW.Two.Sdk.Beta.Be.Identity.Testing;
 using WoW.Two.Sdk.Beta.Be.Files.Testing.Files;
 
 namespace Files.Tests.E2E;
@@ -93,7 +90,8 @@ public sealed class FilesApiEndpointTests(FilesApiFixture fixture)
     public async Task Token_ShouldActInTheIssuersTenant_WhenTheIssuerIsTrusted()
     {
         using var client = fixture.Host.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(FilesApiFixture.Issuer, FilesApiFixture.IssuerKey));
+        var token = fixture.Issuer.IssueServiceToken("orders", FilesApiFixture.Audience, "files.read", "files.write");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         using var created = await client.PostAsync(Files, Multipart(FilesSamples.Png, "a.png"));
         var file = await DataAsync(created);
@@ -101,16 +99,31 @@ public sealed class FilesApiEndpointTests(FilesApiFixture fixture)
         created.StatusCode.Should().Be(HttpStatusCode.Created);
         file.GetProperty("tenantId").GetString().Should().Be("tokens");
         file.GetProperty("appId").GetString().Should().Be("orders");
-        file.GetProperty("ownerId").GetString().Should().Be("orders-service");
+        file.GetProperty("ownerId").GetString().Should().Be("orders");
     }
 
     [Theory]
-    [InlineData("https://elsewhere.test", FilesApiFixture.IssuerKey)]
-    [InlineData(FilesApiFixture.Issuer, "a-different-signing-key-0123456789abcdef")]
-    public async Task Token_ShouldAnswer401_WhenTheIssuerOrSignatureIsNotTrusted(string issuer, string key)
+    [InlineData("https://elsewhere.test/")]
+    [InlineData("https://identity.tokens.test/")]
+    public async Task Token_ShouldAnswer401_WhenTheIssuerOrSignatureIsNotTrusted(string issuer)
+    {
+        // The second issuer names a trusted iss, but its key is not that issuer's.
+        using var stranger = new FakeTokenIssuer(issuer);
+        using var client = fixture.Host.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", stranger.IssueServiceToken("orders", FilesApiFixture.Audience, "files.read"));
+
+        using var response = await client.GetAsync(Files);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Token_ShouldAnswer401_WhenItNamesAnotherTenantsAudience()
     {
         using var client = fixture.Host.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token(issuer, key));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer", fixture.Issuer.IssueServiceToken("orders", FilesApiFixture.OtherAudience, "files.read"));
 
         using var response = await client.GetAsync(Files);
 
@@ -142,32 +155,7 @@ public sealed class FilesApiEndpointTests(FilesApiFixture fixture)
         return client;
     }
 
-    private static MultipartFormDataContent Multipart(byte[] bytes, string name)
-    {
-        var file = new ByteArrayContent(bytes);
-        file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-        return new MultipartFormDataContent { { new StringContent(name), "name" }, { file, "file", name } };
-    }
+    private static MultipartFormDataContent Multipart(byte[] bytes, string name) => FilesApiRequests.Multipart(bytes, name);
 
-    /// <summary>Mints a client-credentials token; the bearer handler checks lifetimes on the real clock.</summary>
-    private static string Token(string issuer, string key)
-    {
-        var now = DateTime.UtcNow;
-        return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
-        {
-            Issuer = issuer,
-            Audience = FilesApiFixture.Audience,
-            Subject = new ClaimsIdentity([new Claim("sub", "orders-service"), new Claim("azp", "orders"), new Claim("scope", "files.read files.write")]),
-            IssuedAt = now,
-            NotBefore = now,
-            Expires = now.AddMinutes(5),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256),
-        });
-    }
-
-    private static async Task<JsonElement> DataAsync(HttpResponseMessage response)
-    {
-        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        return body.RootElement.GetProperty("data").Clone();
-    }
+    private static Task<JsonElement> DataAsync(HttpResponseMessage response) => FilesApiRequests.DataAsync(response);
 }

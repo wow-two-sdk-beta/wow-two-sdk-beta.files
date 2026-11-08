@@ -1,10 +1,13 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using WoW.Two.Sdk.Beta.Be.Identity.Testing;
 using WoW.Two.Sdk.Beta.Be.Testing;
 
 namespace Files.Tests.E2E;
 
-/// <summary>Boots the real API and its SQL migrations over a throwaway SQLite file.</summary>
+/// <summary>Boots the real API and its SQL migrations over a throwaway SQLite file, trusting two fake issuers as two
+/// tenants, each with its own audience.</summary>
 public sealed class FilesApiFixture : IAsyncLifetime
 {
     /// <summary>Holds the public host the test target allows, beside <c>localhost</c>, as a deployed target's <c>AllowedHosts</c> does.</summary>
@@ -14,22 +17,19 @@ public sealed class FilesApiFixture : IAsyncLifetime
     public const string SigningKey = "e2e-signing-key-0123456789abcdef0123456789";
 
     /// <summary>Holds a test API key with every Files scope, in the <c>e2e</c> tenant.</summary>
-    public const string AdminKey = "e2e-admin-key-0123456789abcdef";
+    public const string AdminKey = "files_E2eAdminKey0123456789abcdefghijk";
 
     /// <summary>Holds a test API key with <c>files.read</c> only, in the <c>e2e</c> tenant.</summary>
-    public const string ReadKey = "e2e-read-key-0123456789abcdef";
+    public const string ReadKey = "files_E2eReadKey0123456789abcdefghijkl";
 
     /// <summary>Holds a test API key of the <c>tiny</c> app, whose policy accepts 8 bytes.</summary>
-    public const string TinyKey = "e2e-tiny-key-0123456789abcdef";
+    public const string TinyKey = "files_E2eTinyKey0123456789abcdefghijkl";
 
-    /// <summary>Holds the trusted test issuer; its tokens act in the <c>tokens</c> tenant.</summary>
-    public const string Issuer = "https://identity.e2e.test";
+    /// <summary>Holds the audience the <c>tokens</c> tenant's tokens name: its own host, with the slash.</summary>
+    public const string Audience = "https://files.tokens.test/";
 
-    /// <summary>Holds the audience the test issuer's tokens name.</summary>
-    public const string Audience = "https://files.e2e.test";
-
-    /// <summary>Holds the symmetric key the test issuer signs tokens with.</summary>
-    public const string IssuerKey = "e2e-issuer-signing-key-0123456789abcdef";
+    /// <summary>Holds the audience the <c>other</c> tenant's tokens name.</summary>
+    public const string OtherAudience = "https://files.other.test/";
 
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"files-e2e-{Guid.NewGuid():N}.db");
     private readonly string storageRoot = Path.Combine(Path.GetTempPath(), $"files-e2e-blobs-{Guid.NewGuid():N}");
@@ -46,10 +46,14 @@ public sealed class FilesApiFixture : IAsyncLifetime
                 ["Files:Delivery:BaseUrl"] = "http://localhost",
                 ["Files:Delivery:SigningKey"] = SigningKey,
                 ["Files:Policies:tiny:MaxBytes"] = "8",
-                ["Files:Auth:Issuers:0:Issuer"] = Issuer,
-                ["Files:Auth:Issuers:0:Audience"] = Audience,
-                ["Files:Auth:Issuers:0:SigningKey"] = IssuerKey,
+                ["Files:Auth:Issuers:0:Issuer"] = Issuer.Issuer,
                 ["Files:Auth:Issuers:0:TenantId"] = "tokens",
+                ["Files:Auth:Issuers:0:Audiences:0"] = Audience,
+                ["Files:Auth:Issuers:0:Jwks"] = JwksOf(Issuer),
+                ["Files:Auth:Issuers:1:Issuer"] = OtherIssuer.Issuer,
+                ["Files:Auth:Issuers:1:TenantId"] = "other",
+                ["Files:Auth:Issuers:1:Audiences:0"] = OtherAudience,
+                ["Files:Auth:Issuers:1:Jwks"] = JwksOf(OtherIssuer),
                 ["Files:Auth:ApiKeys:0:Id"] = "e2e-admin",
                 ["Files:Auth:ApiKeys:0:Sha256"] = Sha256(AdminKey),
                 ["Files:Auth:ApiKeys:0:TenantId"] = "e2e",
@@ -70,6 +74,19 @@ public sealed class FilesApiFixture : IAsyncLifetime
         };
     }
 
+    /// <summary>Gets the issuer the <c>tokens</c> tenant trusts.</summary>
+    public FakeTokenIssuer Issuer { get; } = new("https://identity.tokens.test/");
+
+    /// <summary>Gets the issuer the <c>other</c> tenant trusts.</summary>
+    public FakeTokenIssuer OtherIssuer { get; } = new("https://identity.other.test/");
+
+    /// <summary>Writes an issuer's public key as the JSON Web Key Set a trusted issuer's settings take.</summary>
+    public static string JwksOf(FakeTokenIssuer issuer)
+    {
+        var key = JsonWebKeyConverter.ConvertFromRSASecurityKey((RsaSecurityKey)issuer.AsTrustedIssuer().SigningKeys![0]);
+        return $$"""{"keys":[{"kty":"RSA","use":"sig","alg":"RS256","kid":"{{key.Kid}}","n":"{{key.N}}","e":"{{key.E}}"}]}""";
+    }
+
     /// <summary>Returns the SHA-256 the service stores for a key.</summary>
     public static string Sha256(string key) =>
         Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)));
@@ -87,6 +104,8 @@ public sealed class FilesApiFixture : IAsyncLifetime
     async Task IAsyncLifetime.DisposeAsync()
     {
         await Host.DisposeAsync();
+        Issuer.Dispose();
+        OtherIssuer.Dispose();
 
         // Pooled connections hold the file open, so release them before the files go.
         SqliteConnection.ClearAllPools();

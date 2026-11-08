@@ -25,10 +25,10 @@ public sealed class ClientFilesFixture : IAsyncLifetime
     public const string BaseUrlVariable = "CONFORMANCE_BASE_URL";
 
     /// <summary>Holds the test-only key of the tenant under test.</summary>
-    public const string TenantKey = "files-conformance-key-tenant-a-0123456789";
+    public const string TenantKey = "files_ConformanceTenantA0123456789abcd";
 
     /// <summary>Holds the test-only key of the other tenant.</summary>
-    public const string OtherTenantKey = "files-conformance-key-tenant-b-0123456789";
+    public const string OtherTenantKey = "files_ConformanceTenantB0123456789abcd";
 
     private readonly string root = Path.Combine(Path.GetTempPath(), $"files-conformance-client-{Guid.NewGuid():N}");
     private readonly Uri? runningHost = Environment.GetEnvironmentVariable(BaseUrlVariable) is { Length: > 0 } url ? new Uri(url) : null;

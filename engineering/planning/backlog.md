@@ -40,7 +40,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Extract core `Media/Images` into `Files.Images` | engineering | P1; namespace kept, core forwards one release; SkiaSharp moves with it |
 | Extract core `Media/Pdf` into `Files.Documents` | engineering | P1; PDFsharp and PdfPig move with it |
 | Trusted issuers from the tenants table, so a new tenant takes no restart | engineering | P2; files-integration #15; [T8](../research/files-analysis-2026-10/t8-identity-contracts.md) C8 |
-| Signals from the same issuer resolver | engineering | P2; files-integration #19; waits on Identity's receiver taking `ITrustedIssuerResolver` (#37) |
+| Signals from the same issuer resolver | engineering | P2; files-integration #19; re-pin Identity past `10.0.29-beta`, whose receiver reads `ITrustedIssuerResolver` (identity `4bd95e7`) |
 | API keys from a keys table with a unique hash index | engineering | P2; files-integration #16; P1 reads the hashes from configuration |
 | Move the fe upload queue from fe `foundation/uploads` into `fe-files` | engineering | P1; `filePicker` and `imageCropEditor` stay in fe |
 
@@ -209,7 +209,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | File browser with preview, download, delete, restore | feature | P1 |
 | Audit view | feature | P1 |
 | Shares: list and revoke | feature | P1 |
-| Console sign-in through Identity's BFF | feature | P1 per files-integration #29 (open); tenant admins through their own issuer P2; files-integration #17 |
+| Console sign-in through Identity's BFF | feature | P1 with the console: Ocharo's admins through Ocharo's Identity, one static scheme scoped to `ocharo`; the operator by configuration; tenant admins through their own issuer P2; files-integration #17, #29 |
 | Tenants on B: create, keys, issuers, hostnames, suspend | feature | P2; P1 by configuration; files-integration #21 |
 | Orphans, failed scans, quarantined files | feature | P2 |
 | Migration runner with progress | feature | P2 |

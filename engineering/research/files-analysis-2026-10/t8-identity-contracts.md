@@ -29,7 +29,7 @@
 | C7 | discovery, JWKS, rotation | Identity | P1 | none | provided for Files; rotation is Identity's and Wheelhouse's | #14 |
 | C8 | multi-issuer validation | Identity | P1 config, P2 resolver | Files.Api | provided | #15 |
 | C9 | API keys | Identity | P1 on B | Files.Api | provided; no key prefix | #16 |
-| C10 | console sign-in | Identity | P1 per #29, P2 tenants | Files.Api, apps/web | waits on `files-integration` #29 | #17 |
+| C10 | console sign-in | Identity | P1 with the console, P2 tenants | Files.Api, apps/web | provided; no WoW2 Identity in P1 | #17, #29 |
 | C11 | share sign-in gate, guest email proof | Identity | P2 | Server, Files.Api | Identity adds | #18 |
 | C12 | revocation signals and lifecycle events | Identity | P1 receive, P2 reactions | Files.Api, Module | receive provided; 2 lifecycle events to add | #19, #37 |
 | C13 | avatar port | Identity | Identity P2 | new package | Identity lifts its store port | #20 |
@@ -176,7 +176,7 @@ services.AddJwtBearerAuthentication(o =>
 
 - the console signs in through Identity's BFF (`AddIdentityBff`): code with PKCE, scopes `openid profile files.admin`,
   `files.tenants` for the operator.
-- P1 waits on `files-integration` #29, which issuers B trusts:
+- P1: B trusts only Ocharo's Identity, so the right-hand column holds (`files-integration` #29, developer 2026-11-08):
 
 | | WoW2 runs an Identity in P1 | WoW2 runs none in P1 |
 |---|---|---|
@@ -223,7 +223,8 @@ P2, reactions:
 | an organization deleted | soft-deletes its files, purges after retention | an Identity event: `Removed` is per person |
 | a person's erasure | erases their personal files, reports completion | an Identity event distinct from `Removed`, which reads like leaving |
 
-- a receiver over `ITrustedIssuerResolver` is a P2 ask, so a new tenant's signals take no restart.
+- a receiver over `ITrustedIssuerResolver` lets a new tenant's signals take no restart: built in Identity (`4bd95e7`),
+  released after `10.0.29-beta`; Files takes it with the P2 resolver.
 - t8's `person.disabled` drops: a sign-out is no disablement, and a removed member's shares end with the hand-over.
 
 ## C13 · Avatar port (Identity P2)

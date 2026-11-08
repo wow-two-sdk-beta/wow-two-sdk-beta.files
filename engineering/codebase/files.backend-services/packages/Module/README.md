@@ -13,8 +13,9 @@ the be sdk migrator.
   `Delivery.SigningKey`); `IFilesDeliveryService` is what the Server routes serve through
 - references: a file lives while a record uses it; per app, unreferenced files purge after `OrphanRetention` and
   uploads expire after `DefaultLifetime`
-- every call acts for `IFilesCallerService.Current`: the be sdk ambient tenant or `DefaultTenantId`, and the user's
-  `sub`, `org_id` and `azp` claims; replace the service to resolve callers another way
+- every call acts for `IFilesCallerService.Current`, read from the kernel `ICurrentPrincipal`: the tenant its issuer or
+  key stamped (`Partition`), else the be sdk ambient tenant or `DefaultTenantId`, plus its subject, issuer, organization,
+  app and actor; replace the service to resolve callers another way
 
 ```bash
 dotnet add package WoW2.Sdk.Beta.Be.Files.Module --prerelease

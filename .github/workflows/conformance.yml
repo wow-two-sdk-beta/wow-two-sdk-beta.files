@@ -60,11 +60,11 @@ jobs:
             --env Files__Delivery__BaseUrl=http://127.0.0.1:8080 \
             --env Files__Delivery__SigningKey=conformance-signing-key-0123456789abcdef \
             --env Files__Auth__ApiKeys__0__Id=conformance-a --env Files__Auth__ApiKeys__0__TenantId=conformance-a \
-            --env Files__Auth__ApiKeys__0__Sha256=214d51e93558b8ac8733017ed6e4b463d616c8c0b06cb8c4ceec98643714bfdf \
+            --env Files__Auth__ApiKeys__0__Sha256=d1e1423291b1e852cf0684e1bd8befc08f8acf92c1de389efb9de135a127422d \
             --env Files__Auth__ApiKeys__0__Scopes__0=files.read --env Files__Auth__ApiKeys__0__Scopes__1=files.write \
             --env Files__Auth__ApiKeys__0__Scopes__2=files.admin \
             --env Files__Auth__ApiKeys__1__Id=conformance-b --env Files__Auth__ApiKeys__1__TenantId=conformance-b \
-            --env Files__Auth__ApiKeys__1__Sha256=e286819fce5be69d42322ce24df80b178aa29a5c935f18c078b1c16e0ca9d7b4 \
+            --env Files__Auth__ApiKeys__1__Sha256=9dc0ec38d570f867a02e1a23a2d3c7954ec4bfea67bf78e03dead896cec13e7d \
             --env Files__Auth__ApiKeys__1__Scopes__0=files.read --env Files__Auth__ApiKeys__1__Scopes__1=files.write \
             --env Files__Auth__ApiKeys__1__Scopes__2=files.admin \
             --volume files-data:/data "$image"

@@ -47,12 +47,19 @@ services:
     # same volume; signed file URLs need the secret signing key, and point at the app site (Sites:app:Url) unless
     # Files:Delivery:BaseUrl names another content host. API keys and token issuers are optional: without them the
     # API answers 401 and only the pages and file links serve.
+    # Trusted issuers (t8 C8): P1 trusts one, Ocharo's Identity, as the tenant `ocharo`; its tokens name the tenant's own
+    # host with its slash (https://files.{domain}/). Identity's revocation signals arrive at {audience}signals/identity,
+    # the SignalUrl that issuer's registry lists. API keys (Files:Auth:ApiKeys) serve only callers outside Identity.
     settings:
       keys:
         DatabaseSettings:ConnectionString: { required: true }
         Storage:Root: { default: /data/blobs }
         Files:Delivery:SigningKey: { secret: true, required: true }
         Files:Delivery:BaseUrl: { type: url }
+        Files:Auth:Audience: { type: url }
+        Files:Auth:Issuers:0:Issuer: { type: url }
+        Files:Auth:Issuers:0:TenantId: { default: ocharo }
+        Files:Auth:Issuers:0:Audiences:0: { type: url }
     volumes:
       data: /data
     # The pages at /, the contract's HTTP mirror under the same host's /api: /api routes ahead of /, never /apiary.

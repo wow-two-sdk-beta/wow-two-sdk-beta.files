@@ -38,7 +38,7 @@ public static class FilesModuleServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddDbContext<FilesDbContext>((provider, options) =>
             options.UseSqliteConventional(provider.GetRequiredService<IOptions<FilesModuleOptions>>().Value.ConnectionString));
-        services.TryAddScoped<IFilesCallerService, HttpFilesCallerService>();
+        services.TryAddScoped<IFilesCallerService, PrincipalFilesCallerService>();
         services.TryAddSingleton<FileBlobLocks>();
         services.TryAddSingleton<SignedFileUrlIssuer>();
         services.AddScoped<FileContentReader>();

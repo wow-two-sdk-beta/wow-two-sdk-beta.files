@@ -1,93 +1,120 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using WoW.Two.Sdk.Beta.Be.Files;
-using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
+using WoW.Two.Sdk.Beta.Be.Identity.ApiKeys;
+using WoW.Two.Sdk.Beta.Be.Identity.CurrentUser;
+using WoW.Two.Sdk.Beta.Be.Identity.Jwt;
+using WoW.Two.Sdk.Beta.Be.Identity.Signals;
 
 namespace Files.Api.Auth;
 
-/// <summary>Registers how Files API callers authenticate and what each scope reaches.</summary>
+/// <summary>Registers how Files API callers authenticate, what each action needs, and how revoked tokens stop counting.</summary>
 public static class FilesAuthServiceCollectionExtensions
 {
-    private static readonly string[] Scopes =
+    /// <summary>Holds each action's scope and the permission a person needs beside it.</summary>
+    private static readonly (string Scope, string Permission)[] Actions =
     [
-        FilesScopeConstants.Read, FilesScopeConstants.Write, FilesScopeConstants.Share,
-        FilesScopeConstants.Admin, FilesScopeConstants.Delegate, FilesScopeConstants.Tenants,
+        (FilesScopeConstants.Read, FilesPermissionConstants.Read),
+        (FilesScopeConstants.Write, FilesPermissionConstants.Write),
+        (FilesScopeConstants.Share, FilesPermissionConstants.Share),
+        (FilesScopeConstants.Admin, FilesPermissionConstants.Admin),
     ];
 
-    /// <summary>Registers the API key scheme, the token scheme over every trusted issuer in <c>Files:Auth</c>, the
-    /// policy scheme that picks between them, and one authorization policy per Files scope.</summary>
-    /// <remarks>Issuers and keys are read when first used and reload live, so a host's late configuration (a test
-    /// host's included) reaches them. A token's issuer decides its tenant and the audience it must name.</remarks>
-    public static IServiceCollection AddFilesAuth(this IServiceCollection services, IConfiguration configuration)
+    /// <summary>Registers Identity's token scheme over the trusted issuers in <c>Files:Auth</c>, its API key scheme over the
+    /// configured keys, the policy scheme that picks between them, the one principal, a policy per action named by its
+    /// scope, and Identity's revocation signals with the deny list (t8 C1, C8, C9, C12).</summary>
+    /// <param name="builder">The host builder.</param>
+    public static WebApplicationBuilder AddFilesAuth(this WebApplicationBuilder builder)
     {
-        services.Configure<FilesAuthSettings>(configuration.GetSection(FilesAuthSettings.SectionName));
-        services.AddSingleton<FilesIssuerKeyResolver>();
+        ArgumentNullException.ThrowIfNull(builder);
+        var services = builder.Services;
+        var isDevelopment = builder.Environment.IsDevelopment();
 
+        services.Configure<FilesAuthSettings>(builder.Configuration.GetSection(FilesAuthSettings.SectionName));
+
+        // Tokens: the resolver reads each issuer from the settings when first seen, with its own audiences and tenant.
+        services.AddJwtBearerAuthentication(options =>
+        {
+            options.Audience = FilesAuthConstants.UnsetAudience;
+            options.IsInsecureMetadataAllowedInDevelopment = isDevelopment;
+            options.UseTrustedIssuerResolver<FilesTenantIssuerResolver>();
+        });
+
+        // API keys: only for callers outside Identity, such as a shared host's tenants without an Identity instance.
+        services.AddApiKeyAuthentication(options =>
+        {
+            options.Marker = FilesAuthConstants.ApiKeyMarker;
+            options.HeaderName = FilesAuthConstants.ApiKeyHeader;
+        });
+        services.AddScoped<IApiKeyRepository, FilesApiKeyRepository>();
+
+        // Registered after both schemes, so this default wins over the bearer default Identity sets on a host that names none.
         services.AddAuthentication(FilesAuthConstants.Scheme)
-            .AddPolicyScheme(FilesAuthConstants.Scheme, "Files", options => options.ForwardDefaultSelector = SelectScheme)
-            .AddScheme<AuthenticationSchemeOptions, FilesApiKeyAuthenticationHandler>(FilesAuthConstants.ApiKeyScheme, null)
-            .AddJwtBearer(FilesAuthConstants.TokenScheme);
+            .AddPolicyScheme(FilesAuthConstants.Scheme, "Files", options => options.ForwardDefaultSelector = SelectScheme);
 
-        services.AddOptions<JwtBearerOptions>(FilesAuthConstants.TokenScheme)
-            .Configure<IOptionsMonitor<FilesAuthSettings>, FilesIssuerKeyResolver>((options, settings, keys) =>
-            {
-                options.MapInboundClaims = false;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    NameClaimType = "sub",
-                    IssuerValidator = (issuer, _, _) => FindIssuer(settings.CurrentValue, issuer) is not null
-                        ? issuer
-                        : throw new SecurityTokenInvalidIssuerException($"The issuer '{issuer}' is not trusted.") { InvalidIssuer = issuer },
-                    AudienceValidator = (audiences, token, _) =>
-                        FindIssuer(settings.CurrentValue, token.Issuer) is { } trusted && audiences.Contains(trusted.Audience, StringComparer.Ordinal),
-                    IssuerSigningKeyResolver = (_, token, _, _) =>
-                        FindIssuer(settings.CurrentValue, token.Issuer) is { } trusted ? keys.Resolve(trusted) : [],
-                };
-                options.Events = new JwtBearerEvents
-                {
-                    OnTokenValidated = context =>
-                    {
-                        // The issuer decides the tenant; a token's own claims never choose it.
-                        var trusted = FindIssuer(settings.CurrentValue, context.SecurityToken.Issuer);
-                        if (trusted is null || context.Principal?.Identity is not ClaimsIdentity identity)
-                        {
-                            context.Fail("The token's issuer is not trusted.");
-                            return Task.CompletedTask;
-                        }
-
-                        foreach (var claim in identity.FindAll(FilesCallerClaimConstants.Tenant).ToList())
-                            identity.RemoveClaim(claim);
-                        identity.AddClaim(new Claim(FilesCallerClaimConstants.Tenant, trusted.TenantId));
-                        return Task.CompletedTask;
-                    },
-                };
-            });
-
+        services.AddCurrentPrincipal();
+        services.AddSingleton<IAuthorizationHandler, FilesAccessHandler>();
         services.AddAuthorization(options =>
         {
-            foreach (var scope in Scopes)
-                options.AddPolicy(scope, policy => policy.RequireAuthenticatedUser().RequireAssertion(context => HasScope(context.User, scope)));
+            foreach (var (scope, permission) in Actions)
+                options.AddPolicy(scope, policy => policy.RequireAuthenticatedUser().AddRequirements(new FilesAccessRequirement(scope, permission)));
         });
-        return services;
+
+        // Revocation: one route under each tenant's host hears its issuer; a signal refuses that person's tokens until they expire.
+        services.AddIdentitySignalReceiver();
+        services.AddOptions<IdentitySignalReceiverOptions>()
+            .Configure<IOptionsMonitor<FilesAuthSettings>>((options, settings) => ConfigureSignals(options, settings.CurrentValue, isDevelopment));
+        services.AddTokenDenyList();
+
+        return builder;
     }
 
-    /// <summary>Tells whether the caller holds a scope, from repeated <c>scope</c> claims or one space-delimited claim.</summary>
-    internal static bool HasScope(ClaimsPrincipal user, string scope) =>
-        user.FindAll("scope").Concat(user.FindAll("scp"))
-            .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-            .Contains(scope, StringComparer.Ordinal);
+    /// <summary>Maps the signal route when the settings name an issuer and a signal URL.</summary>
+    /// <param name="app">The built application.</param>
+    public static WebApplication MapFilesSignals(this WebApplication app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+        var signals = app.Services.GetRequiredService<IOptions<IdentitySignalReceiverOptions>>().Value;
+        if (signals.TrustedIssuers.Count > 0 && signals.Audiences.Count > 0)
+            app.MapIdentitySignals("/" + FilesAuthConstants.SignalPath);
+        return app;
+    }
 
-    private static FilesIssuerSettings? FindIssuer(FilesAuthSettings settings, string? issuer) =>
-        settings.Issuers.FirstOrDefault(trusted => string.Equals(trusted.Issuer, issuer, StringComparison.Ordinal));
+    /// <summary>Lists every issuer's keys and every tenant host's signal URL, <c>{audience}signals/identity</c>.</summary>
+    internal static void ConfigureSignals(IdentitySignalReceiverOptions options, FilesAuthSettings settings, bool isDevelopment)
+    {
+        options.IsInsecureMetadataAllowedInDevelopment = isDevelopment;
+        foreach (var issuer in settings.Issuers)
+        {
+            if (FilesTenantIssuerResolver.ToTrustedIssuer(issuer, settings) is not { } trusted)
+                continue;
 
-    /// <summary>Picks the API key scheme for a key, the token scheme for a bearer token.</summary>
-    private static string SelectScheme(HttpContext context) =>
-        !context.Request.Headers.ContainsKey(FilesAuthConstants.ApiKeyHeader)
-        && context.Request.Headers.Authorization.FirstOrDefault() is { } authorization
-        && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-            ? FilesAuthConstants.TokenScheme
-            : FilesAuthConstants.ApiKeyScheme;
+            options.TrustedIssuers.Add(trusted with { Audiences = [], Partition = null });
+            foreach (var audience in trusted.Audiences)
+            {
+                var url = SignalUrlOf(audience);
+                if (!options.Audiences.Contains(url, StringComparer.Ordinal))
+                    options.Audiences.Add(url);
+            }
+        }
+    }
+
+    /// <summary>Builds the signal URL under a resource URI, which keeps its trailing slash.</summary>
+    internal static string SignalUrlOf(string audience) =>
+        (audience.EndsWith('/') ? audience : audience + "/") + FilesAuthConstants.SignalPath;
+
+    /// <summary>Picks the API key scheme for a key, in its header or as a bearer token with the Files marker, and the token
+    /// scheme for any other bearer token.</summary>
+    private static string SelectScheme(HttpContext context)
+    {
+        if (context.Request.Headers.ContainsKey(FilesAuthConstants.ApiKeyHeader))
+            return ApiKeyAuthenticationDefaults.Scheme;
+
+        return context.Request.Headers.Authorization.FirstOrDefault() is { } authorization
+            && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            && !authorization.AsSpan("Bearer ".Length).TrimStart().StartsWith(FilesAuthConstants.ApiKeyMarker, StringComparison.Ordinal)
+                ? JwtBearerDefaults.AuthenticationScheme
+                : ApiKeyAuthenticationDefaults.Scheme;
+    }
 }

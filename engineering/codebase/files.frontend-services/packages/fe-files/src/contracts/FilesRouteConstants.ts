@@ -9,12 +9,19 @@ export const FilesRouteConstants = {
   apiKeyHeader: 'X-Api-Key',
 } as const;
 
-/** Holds the OAuth scopes a Files instance accepts. */
+/** Holds the OAuth scopes a Files instance accepts: what the calling app may ask. */
 export const FilesScopeConstants = {
   read: 'files.read',
   write: 'files.write',
   share: 'files.share',
   admin: 'files.admin',
-  delegate: 'files.delegate',
   tenants: 'files.tenants',
+} as const;
+
+/** Holds the permissions a person needs beside the app's scope, granted to roles by each tenant's Identity. */
+export const FilesPermissionConstants = {
+  read: 'files:read',
+  write: 'files:write',
+  share: 'files:share',
+  admin: 'files:admin',
 } as const;
