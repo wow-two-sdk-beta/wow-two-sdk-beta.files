@@ -15,16 +15,16 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 ## Status
 
 - 🔄 M1 analysis: lanes started 2026-11-08; platform and identity verified their slices (#24) and started their analysis; files and wheelhouse pending
-- ⬜ M2 build: starts only after the developer confirms M1, in the same lanes, against this doc
+- 🔄 M2 build: each lane builds once its picks are written (#33); work tied to #29 waits
 
 ## Goal
 
 | Milestone | Done when |
 |---|---|
-| M1 analysis | every contract #8–#22 has a verdict (provided, change, add or drop) and a phase, the developer has confirmed what each repo must do before Files P1, and the confirmed picks are written into Files' t8 or spec, each lane's backlog and this doc |
+| M1 analysis | every contract #8–#22 has a verdict (provided, change, add or drop) and a phase, and each lane has written its picks into Files' t8 or spec, its backlog and this doc; open decisions go to the developer (#33) |
 | M2 build | each repo's P1 rows from M1 are built, released and deployed to dev; Files serves Ocharo's dev media through the instance #7 names |
 
-- Pass/fail for M1: each of #8–#22 shows a confirmed verdict and phase in the contract table below, and each lane's
+- Pass/fail for M1: each of #8–#22 shows a verdict and phase in the contract table below, and each lane's
   backlog cites the `files-integration #N` points it owns.
 - Out of scope: Events, Ocharo prod, and the Identity checks the developer parked (`ocharo-platform`
   `engineering/planning/backlog.md`, row "Dev sign-in checks").
@@ -45,9 +45,10 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 ## Order
 
 1. Each lane verifies its slice of the snapshot against its repo and reports the deltas (#24).
-2. Each lane gives a verdict and a phase for the contracts it owns; the orchestrator asks the developer one decision per turn.
-3. Confirmed picks go into Files' t8 or spec, each lane's backlog and this doc: M1 closes.
+2. Each lane gives a verdict and a phase for the contracts it owns; the orchestrator asks the developer only the open decisions, one per turn.
+3. Picks go into Files' t8 or spec, each lane's backlog and this doc: M1 closes per lane, and its M2 build starts (#33).
 4. M2: identity releases first (NuGet, npm, image); files re-pins and builds; platform registers and adopts; wheelhouse deploys.
+5. The developer reviews the built result at the end and asks for changes then (#33).
 
 ## Settled
 
@@ -60,15 +61,16 @@ Developer, 2026-11-05 and 2026-10-26; not reopened.
 - #5 API keys serve only callers outside Identity, such as Files' outside tenants.
 - #6 Order: Identity closed on 2026-11-08, Files is next, then Events (developer, 2026-11-05).
 - #7 Ocharo starts as a tenant on the shared files host B and moves to its own instance later (`product/product.md`, 2026-10-26).
+- #33 The developer answers only the decisions the goal needs and reviews the built result at the end (2026-11-08: "just ask things what you need from me, we'll review what you build and jow we need to change it at the end only"). Picks no longer wait on confirmation; each lane builds once its picks are written, and only work tied to an open decision waits.
 
 ## Contracts
 
 Lead verdicts come from a read-only code check on 2026-11-08 and stay leads until the owning lane verifies them. The
-`Confirmed` column fills only on the developer's answer.
+`Confirmed` column holds the owning lane's verified pick (#33).
 
 | # | Contract | t8 phase | Lead verdict | Repo that changes | Confirmed |
 |---|---|---|---|---|---|
-| #8 | C1 principal seam | P1 | provided: `ICurrentPrincipal` and `PrincipalKind` in core `Abstractions/Identity/CurrentPrincipal`; Identity's `ClaimsPrincipalNormalizer` reads `azp` and `client_id`; Identity pins core `10.0.103-beta` | files adopts; its core pin `10.0.98-beta` trails Identity's | — |
+| #8 | C1 principal seam | P1 | provided: `ICurrentPrincipal` and `PrincipalKind` in core `Abstractions/Identity/CurrentPrincipal`; Identity's `ClaimsPrincipalNormalizer` reads `azp` and `client_id`; Identity pins core `10.0.103-beta` | files adopts: `ICurrentPrincipal` first ships in be `10.0.99-beta`, and Identity's `Auth` sets the floor at `10.0.103-beta` (files lane, 2026-11-08) | — |
 | #9 | C2 claim vocabulary | P1 | change: `azp` became `client_id`; the API-key principal carries no `iss` | files adopts `client_id`; identity stamps `iss` on keys | — |
 | #10 | C3 resources and scopes | P1 | provided: `Identity:Server:Resources` list, audience from the registry, URI with its trailing slash | files names its scopes; registrations per #32 | — |
 | #11 | C4 client credentials | P1 | provided: secret or `private_key_jwt` | platform registers Ocharo's clients | — |
@@ -76,7 +78,7 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 | #13 | C6 token exchange with `act` | P2 | provided; moves to P1, since it replaces #12 | files accepts `act`; platform grants `token_exchange` | — |
 | #14 | C7 discovery, JWKS, rotation | P1 | change: no stated rule keeps a retired key for token lifetime plus cache time; cache and refresh timings unconfirmed | identity; wheelhouse runs rotation | — |
 | #15 | C8 multi-issuer validation | P1 on B | provided: `JwtOptions.TrustedIssuers`, `ITrustedIssuerResolver` | files implements the resolver over its tenants | — |
-| #16 | C9 API keys | P1 on B | change: `ApiKeyRecord` already carries client, organization, partition and expiry, and the handler emits them; the gaps are the `{partition}_{keyId}_{secret}` lookup and `iss` (identity lane, 2026-11-08) | identity (`packages/Auth`); files implements the repository | — |
+| #16 | C9 API keys | P1 on B | change: `ApiKeyRecord` already carries client, organization, partition and expiry, and the handler emits them; the gaps are the `{partition}_{keyId}_{secret}` lookup and `iss` (identity lane, 2026-11-08); Files needs no prefix, since a hash lookup on one table finds the tenant (files lane, 2026-11-08) | identity (`packages/Auth`); files implements the repository | — |
 | #17 | C10 console sign-in | P1 operator, P2 tenants | change: the BFF exists, no `IOidcSchemeResolver` for per-tenant schemes | identity; the P1 issuer per #29 | — |
 | #18 | C11 share gate, guest email proof | P2 | add: no `AllowGuests`, no email-proof tokens | identity | — |
 | #19 | C12 events | P2 | change: the two signals replace t8's events, sent through `Messaging/Webhooks`; no `person.disabled` or `person.erasure_requested` | files receives signals; identity adds the two events | — |
@@ -85,6 +87,7 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 | #22 | C15 issuer on the principal | P1 | provided: Files keys people by (`iss`, `sub`) | files | — |
 
 - #23 A person's call needs a scope plus a role or `org_permission`, never a scope alone (`api-communication.md`); Files' policies change to match.
+- #34 t8's "exists today" column is stale: Files hand-rolls C8 and C9 in `Files.Api/Auth` (JWT over `Files:Auth:Issuers` with a `files_tenant` claim, API keys against config hashes); M2 swaps them for Identity's `WoW2.Sdk.Beta.Be.Identity.Auth`, which the one-way rule allows (files lane, 2026-11-08).
 
 ## Lane slices
 
@@ -96,7 +99,7 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 
 ## Open
 
-- #29 B's issuers in P1: WoW2 probably runs no Identity instance of its own (catalog `identity` row: `deploy: none`), so t8's operator sign-in through WoW2's Identity (#17) and WoW2 callers on B have no issuer yet. Asked of the developer 2026-11-08.
+- #29 B's issuers in P1: WoW2 probably runs no Identity instance of its own (catalog `identity` row: `deploy: none`), so t8's operator sign-in through WoW2's Identity (#17) and WoW2 callers on B have no issuer yet. Asked of the developer 2026-11-08. Identity's `engineering/deployment/deployment.md` plans WoW2's shared instance as a Wheelhouse product of its own; its `deploy.yml` lacks the `generate` on the 3 certificates that Ocharo's pin has (wheelhouse lane, 2026-11-08).
 - #30 The `ocharo-platform` backlog row "Ocharo File Storage adoption" (`9bd3a24`, 2026-10-21) names "the Ocharo instance"; #7 (2026-10-26) puts Ocharo on B first. The platform lane updates the row.
 - #31 Core changes: no lane writes the core be sdk; a core change a lane needs (#8) goes to the orchestrator as a blocker.
 - #32 Registrations: which repo holds each Identity instance's `Identity:Server:Resources` and `Clients` entries for Files; the platform and wheelhouse lanes settle it between them through the orchestrator.
@@ -109,4 +112,5 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 | files | wheelhouse | Files' `engineering/deployment/deploy.yml`: service, settings, secrets, signal URL | M2 |
 | files | platform, wheelhouse | Files' resource name, URI form and scopes for each Identity's registry (#10) | M1 |
 | platform | files | Ocharo's media kinds, sizes and order (#27) | M1 |
-| wheelhouse | platform | Ocharo clients' secrets for Files, linked with `from` | M2 |
+| platform | platform | Ocharo clients' secrets for Files, linked with `from` inside product `ocharo`; no Wheelhouse work (wheelhouse lane, 2026-11-08) | M2 |
+| files, platform | wheelhouse | Files' trusted issuer on B and Files' `Uri` and `SignalUrl` in Ocharo's Identity, typed per environment: `from` links only inside one product | M2 |
