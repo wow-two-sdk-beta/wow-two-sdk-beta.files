@@ -39,8 +39,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 |---|---|---|
 | Extract core `Media/Images` into `Files.Images` | engineering | P1; namespace kept, core forwards one release; SkiaSharp moves with it |
 | Extract core `Media/Pdf` into `Files.Documents` | engineering | P1; PDFsharp and PdfPig move with it |
-| Trusted issuers from the tenants table, so a new tenant takes no restart | engineering | P2; files-integration #15; [T8](../research/files-analysis-2026-10/t8-identity-contracts.md) C8 |
-| Signals from the same issuer resolver | engineering | P2; files-integration #19; re-pin Identity past `10.0.29-beta`, whose receiver reads `ITrustedIssuerResolver` (identity `4bd95e7`) |
+| Trusted issuers from the tenants table, so a new tenant takes no restart | engineering | P2; files-integration #15, #19; signals read the same resolver since Identity `10.0.30-beta`; [T8](../research/files-analysis-2026-10/t8-identity-contracts.md) C8 |
 | API keys from a keys table with a unique hash index | engineering | P2; files-integration #16; P1 reads the hashes from configuration |
 | Move the fe upload queue from fe `foundation/uploads` into `fe-files` | engineering | P1; `filePicker` and `imageCropEditor` stay in fe |
 

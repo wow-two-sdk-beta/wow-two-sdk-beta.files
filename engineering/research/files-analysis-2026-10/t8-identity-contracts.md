@@ -45,10 +45,10 @@
 |---|---|---|---|
 | `WoW2.Sdk.Beta.Be.Abstractions` | `ICurrentPrincipal`, `PrincipalKind`, `ActorInfo` | be `10.0.103-beta` or later | every package |
 | `WoW2.Sdk.Beta.Be` | `AddOAuth2ClientCredentials`, `AddOAuth2TokenExchange`, `Messaging/Webhooks` | the same pin | Client, Module, Server, Files.Api |
-| `WoW2.Sdk.Beta.Be.Identity.Auth` | `AddJwtBearerAuthentication` with `TrustedIssuers`, `ITrustedIssuerResolver`, `AddCurrentPrincipal`, `AddApiKeyAuthentication` and `IApiKeyRepository`, `AddIdentitySignalReceiver`, `MapIdentitySignals`, `AddTokenDenyList`, `RequireLiveToken` | `10.0.29-beta` | Files.Api |
-| `WoW2.Sdk.Beta.Be.Identity.Client` | `AddIdentityBff` | `10.0.29-beta` | Files.Api, with C10 |
-| `WoW2.Sdk.Beta.Be.Identity.Abstractions` | `SessionEndedEvent`, `AccessChangedEvent` | `10.0.29-beta` | Module, with the P2 reactions |
-| `WoW2.Sdk.Beta.Be.Identity.Testing` | `FakeTokenIssuer` | `10.0.29-beta` | tests |
+| `WoW2.Sdk.Beta.Be.Identity.Auth` | `AddJwtBearerAuthentication` with `TrustedIssuers`, `ITrustedIssuerResolver`, `AddCurrentPrincipal`, `AddApiKeyAuthentication` and `IApiKeyRepository`, `AddIdentitySignalReceiver`, `MapIdentitySignals`, `AddTokenDenyList`, `RequireLiveToken` | `10.0.30-beta` | Files.Api |
+| `WoW2.Sdk.Beta.Be.Identity.Client` | `AddIdentityBff` | `10.0.30-beta` | Files.Api, with C10 |
+| `WoW2.Sdk.Beta.Be.Identity.Abstractions` | `SessionEndedEvent`, `AccessChangedEvent` | `10.0.30-beta` | Module, with the P2 reactions |
+| `WoW2.Sdk.Beta.Be.Identity.Testing` | `FakeTokenIssuer` | `10.0.30-beta` | tests |
 
 - the be floor is `10.0.103-beta`: `ICurrentPrincipal` first ships in `10.0.99-beta`, and Identity's `Auth` builds on `10.0.103-beta`.
 - references run one way: Identity's `Auth`, `Client` and `Testing` reference only `Identity.Abstractions` and the be
@@ -223,8 +223,8 @@ P2, reactions:
 | an organization deleted | soft-deletes its files, purges after retention | an Identity event: `Removed` is per person |
 | a person's erasure | erases their personal files, reports completion | an Identity event distinct from `Removed`, which reads like leaving |
 
-- a receiver over `ITrustedIssuerResolver` lets a new tenant's signals take no restart: built in Identity (`4bd95e7`),
-  released after `10.0.29-beta`; Files takes it with the P2 resolver.
+- the receiver reads the same `ITrustedIssuerResolver` as the token scheme (Identity `10.0.30-beta`), so a new tenant's
+  signals take no restart once the resolver reads the tenants table (P2).
 - t8's `person.disabled` drops: a sign-out is no disablement, and a removed member's shares end with the hand-over.
 
 ## C13 · Avatar port (Identity P2)

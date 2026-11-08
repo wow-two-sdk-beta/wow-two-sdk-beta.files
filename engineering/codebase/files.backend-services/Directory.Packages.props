@@ -10,7 +10,7 @@
     <!-- The core pin; it is also each package's nuspec floor on WoW2.Sdk.Beta.Be and the kernel. -->
     <BackendSdkVersion>10.0.105-beta</BackendSdkVersion>
     <!-- Identity's consumer packages (Auth, Testing): tokens, keys, signals and the principal, never its server. -->
-    <IdentityVersion>10.0.29-beta</IdentityVersion>
+    <IdentityVersion>10.0.30-beta</IdentityVersion>
   </PropertyGroup>
 
   <!-- be sdk: one family, bumped together. The kernel (Result, AppError, IEvent) is the only package the contract takes. -->
