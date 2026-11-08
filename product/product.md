@@ -1,6 +1,6 @@
 # wow-two-sdk-beta.files — Capability spec
 
-*Last updated: 2026-10-26*
+*Last updated: 2026-11-08*
 
 > One way to store, transform, compress, protect, share and serve files, shipped in the three capability forms
 > (`wow-two-ws/conventions/development/capability-forms.md`). Products stop writing their own `MediaStore`.
@@ -39,7 +39,9 @@
   package list is [package-registry.md](../engineering/architecture/package-registry.md).
 - core keeps the `Storage/` byte adapters, which its Messaging claim check reads; core `Media/Images` and `Media/Pdf`
   move in as `Files.Images` and `Files.Documents`.
-- every form authorizes with Identity claims (`wow-two-ws/ideas/identity-service-spec.md`): organization, app and role.
+- every form authorizes through one principal from Identity: a service's call needs its scope, a person's call its
+  scope and a `files:` permission, checked against the organization and visibility of each file
+  ([T8](../engineering/research/files-analysis-2026-10/t8-identity-contracts.md) § Policy shape).
 - the 2024 repo `wow-two-platform/wow-two-platform.storage.file` held an empty solution on `main` and a content-type
   registry draft on `dev`; its useful parts live on in Formats
   ([legacy notes](../engineering/research/legacy-storage-file.md)).
@@ -163,9 +165,11 @@ Decided 2026-10-26 (D7): files go out publicly, through share links behind gates
 
 - be files client: upload, attach to a record, get a signed URL, delete; one broker set for every form (P1).
 - browsers upload and download through tickets and signed URLs their backend mints (P1).
-- Identity: Files validates its tokens offline, takes client-credentials calls and later token exchange; the
-  contracts are [T8](../engineering/research/files-analysis-2026-10/t8-identity-contracts.md), kept as contracts until
-  the final integration.
+- Identity: Files validates its tokens offline against each tenant's issuer, takes client credentials when a service
+  acts as itself and token exchange when it acts for a person, and refuses revoked tokens through Identity's two
+  signals (P1); API keys only for tenants without Identity. Contracts and phases:
+  [T8](../engineering/research/files-analysis-2026-10/t8-identity-contracts.md), rewritten 2026-11-08 against
+  Identity as built.
 - fe upload kit: `fileUpload` with progress, retry and cancel; image crop before upload (exists) (P1).
 
 ---

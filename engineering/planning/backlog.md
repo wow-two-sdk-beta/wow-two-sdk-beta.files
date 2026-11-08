@@ -1,6 +1,6 @@
 # wow-two-sdk-beta.files — Backlog
 
-*Last updated: 2026-10-26*
+*Last updated: 2026-11-08*
 
 Every unbuilt item, grouped; top of each group = next. Shipped work lives in [`version-track/`](version-track/).
 Shape: wow-two-ws/conventions/planning/version-track/version-track.md
@@ -39,9 +39,9 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 |---|---|---|
 | Extract core `Media/Images` into `Files.Images` | engineering | P1; namespace kept, core forwards one release; SkiaSharp moves with it |
 | Extract core `Media/Pdf` into `Files.Documents` | engineering | P1; PDFsharp and PdfPig move with it |
-| Adopt the Identity principal seam (C1) once core ships it | engineering | contracts in [T8](../research/files-analysis-2026-10/t8-identity-contracts.md); integration as we go |
-| Adopt multi-issuer token validation (C8) | engineering | B trusts each tenant's issuer |
-| Adopt the remaining Identity contracts (C2–C15) as they ship | engineering | scopes, audiences, delegation, API-key fields, webhooks |
+| Trusted issuers from the tenants table, so a new tenant takes no restart | engineering | P2; files-integration #15; [T8](../research/files-analysis-2026-10/t8-identity-contracts.md) C8 |
+| Signals from the same issuer resolver | engineering | P2; files-integration #19; waits on Identity's receiver taking `ITrustedIssuerResolver` (#37) |
+| API keys from a keys table with a unique hash index | engineering | P2; files-integration #16; P1 reads the hashes from configuration |
 | Move the fe upload queue from fe `foundation/uploads` into `fe-files` | engineering | P1; `filePicker` and `imageCropEditor` stay in fe |
 
 ## Tenancy and migration
@@ -84,8 +84,8 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Shares as containers: a link over a file set the owner edits | feature | P1; [T11](../research/files-analysis-2026-10/t11-next-and-shares.md) § 3 |
 | Share links with expiry, password, download limits, one-time, revoke | feature | P1; D7 |
 | Share page: tenant brand, preview, download, download all as ZIP | feature | P1; fe-files |
-| Sign-in gate: members of an organization only | feature | P2; Identity OIDC |
-| Email gate: allowed addresses prove themselves by a code | feature | P2 |
+| Sign-in gate: members of an organization only | feature | P2; files-integration #18; needs Identity's runtime scheme resolver |
+| Email gate: allowed addresses prove themselves by a code | feature | P2; files-integration #18; Identity's guest email proof |
 | File request: upload-only link into a folder | feature | P2 |
 | Access log and owner notification on first open | feature | P2 |
 | QR code for a share link | feature | P2; core `Codes/` |
@@ -180,7 +180,6 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 |---|---|---|
 | Per-file visibility: private, organization, public | feature | P1 |
 | Folder ACLs and per-file grants to people | feature | P2 |
-| Token exchange for user-scoped calls | feature | P2; identity M11 |
 
 ## Limits and metering
 
@@ -197,6 +196,8 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 |---|---|---|
 | File events on the local bus through the EF outbox | feature | P1; uploaded, ready, rejected, deleted |
 | Outgoing webhooks for the same events | feature | P2; core `AddWebhooks` |
+| A removed member's shares revoked, their files handed to the organization | feature | P2; files-integration #19; on `AccessChangedEvent` `Removed` |
+| An organization's files soft-deleted when Identity deletes it | feature | P2; files-integration #19; needs an Identity organization-deleted event |
 | CLI: export, move tenant, verify | feature | P2 |
 | S3-compatible gateway for rclone and backup tools | feature | P3 |
 
@@ -208,7 +209,8 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | File browser with preview, download, delete, restore | feature | P1 |
 | Audit view | feature | P1 |
 | Shares: list and revoke | feature | P1 |
-| Tenants on B: create, keys, issuers, hostnames, suspend | feature | P1 on B |
+| Console sign-in through Identity's BFF | feature | P1 per files-integration #29 (open); tenant admins through their own issuer P2; files-integration #17 |
+| Tenants on B: create, keys, issuers, hostnames, suspend | feature | P2; P1 by configuration; files-integration #21 |
 | Orphans, failed scans, quarantined files | feature | P2 |
 | Migration runner with progress | feature | P2 |
 | Policy editor: limits, types, variants, retention | feature | P2; P1 by config |
@@ -231,6 +233,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | fe previews: image and PDF | feature | P1; video, audio, text, code, archive in P2 |
 | fe file list and grid, share dialog, gate pages | feature | P1 |
 | Test kit: in-memory store, fake scanner, personas | feature | P1 |
+| Avatar adapter for Identity's profile-picture port | feature | Identity P2; files-integration #20; once Identity lifts the port into `Identity.Abstractions` |
 
 ## Operations and compliance
 
@@ -239,7 +242,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Backups: bucket versioning plus a nightly copy elsewhere | engineering | P1; D6 picks the store |
 | Deploy the shared files host through Wheelhouse | product | P1; D6 picks the server |
 | Ocharo tenant on the shared host, Catalogue and Brand first | product | P1; through the Wheelhouse migration module |
-| Personal-data export and erasure per person | feature | P2; fanned out from Identity |
+| Personal-data export and erasure per person | feature | P2; files-integration #19; needs an Identity erasure event distinct from `Removed` |
 | Abuse report and takedown on B | feature | P2 |
 | Restore drill: one tenant from backup | engineering | P2 |
 | Per-tenant encryption keys | feature | P3 |
