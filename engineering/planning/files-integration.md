@@ -87,6 +87,9 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 | #22 | C15 issuer on the principal | P1 | provided: Files keys people by (`iss`, `sub`) | files | — |
 
 - #23 A person's call needs a scope plus a role or `org_permission`, never a scope alone (`api-communication.md`); Files' policies change to match.
+- #35 B's audience is each tenant's own `https://files.{domain}/`, with the slash, checked per issuer through `TrustedIssuer.Audiences`; a move from B to A is a DNS change (files lane D1 (a), orchestrator pick 2026-11-08 under #33).
+- #36 A person's right to act comes from `org_permission`: each tenant's Identity grants `files:read`, `files:write`, `files:share` and `files:admin` to its roles, and Files reads only those (files lane D2 (a), orchestrator pick 2026-11-08 under #33).
+- #37 Files' P1 needs nothing new from Identity: no `iss` on key principals and no key prefix. Its pins are be `10.0.103-beta` or later, plus Identity `Auth` and `Testing` at `10.0.29-beta`. Its P2 asks to Identity are an organization-deleted event, an erasure event distinct from `Removed`, and a signal receiver over `ITrustedIssuerResolver`; `person.disabled` drops (files lane, 2026-11-08).
 - #34 t8's "exists today" column is stale: Files hand-rolls C8 and C9 in `Files.Api/Auth` (JWT over `Files:Auth:Issuers` with a `files_tenant` claim, API keys against config hashes); M2 swaps them for Identity's `WoW2.Sdk.Beta.Be.Identity.Auth`, which the one-way rule allows (files lane, 2026-11-08).
 
 ## Lane slices
@@ -99,10 +102,13 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 
 ## Open
 
-- #29 B's issuers in P1: WoW2 probably runs no Identity instance of its own (catalog `identity` row: `deploy: none`), so t8's operator sign-in through WoW2's Identity (#17) and WoW2 callers on B have no issuer yet. Asked of the developer 2026-11-08. Identity's `engineering/deployment/deployment.md` plans WoW2's shared instance as a Wheelhouse product of its own; its `deploy.yml` lacks the `generate` on the 3 certificates that Ocharo's pin has (wheelhouse lane, 2026-11-08).
+- #29 B's issuers in P1: WoW2 probably runs no Identity instance of its own (catalog `identity` row: `deploy: none`), so t8's operator sign-in through WoW2's Identity (#17) and WoW2 callers on B have no issuer yet. Asked of the developer 2026-11-08. Identity's `engineering/deployment/deployment.md` plans WoW2's shared instance as a Wheelhouse product of its own; its `deploy.yml` lacks the `generate` on the 3 certificates that Ocharo's pin has (wheelhouse lane, 2026-11-08). Sizing: a WoW2 Identity on dev needs no Wheelhouse code, about a day of ops and ~512 MB of memory; the identity lane adds `generate` on its 3 certificates and `from: Sites:app:Url` on `Issuer` in one release; WoW2's registrations have no repo home yet. Without it, B trusts only Ocharo's Identity in P1 and operator sign-in waits for P2.
 - #30 The `ocharo-platform` backlog row "Ocharo File Storage adoption" (`9bd3a24`, 2026-10-21) names "the Ocharo instance"; #7 (2026-10-26) puts Ocharo on B first. The platform lane updates the row.
 - #31 Core changes: no lane writes the core be sdk; a core change a lane needs (#8) goes to the orchestrator as a blocker.
-- #32 Registrations: which repo holds each Identity instance's `Identity:Server:Resources` and `Clients` entries for Files; the platform and wheelhouse lanes settle it between them through the orchestrator.
+- #32 Registrations: which repo holds each Identity instance's `Identity:Server:Resources` and `Clients` entries for Files; the platform and wheelhouse lanes settle it between them through the orchestrator. Settled 2026-11-08, both lanes proposing the same split: `ocharo-platform` `engineering/deployment/deploy.yml` holds `Identity:Server:Resources:2` (`files`) and each Ocharo client's Files grants, resources and scopes; Wheelhouse types `Resources:2:Uri` and `SignalUrl` on `ocharo-dev`; client secrets link inside product `ocharo` with `from`; no Wheelhouse code.
+- #38 The t9 migration module builds a dev slice in P1: plan, preflight, dry run, the mover on the source host, verify, the id-map hand-off, cancel and progress. Freeze, cutover, rollback and retire come with Ocharo prod in P2, since prod is out of scope (wheelhouse lane option 1, orchestrator pick 2026-11-08 under #33).
+- #39 B deploys for P1 as target `files-dev` on the products host beside `ocharo-dev`, its bytes on the `data` volume until D6 picks a store; the later move to a storage-fit server is a tenant move (wheelhouse lane option 1, orchestrator pick 2026-11-08 under #33).
+- #40 Host aliases (several hosts per Wheelhouse site) are a P2 gate before a second tenant or B's default host; in P1 Ocharo's Files hostname is the `app` site's one named host, its DNS record set by hand. Key rotation (#14) and client key pairs are P2, due before Ocharo dev's certificate ends on 2027-02-28 (wheelhouse lane, 2026-11-08).
 
 ## Cross-lane contracts
 
