@@ -14,7 +14,7 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 
 ## Status
 
-- 🔄 M1 analysis: lanes started 2026-11-08; each lane verifies its slice of the snapshot first (#24)
+- 🔄 M1 analysis: lanes started 2026-11-08; platform and identity verified their slices (#24) and started their analysis; files and wheelhouse pending
 - ⬜ M2 build: starts only after the developer confirms M1, in the same lanes, against this doc
 
 ## Goal
@@ -68,7 +68,7 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 
 | # | Contract | t8 phase | Lead verdict | Repo that changes | Confirmed |
 |---|---|---|---|---|---|
-| #8 | C1 principal seam | P1 | provided: `ICurrentPrincipal` and `PrincipalKind` in core | files adopts | — |
+| #8 | C1 principal seam | P1 | provided: `ICurrentPrincipal` and `PrincipalKind` in core `Abstractions/Identity/CurrentPrincipal`; Identity's `ClaimsPrincipalNormalizer` reads `azp` and `client_id`; Identity pins core `10.0.103-beta` | files adopts; its core pin `10.0.98-beta` trails Identity's | — |
 | #9 | C2 claim vocabulary | P1 | change: `azp` became `client_id`; the API-key principal carries no `iss` | files adopts `client_id`; identity stamps `iss` on keys | — |
 | #10 | C3 resources and scopes | P1 | provided: `Identity:Server:Resources` list, audience from the registry, URI with its trailing slash | files names its scopes; registrations per #32 | — |
 | #11 | C4 client credentials | P1 | provided: secret or `private_key_jwt` | platform registers Ocharo's clients | — |
@@ -76,11 +76,11 @@ Lead verdicts come from a read-only code check on 2026-11-08 and stay leads unti
 | #13 | C6 token exchange with `act` | P2 | provided; moves to P1, since it replaces #12 | files accepts `act`; platform grants `token_exchange` | — |
 | #14 | C7 discovery, JWKS, rotation | P1 | change: no stated rule keeps a retired key for token lifetime plus cache time; cache and refresh timings unconfirmed | identity; wheelhouse runs rotation | — |
 | #15 | C8 multi-issuer validation | P1 on B | provided: `JwtOptions.TrustedIssuers`, `ITrustedIssuerResolver` | files implements the resolver over its tenants | — |
-| #16 | C9 API keys | P1 on B | change: no `{partition}_{keyId}_{secret}` lookup, keys found by hash only (`FindLiveByHashAsync`) | identity (`packages/Auth`); files implements the repository | — |
+| #16 | C9 API keys | P1 on B | change: `ApiKeyRecord` already carries client, organization, partition and expiry, and the handler emits them; the gaps are the `{partition}_{keyId}_{secret}` lookup and `iss` (identity lane, 2026-11-08) | identity (`packages/Auth`); files implements the repository | — |
 | #17 | C10 console sign-in | P1 operator, P2 tenants | change: the BFF exists, no `IOidcSchemeResolver` for per-tenant schemes | identity; the P1 issuer per #29 | — |
 | #18 | C11 share gate, guest email proof | P2 | add: no `AllowGuests`, no email-proof tokens | identity | — |
 | #19 | C12 events | P2 | change: the two signals replace t8's events, sent through `Messaging/Webhooks`; no `person.disabled` or `person.erasure_requested` | files receives signals; identity adds the two events | — |
-| #20 | C13 avatar port | Identity P2 | add: no `IAvatarStore` | identity | — |
+| #20 | C13 avatar port | Identity P2 | change: `IProfilePictureStore` (keyed by `Guid`, default `EfProfilePictureStore`) sits in `packages/Module`; lifting it to Abstractions lets Files ship an adapter (identity lane, 2026-11-08) | identity | — |
 | #21 | C14 tenant onboarding on B | P1 | change: configuration only, no admin APIs | wheelhouse and platform configure; identity and files add admin APIs | — |
 | #22 | C15 issuer on the principal | P1 | provided: Files keys people by (`iss`, `sub`) | files | — |
 
