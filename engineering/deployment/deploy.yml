@@ -41,7 +41,7 @@ services:
       - codebase/files.frontend-services/**
     health: /health
     memory: 256m
-    # Typed keys (pipelines v0.10.0): Wheelhouse checks each saved value against its type; a required key joins
+    # Typed keys (pipelines v0.10.0; generate and from, v0.14.0): Wheelhouse checks each saved value against its type; a required key joins
     # settings.required. The target's settings file (/app/appsettings.Target.json) supplies the SQLite path on the
     # data volume; the name ends in ConnectionString, so Wheelhouse keeps the value in its vault. The bytes live on the
     # same volume; signed file URLs need the secret signing key, and point at the app site (Sites:app:Url) unless
