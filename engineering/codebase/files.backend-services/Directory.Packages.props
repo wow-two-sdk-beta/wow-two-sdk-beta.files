@@ -27,6 +27,11 @@
     <PackageVersion Include="WoW2.Sdk.Beta.Be.Identity.Testing" Version="$(IdentityVersion)" />
   </ItemGroup>
 
+  <!-- The mover's postgres-column reader (Files.Api migrate); the version Ocharo already uses. -->
+  <ItemGroup>
+    <PackageVersion Include="Npgsql" Version="10.0.0" />
+  </ItemGroup>
+
   <!-- Tests. -->
   <ItemGroup>
     <PackageVersion Include="AwesomeAssertions" Version="9.0.0" />

@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="WoW2.Sdk.Beta.Be" />
     <PackageReference Include="WoW2.Sdk.Beta.Be.Identity.Auth" />
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 
   <ItemGroup>

@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\packages\Module\WoW.Two.Sdk.Beta.Be.Files.Module.csproj" />
     <ProjectReference Include="..\..\packages\Client\WoW.Two.Sdk.Beta.Be.Files.Client.csproj" />
     <ProjectReference Include="..\..\packages\Server\WoW.Two.Sdk.Beta.Be.Files.Server.csproj" />
+    <ProjectReference Include="..\..\service\Files.Api\Files.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
