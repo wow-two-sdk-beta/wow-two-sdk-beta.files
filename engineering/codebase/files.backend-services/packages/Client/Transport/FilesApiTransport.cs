@@ -1,16 +1,20 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
 using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using WoW.Two.Sdk.Beta.Be.Foundation.Serialization;
+using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2;
+using WoW.Two.Sdk.Beta.Be.Http.Auth.OAuth2TokenExchange;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Client.Transport;
 
 /// <summary>Sends calls to the Files service and reads its answers: the <c>{ data }</c> envelope on success, the problem
 /// body's <c>code</c> back into an <see cref="AppError"/> on failure.</summary>
-/// <remarks>An unreachable or failing service returns an <see cref="AppErrorType.ExternalUnavailable"/> failure.</remarks>
-internal sealed class FilesApiTransport(IHttpClientFactory clients)
+/// <remarks>An unreachable or failing service returns an <see cref="AppErrorType.ExternalUnavailable"/> failure; a token
+/// Identity refuses returns <see cref="AppErrorType.ExternalUnauthorized"/>.</remarks>
+internal sealed class FilesApiTransport(IHttpClientFactory clients, IOptions<FilesClientOptions> options, IOAuth2SubjectTokenSource subjects)
 {
     /// <summary>Gets the wire's JSON options, the be sdk preset the service writes with.</summary>
     public static JsonSerializerOptions Json => JsonOptionsConstants.Default;
@@ -52,17 +56,43 @@ internal sealed class FilesApiTransport(IHttpClientFactory clients)
     {
         try
         {
-            var response = await clients.CreateClient(FilesClientConstants.HttpClientName).SendAsync(request, completion, cancellationToken);
+            var client = clients.CreateClient(await ChooseClientAsync(cancellationToken));
+            var response = await client.SendAsync(request, completion, cancellationToken);
             if (response.IsSuccessStatusCode)
                 return Result<HttpResponseMessage>.Ok(response);
 
             using (response)
                 return Result<HttpResponseMessage>.Fail(await ReadErrorAsync(response, cancellationToken));
         }
+        catch (OAuth2TokenRequestException exception)
+        {
+            // Its message holds the client, the status and a registered error code, never Identity's own text.
+            return Result<HttpResponseMessage>.Fail(AppErrorFactory.ExternalUnauthorized(exception.Message));
+        }
+        catch (AppException exception)
+        {
+            return Result<HttpResponseMessage>.Fail(exception.Error);
+        }
         catch (HttpRequestException)
         {
             return Result<HttpResponseMessage>.Fail(AppErrorFactory.ExternalUnavailable("The Files service is unreachable."));
         }
+    }
+
+    /// <summary>Picks the client a call goes through: the bare or API-key client without Identity; with it, the person's
+    /// exchanged token when a person is on the call, else the service's own token, always under
+    /// <see cref="FilesClientCalls.AsService"/>.</summary>
+    /// <remarks>The subject token is only checked for here; the be sdk's exchange handler reads it again and owns caching.</remarks>
+    internal async ValueTask<string> ChooseClientAsync(CancellationToken cancellationToken)
+    {
+        if (options.Value.Identity is null)
+            return FilesClientConstants.HttpClientName;
+        if (FilesClientCalls.IsService)
+            return FilesClientConstants.ServiceHttpClientName;
+
+        return await subjects.GetAsync(cancellationToken) is null
+            ? FilesClientConstants.ServiceHttpClientName
+            : FilesClientConstants.PersonHttpClientName;
     }
 
     /// <summary>Maps a failed answer to the error the service reported, by the problem's <c>code</c>, else by status.</summary>

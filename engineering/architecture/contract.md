@@ -86,8 +86,9 @@ Base `/api/files/v1` (`FilesRouteConstants.Api`); the service mirrors the broker
 - a caller bound to an app (`client_id`, a key's app) uploads under that app only (`AppNotAllowed`).
 - Identity's revocation signals arrive at `POST /signals/identity` under each tenant's host; a revoked person's token is
   refused until it would have expired.
-- the Client implements the brokers by hand over one named `HttpClient` (`files`); its builder takes
-  `AddOAuth2ClientCredentials`. OpenAPI comes from the host.
+- the Client implements the brokers by hand over one named `HttpClient` (`files`), sending a tenant API key or Identity
+  tokens (`FilesClientOptions.Identity`): an exchanged token when the call carries a person, client credentials
+  otherwise or inside `FilesClientCalls.AsService()`. OpenAPI comes from the host.
 
 ## Hosting routes
 

@@ -2,7 +2,7 @@
 
   <!-- Forms 2 and 3: every Files broker over the running Files service's HTTP API. -->
   <PropertyGroup>
-    <Description>Files Forms 2 and 3: every Files broker over the running Files service's HTTP API, by API key or client-credentials token.</Description>
+    <Description>Files Forms 2 and 3: every Files broker over the running Files service's HTTP API, by API key or Identity token.</Description>
   </PropertyGroup>
 
   <ItemGroup>
