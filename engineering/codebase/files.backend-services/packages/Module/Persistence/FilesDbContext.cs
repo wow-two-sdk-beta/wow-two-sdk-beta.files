@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Imports;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 
@@ -19,6 +20,15 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
 
     /// <summary>Gets the audit trail.</summary>
     public DbSet<FileAuditEntity> Audit => Set<FileAuditEntity>();
+
+    /// <summary>Gets the imports: legacy files moving into a tenant.</summary>
+    public DbSet<FileImportEntity> Imports => Set<FileImportEntity>();
+
+    /// <summary>Gets each import's sources.</summary>
+    public DbSet<FileImportSourceEntity> ImportSources => Set<FileImportSourceEntity>();
+
+    /// <summary>Gets each import's moved keys: the id map.</summary>
+    public DbSet<FileImportItemEntity> ImportItems => Set<FileImportItemEntity>();
 
     /// <summary>Gets a tenant's live files: not past their purge or orphan time, and not expired unless a record still
     /// references them.</summary>
@@ -100,5 +110,33 @@ internal sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) :
         audit.Property(row => row.AppId).HasColumnName("app_id");
         audit.Property(row => row.Bytes).HasColumnName("bytes");
         audit.Property(row => row.OccurredAtUtc).HasColumnName("occurred_at_utc");
+
+        var import = modelBuilder.Entity<FileImportEntity>();
+        import.ToTable(FileImportEntity.TableName);
+        import.HasKey(row => row.Id);
+        import.Property(row => row.Id).HasColumnName("id");
+        import.Property(row => row.TenantId).HasColumnName("tenant_id");
+        import.Property(row => row.State).HasColumnName("state");
+        import.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
+
+        var importSource = modelBuilder.Entity<FileImportSourceEntity>();
+        importSource.ToTable(FileImportSourceEntity.TableName);
+        importSource.HasKey(row => new { row.ImportId, row.SourceId });
+        importSource.Property(row => row.ImportId).HasColumnName("import_id");
+        importSource.Property(row => row.SourceId).HasColumnName("source_id");
+        importSource.Property(row => row.Failed).HasColumnName("failed");
+
+        var importItem = modelBuilder.Entity<FileImportItemEntity>();
+        importItem.ToTable(FileImportItemEntity.TableName);
+        importItem.HasKey(row => row.Seq);
+        importItem.Property(row => row.Seq).HasColumnName("seq").ValueGeneratedOnAdd();
+        importItem.Property(row => row.ImportId).HasColumnName("import_id");
+        importItem.Property(row => row.SourceId).HasColumnName("source_id");
+        importItem.Property(row => row.SourceKey).HasColumnName("source_key");
+        importItem.Property(row => row.FileId).HasColumnName("file_id");
+        importItem.Property(row => row.Sha256).HasColumnName("sha256");
+        importItem.Property(row => row.Size).HasColumnName("size");
+        importItem.Property(row => row.Reference).HasColumnName("reference");
+        importItem.Property(row => row.CreatedAtUtc).HasColumnName("created_at_utc");
     }
 }

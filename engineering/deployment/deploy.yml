@@ -50,6 +50,8 @@ services:
     # Trusted issuers (t8 C8): P1 trusts one, Ocharo's Identity, as the tenant `ocharo`; its tokens name the tenant's own
     # host with its slash (https://files.{domain}/). Identity's revocation signals arrive at {audience}signals/identity,
     # the SignalUrl that issuer's registry lists. API keys (Files:Auth:ApiKeys) serve only callers outside Identity.
+    # The operator key (Wheelhouse sends X-Api-Key: files_ + Files:Operator:ApiKey) opens imports and mints their tokens;
+    # it holds files.tenants alone and reaches no file route. Import tokens live Files:Imports:TokenLifetime.
     settings:
       keys:
         DatabaseSettings:ConnectionString: { required: true }
@@ -60,6 +62,8 @@ services:
         Files:Auth:Issuers:0:Issuer: { type: url }
         Files:Auth:Issuers:0:TenantId: { default: ocharo }
         Files:Auth:Issuers:0:Audiences:0: { type: url }
+        Files:Operator:ApiKey: { secret: true, generate: { random: 16, encoding: hex } }
+        Files:Imports:TokenLifetime: { default: "06:00:00" }
     volumes:
       data: /data
     # The pages at /, the contract's HTTP mirror under the same host's /api: /api routes ahead of /, never /apiary.

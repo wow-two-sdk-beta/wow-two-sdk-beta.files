@@ -25,6 +25,18 @@ public sealed class FilesApiFixture : IAsyncLifetime
     /// <summary>Holds a test API key of the <c>tiny</c> app, whose policy accepts 8 bytes.</summary>
     public const string TinyKey = "files_E2eTinyKey0123456789abcdefghijkl";
 
+    /// <summary>Holds the operator key's setting, 32 hex characters; it is presented as <see cref="OperatorKey"/>.</summary>
+    public const string OperatorKeyValue = "0e2e0a1b2c3d4e5f60718293a4b5c6d7";
+
+    /// <summary>Holds the operator key as Wheelhouse presents it.</summary>
+    public const string OperatorKey = "files_" + OperatorKeyValue;
+
+    /// <summary>Holds a test API key of the <c>imports</c> tenant with <c>files.read</c>, to read what an import moved.</summary>
+    public const string ImportsReadKey = "files_E2eImportReadKey0123456789abcdef";
+
+    /// <summary>Holds a test API key of the <c>e2e</c> tenant that carries <c>files.tenants</c>: a tenant key, never the operator.</summary>
+    public const string TenantsScopedKey = "files_E2eTenantsScopedKey0123456789abc";
+
     /// <summary>Holds the audience the <c>tokens</c> tenant's tokens name: its own host, with the slash.</summary>
     public const string Audience = "https://files.tokens.test/";
 
@@ -69,6 +81,15 @@ public sealed class FilesApiFixture : IAsyncLifetime
                 ["Files:Auth:ApiKeys:2:TenantId"] = "e2e",
                 ["Files:Auth:ApiKeys:2:AppId"] = "tiny",
                 ["Files:Auth:ApiKeys:2:Scopes:0"] = "files.write",
+                ["Files:Auth:ApiKeys:3:Id"] = "e2e-imports-read",
+                ["Files:Auth:ApiKeys:3:Sha256"] = Sha256(ImportsReadKey),
+                ["Files:Auth:ApiKeys:3:TenantId"] = "imports",
+                ["Files:Auth:ApiKeys:3:Scopes:0"] = "files.read",
+                ["Files:Auth:ApiKeys:4:Id"] = "e2e-tenants",
+                ["Files:Auth:ApiKeys:4:Sha256"] = Sha256(TenantsScopedKey),
+                ["Files:Auth:ApiKeys:4:TenantId"] = "e2e",
+                ["Files:Auth:ApiKeys:4:Scopes:0"] = "files.tenants",
+                ["Files:Operator:ApiKey"] = OperatorKeyValue,
                 ["Logging:LogLevel:Default"] = "Warning",
             }),
         };

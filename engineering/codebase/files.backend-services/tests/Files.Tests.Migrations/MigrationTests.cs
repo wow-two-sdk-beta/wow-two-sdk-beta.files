@@ -10,11 +10,13 @@ namespace Files.Tests.Migrations;
 /// <summary>The module's embedded migrations over a throwaway SQLite file: apply, idempotency, and the Apply → Rollback → Apply round trip.</summary>
 public sealed class MigrationTests : IDisposable
 {
-    private static readonly string[] Names = ["baseline", "files", "references", "audit", "greetings-removed", "owner-issuer"];
+    private static readonly string[] Names = ["baseline", "files", "references", "audit", "greetings-removed", "owner-issuer", "imports"];
 
-    private static readonly string[] Applied = ["001-baseline", "002-files", "003-references", "004-audit", "005-greetings-removed", "006-owner-issuer"];
+    private static readonly string[] Applied = ["001-baseline", "002-files", "003-references", "004-audit", "005-greetings-removed", "006-owner-issuer", "007-imports"];
 
-    private static readonly string[] Tables = ["files_files", "files_blobs", "files_references", "files_audit"];
+    private static readonly string[] Tables = ["files_files", "files_blobs", "files_references", "files_audit", "files_imports", "files_import_sources", "files_import_items"];
+
+    private static readonly string[] ImportTables = ["files_imports", "files_import_sources", "files_import_items"];
 
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"files-migrations-{Guid.NewGuid():N}.db");
 
@@ -41,7 +43,7 @@ public sealed class MigrationTests : IDisposable
         foreach (var table in Tables)
             (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var history = await migrator.ReadHistoryAsync();
-        history.Select(row => row.Ordinal).Should().Equal(1, 2, 3, 4, 5, 6);
+        history.Select(row => row.Ordinal).Should().Equal(1, 2, 3, 4, 5, 6, 7);
         (await migrator.HasTableAsync("files_greeting_logs")).Should().BeFalse();
         history.Select(row => row.Name).Should().Equal(Names);
         history.Should().OnlyContain(row => row.AppliedBy == "startup" && row.Checksum.Length == 64);
@@ -66,7 +68,7 @@ public sealed class MigrationTests : IDisposable
         foreach (var table in Tables)
             (await migrator.HasTableAsync(table)).Should().BeTrue(table);
         var status = Unwrap(await migrator.Runner.GetStatusAsync(CancellationToken.None));
-        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1, 2, 3, 4, 5, 6);
+        status.Applied.Select(applied => applied.Ordinal).Should().Equal(1, 2, 3, 4, 5, 6, 7);
         status.Pending.Should().BeEmpty();
         status.Drifted.Should().BeEmpty();
     }
@@ -80,9 +82,29 @@ public sealed class MigrationTests : IDisposable
         Columns("files_files").Should().Contain("owner_issuer");
         Columns("files_audit").Should().Contain(["subject_issuer", "actor_id"]);
 
-        Unwrap(await migrator.Runner.RollbackAsync(targetOrdinal: 5, CancellationToken.None)).Should().Equal("006-owner-issuer");
+        Unwrap(await migrator.Runner.RollbackAsync(targetOrdinal: 5, CancellationToken.None)).Should().Equal("007-imports", "006-owner-issuer");
         Columns("files_files").Should().NotContain("owner_issuer").And.Contain("owner_id");
         Columns("files_audit").Should().NotContain(["subject_issuer", "actor_id"]).And.Contain("subject_id");
+    }
+
+    [Fact]
+    public async Task ApplyPending_ShouldCreateTheImportTables_AndRollbackShouldDropThem()
+    {
+        await using var migrator = CreateMigrator(options => options.AllowRollback = true);
+        Unwrap(await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None));
+
+        Columns("files_imports").Should().Equal("id", "tenant_id", "state", "created_at_utc");
+        Columns("files_import_sources").Should().Equal("import_id", "source_id", "failed");
+        Columns("files_import_items").Should().Contain(["import_id", "source_id", "source_key", "file_id", "sha256", "size", "reference", "created_at_utc"]);
+
+        Unwrap(await migrator.Runner.RollbackAsync(targetOrdinal: 6, CancellationToken.None)).Should().Equal("007-imports");
+        foreach (var table in ImportTables)
+            (await migrator.HasTableAsync(table)).Should().BeFalse(table);
+        (await migrator.HasTableAsync("files_files")).Should().BeTrue();
+
+        Unwrap(await migrator.Runner.ApplyPendingAsync("test", CancellationToken.None)).Should().Equal("007-imports");
+        foreach (var table in ImportTables)
+            (await migrator.HasTableAsync(table)).Should().BeTrue(table);
     }
 
     private List<string> Columns(string table)

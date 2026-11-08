@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using WoW.Two.Sdk.Beta.Be.Files;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Imports;
 using WoW.Two.Sdk.Beta.Be.Identity.ApiKeys;
 using WoW.Two.Sdk.Beta.Be.Identity.CurrentUser;
 using WoW.Two.Sdk.Beta.Be.Identity.Jwt;
@@ -22,8 +23,10 @@ public static class FilesAuthServiceCollectionExtensions
     ];
 
     /// <summary>Registers Identity's token scheme over the trusted issuers in <c>Files:Auth</c>, its API key scheme over the
-    /// configured keys, the policy scheme that picks between them, the one principal, a policy per action named by its
-    /// scope, and Identity's revocation signals with the deny list (t8 C1, C8, C9, C12).</summary>
+    /// configured keys and the operator key (<c>Files:Operator</c>), the policy scheme that picks between them, the one
+    /// principal, a policy per action named by its scope, the operator's <c>files.tenants</c> policy, the import token's
+    /// policies with its lifetime (<c>Files:Imports</c>), and Identity's revocation signals with the deny list (t8 C1, C8,
+    /// C9, C12).</summary>
     /// <param name="builder">The host builder.</param>
     public static WebApplicationBuilder AddFilesAuth(this WebApplicationBuilder builder)
     {
@@ -32,6 +35,8 @@ public static class FilesAuthServiceCollectionExtensions
         var isDevelopment = builder.Environment.IsDevelopment();
 
         services.Configure<FilesAuthSettings>(builder.Configuration.GetSection(FilesAuthSettings.SectionName));
+        services.Configure<FilesOperatorSettings>(builder.Configuration.GetSection(FilesOperatorSettings.SectionName));
+        services.AddOptions<FileImportOptions>().BindConfiguration(FileImportOptions.SectionName);
 
         // Tokens: the resolver reads each issuer from the settings when first seen, with its own audiences and tenant.
         services.AddJwtBearerAuthentication(options =>
@@ -55,10 +60,18 @@ public static class FilesAuthServiceCollectionExtensions
 
         services.AddCurrentPrincipal();
         services.AddSingleton<IAuthorizationHandler, FilesAccessHandler>();
+        services.AddSingleton<IAuthorizationHandler, FilesOperatorHandler>();
+        services.AddSingleton<IAuthorizationHandler, FilesImportAccessHandler>();
         services.AddAuthorization(options =>
         {
             foreach (var (scope, permission) in Actions)
                 options.AddPolicy(scope, policy => policy.RequireAuthenticatedUser().AddRequirements(new FilesAccessRequirement(scope, permission)));
+
+            // The operator key alone runs tenants; an import's token reaches that import alone and needs no scheme, so its
+            // policies don't require an authenticated user: a missing or wrong token with no other credential answers 401.
+            options.AddPolicy(FilesScopeConstants.Tenants, policy => policy.RequireAuthenticatedUser().AddRequirements(new FilesOperatorRequirement()));
+            options.AddPolicy(FilesAuthConstants.ImportsPolicy, policy => policy.AddRequirements(new FilesImportAccessRequirement(AllowsOperator: true)));
+            options.AddPolicy(FilesAuthConstants.ImportPushPolicy, policy => policy.AddRequirements(new FilesImportAccessRequirement(AllowsOperator: false)));
         });
 
         // Revocation: one route under each tenant's host hears its issuer; a signal refuses that person's tokens until they expire.

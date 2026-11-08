@@ -8,6 +8,7 @@ using WoW.Two.Sdk.Beta.Be.Files.Module.Audit;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Blobs;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Delivery;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Imports;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
 using WoW.Two.Sdk.Beta.Be.Files.Module.References;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Store;
@@ -24,10 +25,11 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module;
 /// <summary>Registers the in-process Files module (Form 1).</summary>
 public static class FilesModuleServiceCollectionExtensions
 {
-    /// <summary>Registers the Files brokers over the module's store, the delivery seam the content host serves through, the
-    /// hourly sweep and the store's readiness check.</summary>
+    /// <summary>Registers the Files brokers over the module's store, the delivery seam the content host serves through,
+    /// imports with their tokens, the hourly sweep and the store's readiness check.</summary>
     /// <remarks>The host registers the byte store, core <c>IBlobRepository</c> (<c>AddLocalBlobStorage</c>,
-    /// <c>AddS3BlobStorage</c>, …); replace <see cref="IFilesCallerService"/> to resolve callers another way.</remarks>
+    /// <c>AddS3BlobStorage</c>, …); replace <see cref="IFilesCallerService"/> to resolve callers another way, and bind
+    /// <see cref="FileImportOptions"/> to change the import token's lifetime.</remarks>
     /// <param name="services">The service collection to configure.</param>
     /// <returns>The options builder, through which the host sets the connection string; it is read on first use.</returns>
     public static OptionsBuilder<FilesModuleOptions> AddFiles(this IServiceCollection services)
@@ -38,6 +40,7 @@ public static class FilesModuleServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddDbContext<FilesDbContext>((provider, options) =>
             options.UseSqliteConventional(provider.GetRequiredService<IOptions<FilesModuleOptions>>().Value.ConnectionString));
+        services.TryAddScoped<FilesCallerOverride>();
         services.TryAddScoped<IFilesCallerService, PrincipalFilesCallerService>();
         services.TryAddSingleton<FileBlobLocks>();
         services.TryAddSingleton<SignedFileUrlIssuer>();
@@ -50,6 +53,9 @@ public static class FilesModuleServiceCollectionExtensions
         services.AddScoped<IFilesDeliveryService, FilesDeliveryService>();
         services.AddScoped<IFileAuditBroker, ModuleFileAuditBroker>();
         services.AddScoped<IFilesSweepService, FilesSweepService>();
+        services.AddOptions<FileImportOptions>();
+        services.TryAddSingleton<IFileImportTokenService, FileImportTokenService>();
+        services.AddScoped<IFilesImportsService, FilesImportsService>();
         services.AddHostedService<FilesSweepBackgroundService>();
         services.AddHealthChecks().AddDatabaseReadinessCheck<FilesDbContext>();
 
