@@ -114,13 +114,38 @@ public sealed class MigrateInputTests
     }
 
     [Fact]
-    public async Task RunAsync_ShouldExitOne_WhenTheSourceFolderIsMissing()
+    public async Task RunAsync_ShouldReadAMissingSourceFolderAsEmpty_AndExitZero()
     {
         using var root = new TempFolder();
 
         var run = await Mover.RunAsync(MigrateVerbConstants.Plan, Mover.Input(Mover.VolumeSource(path: "blobs/none"), root: root.Path), Mover.Options());
 
+        run.Code.Should().Be(MigrateExitCodeConstants.Done);
+        run.Lines.Should().Equal("""{"result":{"files":0,"bytes":0,"skipped":0,"failed":0}}""");
+        run.Stderr.Should().Contain("reads as an empty source");
+    }
+
+    [Fact]
+    public async Task RunAsync_ShouldExitOne_WhenTheRootIsMissing()
+    {
+        using var root = new TempFolder();
+
+        var run = await Mover.RunAsync(MigrateVerbConstants.Plan, Mover.Input(Mover.VolumeSource(), root: Path.Combine(root.Path, "not-mounted")), Mover.Options());
+
         run.Code.Should().Be(MigrateExitCodeConstants.Refused);
+    }
+
+    [Fact]
+    public async Task RunAsync_ShouldNameTheSqliteError_AndExitTwo_WhenTheDatabaseIsUnreadable()
+    {
+        using var root = new TempFolder();
+        root.Write("c.db", Encoding.UTF8.GetBytes(new string('x', 4096)));
+        var source = new JsonObject { ["id"] = "c", ["kind"] = "sqlite-column", ["database"] = "c.db", ["table"] = "a", ["key"] = "k", ["content"] = "b" };
+
+        var run = await Mover.RunAsync(MigrateVerbConstants.Plan, Mover.Input(source, root: root.Path), Mover.Options());
+
+        run.Code.Should().Be(MigrateExitCodeConstants.Failed);
+        run.Stderr.Should().Contain("The source could not be read: SQLite Error 26");
     }
 }
 

@@ -1,6 +1,6 @@
 # Imports
 
-*Last updated: 2026-11-08*
+*Last updated: 2026-11-09*
 
 > A product's legacy files move into a Files tenant: Wheelhouse opens an import, runs the mover on the source host, and
 > the product's cutover reads the id map. Shapes agreed with the wheelhouse lane (`files-integration` #38; t9 #2–#7);
@@ -96,6 +96,11 @@ Standard input, one JSON document:
 
 - `key` is one column or a list; `reference` is a template over the placeholders.
 - A missing `type` lets Files detect the type from the bytes.
+- A `volume-folder` whose folder does not exist reads as an empty source (0 files, exit `0`, a note on stderr): a
+  product creates its blob folders on its first write. A missing `root` or a `path` that names a file is refused.
+- A `sqlite-column` database in WAL mode with no `-wal` file beside it (its product stopped) opens `immutable`, so a
+  read-only mount needs no `-wal` or `-shm` file; a live one reads through its `-wal`. The mover never writes beside
+  the source.
 
 | Verb | Does |
 |---|---|

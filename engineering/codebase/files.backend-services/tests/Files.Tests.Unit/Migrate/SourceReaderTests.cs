@@ -45,14 +45,42 @@ public sealed class VolumeFolderSourceReaderTests : IDisposable
         totals.Should().Be(new SourceTotals(2, 42));
     }
 
-    [Theory]
-    [InlineData("blobs/missing")]
-    [InlineData("../outside")]
-    public void For_ShouldRefuseTheSource_WhenTheFolderIsMissingOrLeavesTheRoot(string path)
+    [Fact]
+    public async Task For_ShouldReadAMissingFolderAsAnEmptySource()
     {
-        var act = () => VolumeFolderSourceReader.For(Request(path));
+        var reader = VolumeFolderSourceReader.For(Request("blobs/missing"));
+
+        reader.Exists.Should().BeFalse();
+        (await reader.CountAsync(CancellationToken.None)).Should().Be(new SourceTotals(0, 0));
+        (await ToListAsync(reader.ReadAsync(CancellationToken.None))).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void For_ShouldRefuseTheSource_WhenThePathLeavesTheRoot()
+    {
+        var act = () => VolumeFolderSourceReader.For(Request("../outside"));
 
         act.Should().Throw<MigrateInputException>();
+    }
+
+    [Fact]
+    public void For_ShouldRefuseTheSource_WhenThePathNamesAFile()
+    {
+        root.Write("blobs/media", [1]);
+
+        var act = () => VolumeFolderSourceReader.For(Request("blobs/media"));
+
+        act.Should().Throw<MigrateInputException>().WithMessage("*is a file*");
+    }
+
+    [Fact]
+    public void For_ShouldRefuseTheSource_WhenTheRootIsMissing()
+    {
+        var request = Request("blobs/media") with { Root = Path.Combine(root.Path, "not-mounted") };
+
+        var act = () => VolumeFolderSourceReader.For(request);
+
+        act.Should().Throw<MigrateInputException>().WithMessage("The root does not exist.");
     }
 
     [Fact]
@@ -133,6 +161,45 @@ public sealed class SqliteColumnSourceReaderTests : IDisposable
     }
 
     [Fact]
+    public async Task ReadAsync_ShouldReadAClosedWalDatabase_InAReadOnlyFolder_WithoutCreatingItsSideFiles()
+    {
+        Database("data/ocharo-catalogue.db",
+            "PRAGMA journal_mode=WAL; CREATE TABLE catalogue_release_assets (Sha256 TEXT NOT NULL PRIMARY KEY, ContentType TEXT NOT NULL, Bytes BLOB NOT NULL)",
+            ("INSERT INTO catalogue_release_assets VALUES ('aa', 'application/pdf', $bytes)", [0x25, 0x50]),
+            ("INSERT INTO catalogue_release_assets VALUES ('bb', 'image/png', $bytes)", [0x89]));
+        var folder = Path.Combine(root.Path, "data");
+        var database = Path.Combine(folder, "ocharo-catalogue.db");
+        File.Exists(database + "-wal").Should().BeFalse("the last connection's close checkpoints and removes the WAL");
+        var source = Source(key: ["Sha256"], content: "Bytes", type: "ContentType", database: "data/ocharo-catalogue.db");
+        ReadOnly(folder, true);
+        try
+        {
+            var reader = SqliteColumnSourceReader.For(Request(source));
+            var items = await VolumeFolderSourceReaderTests.ToListAsync(reader.ReadAsync(CancellationToken.None));
+
+            SqliteColumnSourceReader.IsClosedWal(database).Should().BeTrue();
+            items.Select(item => item.Key).Should().Equal("aa", "bb");
+            (await reader.CountAsync(CancellationToken.None)).Should().Be(new SourceTotals(2, 3));
+            Directory.GetFiles(folder).Select(Path.GetFileName).Should().Equal("ocharo-catalogue.db");
+        }
+        finally
+        {
+            ReadOnly(folder, false);
+        }
+    }
+
+    [Fact]
+    public void IsClosedWal_ShouldBeFalse_ForARollbackJournalDatabase_OrALiveWal()
+    {
+        Database("plain.db", "CREATE TABLE a (k TEXT)");
+        Database("live.db", "PRAGMA journal_mode=WAL; CREATE TABLE a (k TEXT)");
+        File.WriteAllBytes(Path.Combine(root.Path, "live.db-wal"), []);
+
+        SqliteColumnSourceReader.IsClosedWal(Path.Combine(root.Path, "plain.db")).Should().BeFalse();
+        SqliteColumnSourceReader.IsClosedWal(Path.Combine(root.Path, "live.db")).Should().BeFalse();
+    }
+
+    [Fact]
     public void For_ShouldRefuseTheSource_WhenTheDatabaseIsMissing()
     {
         var act = () => SqliteColumnSourceReader.For(Request(Source(key: ["Sha256"], content: "Bytes")));
@@ -158,8 +225,15 @@ public sealed class SqliteColumnSourceReaderTests : IDisposable
 
     private MigrateRequest Request(MigrateSource source) => new() { Root = root.Path, Source = source };
 
+    private static void ReadOnly(string folder, bool readOnly)
+    {
+        if (!OperatingSystem.IsWindows())
+            File.SetUnixFileMode(folder, readOnly ? UnixFileMode.UserRead | UnixFileMode.UserExecute : UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+    }
+
     private void Database(string file, string create, params (string Sql, byte[]? Bytes)[] rows)
     {
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(root.Path, file))!);
         using var connection = new SqliteConnection($"Data Source={Path.Combine(root.Path, file)};Pooling=False");
         connection.Open();
         using (var command = connection.CreateCommand())

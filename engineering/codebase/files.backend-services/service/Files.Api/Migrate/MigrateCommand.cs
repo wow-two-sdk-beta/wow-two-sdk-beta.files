@@ -44,6 +44,8 @@ public static class MigrateCommand
         {
             request = MigrateRequestParser.Parse(await stdin.ReadToEndAsync(cancellationToken), verb);
             reader = SourceReaderFactory.Create(request);
+            if (reader is VolumeFolderSourceReader { Exists: false })
+                await stderr.WriteLineAsync("The source folder 'root/source.path' does not exist; it reads as an empty source.");
         }
         catch (MigrateInputException exception)
         {
@@ -75,7 +77,9 @@ public static class MigrateCommand
         }
         catch (DbException exception)
         {
-            output.Error(string.Create(CultureInfo.InvariantCulture, $"The source could not be read ({exception.GetType().Name} {exception.SqlState ?? (exception as SqliteException)?.SqliteErrorCode.ToString(CultureInfo.InvariantCulture)})."));
+            output.Error(exception is SqliteException sqlite
+                ? $"The source could not be read: {sqlite.Message}"
+                : string.Create(CultureInfo.InvariantCulture, $"The source could not be read ({exception.GetType().Name} {exception.SqlState})."));
             return IsRefusedQuery(exception) ? MigrateExitCodeConstants.Refused : MigrateExitCodeConstants.Failed;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
