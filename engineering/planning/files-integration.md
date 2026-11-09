@@ -24,9 +24,12 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
   - fixed on the way: the trusted issuer typed without Identity's trailing `/` (wheelhouse); the mover's missing folder and closed WAL database (Files `v0.1.13`); deployed dev loading localhost links and the repo's local API key from `appsettings.Development.json` (Files `v0.1.15`)
 - ✅ Wave 2 (Blog, Editorial, Marketing, Studio) on dev, 2026-11-09: marketing `v0.1.8`, studio `v0.1.12`, platform `v0.1.33`; Wheelhouse `v0.14.5` fixed a linked key hiding Brand's and Catalogue's own `Files:BaseUrl`
   - Blog serves Brand's logo by reference (#11), anonymous, through Files; an Editorial draft cover, a Marketing asset and a Studio look thumbnail each upload and read back through Files, the bytes matching
-  - `marketing-assets` held 3 files on dev (5,066,568 B): wheelhouse pushes and verifies them, and a `marketing` restart fills their file ids by SHA-256
-  - open, not blocking: Studio's thumbnail came back 240×34 px; Studio still reports SQLite storage, which `database.md:15` bans
-- ⬜ Next, all in the platform lane (#42): wave 3 Desk; wave 4 `ocharo-assets`; then the cross-lane check
+  - `marketing-assets` held 3 files on dev (5,066,568 B): import `01a1bf89-bf28-77da-995a-df0066ec4a16` moved them, verify matched 3 of 3 by SHA-256, and a `marketing` restart filled their file ids; a moved asset serves from Files (Wheelhouse `v0.14.6` fixed the imports path)
+  - Studio's thumbnail framing fixed in studio `v0.1.13` (240×180); Studio, like the other SQLite apps, still stores data in SQLite, which `database.md:15` bans, and signs members out on restart: the Ocharo convention sweep carries both
+- ✅ Wave 3 (Desk) on dev, 2026-11-09: platform `v0.1.34` (`2caf43b`), migration `012-files` applied at Desk's boot; the four `postgres-column` plans found 0 files
+  - a preparation upload reads back with the same SHA-256; a sourcing upload redirects to Files, its thumbnail to the 480 px WebP variant
+  - not yet read back: export download and commerce media, left for the cross-lane check
+- ⬜ Next: wave 4 `ocharo-assets` waits on the `assets-release` client secret, typed by wheelhouse once the developer sends the step (auto mode refused the relay as `Secret-Store Writes`); then the cross-lane check
 - Every lane records what it builds in its repos' active version track (developer, 2026-11-09)
 - ✅ Identity's P1 gate released (#41): `0655603`, NuGet `10.0.30-beta` on nuget.org, image `v0.5.21`, npm `0.0.15` unchanged (2026-11-08); Files re-pins `Identity.Auth` and `Identity.Testing` to `10.0.30-beta`
 - ✅ Ocharo's Identity registers Files from platform `v0.1.28` (`8cff011`); its 2 owner keys on `ocharo-dev` wait for the wheelhouse lane's console access
