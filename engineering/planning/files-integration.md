@@ -14,8 +14,14 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 
 ## Status
 
-- 🔄 M1 analysis: lanes started 2026-11-08; platform and identity verified their slices (#24) and started their analysis; files and wheelhouse pending
-- 🔄 M2 build: each lane builds once its picks are written (#33); nothing waits on the developer (#29 answered)
+- ✅ M1 analysis: every lane wrote its picks (#33); #29 answered by the developer
+- 🔄 M2 build: Files `v0.1.15` (`d07447a`) runs on `files-dev` on PostgreSQL with WebP variants; platform `v0.1.31` stores Brand's and Catalogue's media in Files
+- ✅ Wave 1 (Brand, Catalogue) on dev, 2026-11-09:
+  - dev held no media stored before Files (platform `2375a24`), so the three mover plans pass with 0 files (wheelhouse job `d1c6833d`)
+  - Brand: a master logo uploaded by the Ocharo owner, release 1 published; anonymous `logo/social` and `logo/master` answer 302 to Ocharo's dev Files host and serve the uploaded SHA-256
+  - Catalogue: test product `nimcha-v01` with one image; a member's `media/{sha}` answers 302 to Files and serves 144803 B, 1600×1200, the uploaded file's size
+  - fixed on the way: the trusted issuer typed without Identity's trailing `/` (wheelhouse); the mover's missing folder and closed WAL database (Files `v0.1.13`); deployed dev loading localhost links and the repo's local API key from `appsettings.Development.json` (Files `v0.1.15`)
+- ⬜ Next: Catalogue's release-asset step (platform); then lanes for `ocharo-marketing`, `ocharo-studio` and `ocharo-assets` (#42); then the cross-lane check
 - ✅ Identity's P1 gate released (#41): `0655603`, NuGet `10.0.30-beta` on nuget.org, image `v0.5.21`, npm `0.0.15` unchanged (2026-11-08); Files re-pins `Identity.Auth` and `Identity.Testing` to `10.0.30-beta`
 - ✅ Ocharo's Identity registers Files from platform `v0.1.28` (`8cff011`); its 2 owner keys on `ocharo-dev` wait for the wheelhouse lane's console access
 
