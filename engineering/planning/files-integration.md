@@ -31,6 +31,7 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
   - not yet read back: export download and commerce media, left for the cross-lane check
 - ✅ Wave 4 (Assets) on dev, 2026-11-09: platform `v0.1.35` adds Identity client 7 `assets-release` (client credentials, `files.write`), its secret typed by the developer; `release-garments` uploaded 7 GLBs and the manifest (`bdb95c57…`), each served anonymously from `t/ocharo/m/{sha}`, and Studio's sync rewrote them byte-identical
 - ✅ Cross-lane review, 2026-11-09: a fresh reviewer found 0 high, 0 medium, 4 low; all fixed (Files `v0.1.16` mover snapshot, Wheelhouse `639773d` token expiry, Catalogue deleted-file check `830e905`, tenant-prefixed garment links); the signal path is wired (`SignalUrl` matches, unsigned posts answer 401)
+- The platform lane closes after the split (developer confirmed the 4 per-repo chats, 2026-11-09); the PostgreSQL decision: one `ocharo_{env}` database, a schema per app, data copied (`migrations.md`, `b241c9e`)
 - ⬜ Next, in order (developer, 2026-11-09: "queue after we finish all remaining file server tasks - including updating the dbs"): the review fixes on dev; Ocharo's SQLite apps onto PostgreSQL (decision pending); the Ocharo convention sweep; then one real sign-out on dev proves the signal end to end, and the goal closes
 - ⬜ After the goal closes, sweep included (developer, 2026-11-09): Files' whole-vector pass over its P1 backlog
 - Every lane records what it builds in its repos' active version track (developer, 2026-11-09)
@@ -56,6 +57,10 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 | identity | `fs-identity`, `local_0c946875-f69b-41dc-9a02-5f1f96280bd6` | `workbench/wow-two-sdk-beta/wow-two-sdk-beta.identity` | what Identity must add or change for Files, built as the whole vector (#25) |
 | files | `fs-files`, `local_de3cbee3-34cc-4f86-a7a5-b5a540099ac0` | `workbench/wow-two-sdk-beta/wow-two-sdk-beta.files` | t8 against the settled rules and Identity as built; Files' side of every contract (#26) |
 | platform | `fs-platform`, `local_008e0cad-f745-41e8-9b9e-e943aedee76e` | every Ocharo repo under `workbench/mfts-projects/ventures/ocharo-hq/ocharo-ws/workbench/`: `ocharo-platform`, and since 2026-11-09 `ocharo-marketing`, `ocharo-studio`, `ocharo-assets` (#42) | Ocharo's adoption: which media moves, in which order, through which Files instance (#27) |
+| oc-assets | `oc-assets`, `local_a8873c0c-336c-4ded-94c4-14920492c1b3` | `ocharo-assets` | from 2026-11-09: PostgreSQL move (first: proves the deploy shape) and convention sweep |
+| oc-studio | `oc-studio`, `local_4908f1a3-6c30-4b5a-9595-0a7d92e6265c` | `ocharo-studio` | PostgreSQL move (schema `studio`, data copied) after Assets, and convention sweep |
+| oc-marketing | `oc-marketing`, `local_46e34b1e-cb30-419f-b2cb-cf90a82cc101` | `ocharo-marketing` | PostgreSQL move (schemas `blog`, `marketing`) after Assets, and convention sweep |
+| oc-platform | `oc-platform`, `local_d42bc128-985d-4355-8238-86feed966b23` | `ocharo-platform` | convention sweep (Desk first); PostgreSQL move of Brand and Catalogue last |
 | wheelhouse | `fs-wheelhouse`, `local_65891b71-fc11-4074-8936-19f3f7b32d9e` | `workbench/wow-two-platform/wow-two-platform.wheelhouse` | Files' instances, their settings and keys, their registrations in each Identity (#28) |
 
 - The orchestrator is `WoW2 Files orchestration across four repos` (`local_0ecb6944-12ce-4bab-8083-0dc5ffc2d562`).
