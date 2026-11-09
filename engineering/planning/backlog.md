@@ -231,7 +231,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | fe previews: image and PDF | feature | P1; video, audio, text, code, archive in P2 |
 | fe file list and grid, share dialog, gate pages | feature | P1 |
 | Test kit: in-memory store, fake scanner, personas | feature | P1 |
-| fe `FileImage`: one file reference renders `srcset` over the image variants, with `sizes`, intrinsic size and lazy loading; apps never build file URLs | feature | P2; the developer, 2026-11-09: libs on top of Files that apps use; the first consumer is Ocharo's brand logo (`BrandLogo` over `FileImage`, in Ocharo's shared fe), replacing each app's own feed fetch and `<img>` |
+| fe `FileImage`: one file reference renders `srcset` over the image variants, with `sizes`, intrinsic size and lazy loading; apps never build file URLs | feature | P2; the developer, 2026-11-09: libs on top of Files that apps use; the first consumer is the brand logo: `<BrandLogo :height>` over `FileImage` picks the slot by theme, falls back to the master logo and then the name, and replaces each app's own feed fetch and `<img>`; `BrandLogo` ships in the core fe SDK until a brand SDK is extracted for product components (developer, 2026-11-09, design confirmed) |
 | Vector logos: SVG accepted and served sandboxed, so a logo stays sharp at every size | feature | P2; with the Brand app's upload rule (PNG, JPEG and WebP today) |
 | Avatar adapter for Identity's profile-picture port | feature | Identity P2; files-integration #20; once Identity lifts the port into `Identity.Abstractions` |
 

@@ -22,7 +22,11 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
   - Catalogue: test product `nimcha-v01` with one image; a member's `media/{sha}` answers 302 to Files and serves 144803 B, 1600×1200, the uploaded file's size
   - Catalogue release assets (platform `v0.1.32`, `369fa1d`): test catalogue `wave1-check` published as release `5c45c873`; the anonymous PDF download answers 302 with `no-store` to Files and serves `ocharo-wave1-check-en.pdf` (1 page), and the reader loads its page PNG from Files; the product page stayed out of export while `nimcha-v01` is a draft
   - fixed on the way: the trusted issuer typed without Identity's trailing `/` (wheelhouse); the mover's missing folder and closed WAL database (Files `v0.1.13`); deployed dev loading localhost links and the repo's local API key from `appsettings.Development.json` (Files `v0.1.15`)
-- ⬜ Next, all in the platform lane (#42): wave 2 in `ocharo-marketing` and `ocharo-studio`; wave 3 Desk; wave 4 `ocharo-assets`; then the cross-lane check
+- ✅ Wave 2 (Blog, Editorial, Marketing, Studio) on dev, 2026-11-09: marketing `v0.1.8`, studio `v0.1.12`, platform `v0.1.33`; Wheelhouse `v0.14.5` fixed a linked key hiding Brand's and Catalogue's own `Files:BaseUrl`
+  - Blog serves Brand's logo by reference (#11), anonymous, through Files; an Editorial draft cover, a Marketing asset and a Studio look thumbnail each upload and read back through Files, the bytes matching
+  - `marketing-assets` held 3 files on dev (5,066,568 B): wheelhouse pushes and verifies them, and a `marketing` restart fills their file ids by SHA-256
+  - open, not blocking: Studio's thumbnail came back 240×34 px; Studio still reports SQLite storage, which `database.md:15` bans
+- ⬜ Next, all in the platform lane (#42): wave 3 Desk; wave 4 `ocharo-assets`; then the cross-lane check
 - Every lane records what it builds in its repos' active version track (developer, 2026-11-09)
 - ✅ Identity's P1 gate released (#41): `0655603`, NuGet `10.0.30-beta` on nuget.org, image `v0.5.21`, npm `0.0.15` unchanged (2026-11-08); Files re-pins `Identity.Auth` and `Identity.Testing` to `10.0.30-beta`
 - ✅ Ocharo's Identity registers Files from platform `v0.1.28` (`8cff011`); its 2 owner keys on `ocharo-dev` wait for the wheelhouse lane's console access
