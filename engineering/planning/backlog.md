@@ -147,6 +147,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Folders as virtual paths: move, rename, copy | feature | P2 |
 | Tags and custom metadata per file | feature | P2 |
 | Versions of a named file, restore a version | feature | P2 |
+| How another service reads, edits and writes a file back (AI, image editing): an edit that loses nothing (rotate) rewrites the file and keeps the previous version for undo; tries that branch (filters) save as new files linked to their source; analyse with the developer before building | analysis | P1 for the analysis; developer 2026-11-09: "how another service will be able to edit and write the file ? can file server serve different versions of the same file ?" |
 | Lifecycle rule: move cold files to a cheaper class | feature | P2 |
 | Integrity scrub: re-hash a sample, repair from backup | feature | P2 |
 | Storage classes: hot disk, object storage, archive | feature | P3 |
@@ -204,6 +205,7 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Item | Type | Notes |
 |---|---|---|
 | Usage by tenant, organization and app; largest and recent files | feature | P1 |
+| Console layout for a tenant's admins (Ocharo first): storage used by file category and by app, largest files, the tenant's policies and configs; the layout is reviewed with the developer before it's built | design | P1; developer 2026-11-09: "necessary for ocharo admin to check files, file server storage and be able to see category of files taking the much space and for different configs" |
 | File browser with preview, download, delete, restore | feature | P1 |
 | Audit view | feature | P1 |
 | Shares: list and revoke | feature | P1 |
