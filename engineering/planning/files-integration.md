@@ -29,7 +29,10 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 - ✅ Wave 3 (Desk) on dev, 2026-11-09: platform `v0.1.34` (`2caf43b`), migration `012-files` applied at Desk's boot; the four `postgres-column` plans found 0 files
   - a preparation upload reads back with the same SHA-256; a sourcing upload redirects to Files, its thumbnail to the 480 px WebP variant
   - not yet read back: export download and commerce media, left for the cross-lane check
-- ⬜ Next: wave 4 `ocharo-assets` waits on the `assets-release` client secret, typed by wheelhouse once the developer sends the step (auto mode refused the relay as `Secret-Store Writes`); then the cross-lane check
+- ✅ Wave 4 (Assets) on dev, 2026-11-09: platform `v0.1.35` adds Identity client 7 `assets-release` (client credentials, `files.write`), its secret typed by the developer; `release-garments` uploaded 7 GLBs and the manifest (`bdb95c57…`), each served anonymously from `t/ocharo/m/{sha}`, and Studio's sync rewrote them byte-identical
+- ✅ Cross-lane review, 2026-11-09: a fresh reviewer found 0 high, 0 medium, 4 low; all fixed (Files `v0.1.16` mover snapshot, Wheelhouse `639773d` token expiry, Catalogue deleted-file check `830e905`, tenant-prefixed garment links); the signal path is wired (`SignalUrl` matches, unsigned posts answer 401)
+- ⬜ Next, in order (developer, 2026-11-09: "queue after we finish all remaining file server tasks - including updating the dbs"): the review fixes on dev; Ocharo's SQLite apps onto PostgreSQL (decision pending); the Ocharo convention sweep; then one real sign-out on dev proves the signal end to end, and the goal closes
+- ⬜ After the goal closes, sweep included (developer, 2026-11-09): Files' whole-vector pass over its P1 backlog
 - Every lane records what it builds in its repos' active version track (developer, 2026-11-09)
 - ✅ Identity's P1 gate released (#41): `0655603`, NuGet `10.0.30-beta` on nuget.org, image `v0.5.21`, npm `0.0.15` unchanged (2026-11-08); Files re-pins `Identity.Auth` and `Identity.Testing` to `10.0.30-beta`
 - ✅ Ocharo's Identity registers Files from platform `v0.1.28` (`8cff011`); its 2 owner keys on `ocharo-dev` wait for the wheelhouse lane's console access
