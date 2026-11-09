@@ -28,22 +28,25 @@
 
 ## API
 
-Under `/api/files/v1`, the be sdk `{ data }` envelope and JSON preset.
+Every route sits under `/api/files/v1`, written in full below; a caller joins it to the instance URL
+(`https://files.{tenant domain}/api/files/v1/imports`). Every JSON answer is the be sdk envelope `{ "data": … }`
+in its JSON preset, so a caller reads `data.token`, never `token` at the top level. A refusal answers a problem with
+its `code`, no `data`.
 
 | Route | Caller | Body | Answer |
 |---|---|---|---|
-| `POST /imports` | operator | `{ "tenant": "ocharo", "sources": ["brand-media"] }` | `201 { "id", "token", "expiresAt" }` |
-| `POST /imports/{id}/tokens` | operator | — | `200 { "token", "expiresAt" }`; `404` unknown |
-| `GET /imports/{id}` | operator, its token | — | `200 { "id", "tenant", "state", "sources": [{ "id", "files", "bytes", "failed" }] }` |
-| `GET /imports/{id}/map?cursor=&limit=` | operator, its token | — | `200 { "items": [{ "source", "key", "reference", "fileId", "sha256", "size" }], "next" }` |
-| `POST /imports/{id}/files` | its token | multipart, below | `201` stored · `200` already there · `409` · `422` |
+| `POST /api/files/v1/imports` | operator | `{ "tenant": "ocharo", "sources": ["brand-media"] }` | `201 { "data": { "id", "token", "expiresAt" } }` |
+| `POST /api/files/v1/imports/{id}/tokens` | operator | — | `200 { "data": { "token", "expiresAt" } }`; `404` unknown |
+| `GET /api/files/v1/imports/{id}` | operator, its token | — | `200 { "data": { "id", "tenant", "state", "sources": [{ "id", "files", "bytes", "failed" }] } }` |
+| `GET /api/files/v1/imports/{id}/map?cursor=&limit=` | operator, its token | — | `200 { "data": { "items": [{ "source", "key", "reference", "fileId", "sha256", "size" }], "next" } }` |
+| `POST /api/files/v1/imports/{id}/files` | its token | multipart, below | `201` stored · `200` already there · `409` · `422` |
 
 - `tenant` matches `FilesConstants.TenantIdPattern`; `sources` lists 1–50 distinct ids; `state` is `open` in P1.
 - A token for another import, an expired one or a bad mac answers `401`.
 
-### `POST /imports/{id}/files`
+### `POST /api/files/v1/imports/{id}/files`
 
-Fields before the file part, as `POST /files` reads them:
+Fields before the file part, as `POST /api/files/v1/files` reads them:
 
 | Field | Required | Meaning |
 |---|---|---|
@@ -55,7 +58,7 @@ Fields before the file part, as `POST /files` reads them:
 | `contentType` | no | default: detected from the bytes |
 | `app` | no | default: the reference's text before its first `.` |
 
-- Answer `{ "fileId", "sha256", "size", "created" }`.
+- Answer `{ "data": { "fileId", "sha256", "size", "created" } }`.
 - Idempotent per (import, source, key): the same SHA-256 again answers `200` with the stored file; another SHA-256
   answers `409`; bytes whose hash differs from `sha256` answer `422` and count as failed.
 - The file uploads as `Private` through the module, so dedup, type checks, variants and audit run as for any upload; the
@@ -87,6 +90,10 @@ Standard input, one JSON document:
   "root": "/source"
 }
 ```
+
+- `files` is the instance URL, not a route; a missing trailing slash is added. `push` and `verify` page
+  `GET {files}api/files/v1/imports/{import}/map`, and `push` posts to `POST {files}api/files/v1/imports/{import}/files`;
+  each call sends `X-Import-Token` and reads the answer's `data`.
 
 | Kind | Reads | Key | Placeholders |
 |---|---|---|---|

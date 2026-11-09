@@ -1,6 +1,6 @@
 # wow-two-sdk-beta.files — Contract
 
-*Last updated: 2026-11-08*
+*Last updated: 2026-11-09*
 
 > One broker set, the same in every form: a product moves between Form 1, an owner instance and the shared files host
 > by configuration only. Rules: wow-two-ws/conventions/development/capability-forms.md § Contract. Design evidence:
@@ -69,32 +69,35 @@
 
 ## HTTP API
 
-Base `/api/files/v1` (`FilesRouteConstants.Api`); the service mirrors the brokers.
+Every route sits under `/api/files/v1` (`FilesRouteConstants.Api`), written in full below; a caller joins it to the
+instance URL (`https://files.{domain}/api/files/v1/files`). Every JSON `2xx` body is the be sdk envelope
+`{ "data": … }`, so a caller reads `data`, never the top level; `…/content` answers the bytes. The service mirrors
+the brokers.
 
 | Method and path | Broker call | Scope |
 |---|---|---|
-| `POST /files` (multipart) | `UploadAsync` | `files.write` |
-| `GET /files` · `GET /files/{id}` | `ListAsync` · `GetAsync` | `files.read` |
-| `GET /files/{id}/content` | `OpenReadAsync` | `files.read` |
-| `PATCH /files/{id}` · `DELETE /files/{id}` · `POST /files/{id}/restore` | update · delete · restore | `files.write` |
-| `PUT·DELETE /files/{id}/references/{recordType}/{recordId}` · `GET /files/{id}/references` | references | `files.write` · `files.read` |
-| `POST /files/{id}/urls` (`UrlSpec`) · `GET /files/{id}/public-url?width=` | `IssueAsync` · `GetPublicUrlAsync` | `files.read` |
-| `GET /audit?fileId=&action=&cursor=&limit=` | audit `ListAsync` | `files.admin` |
-| `POST /uploads` · `POST /uploads/{id}/complete` · `DELETE /uploads/{id}` | tickets | planned |
-| `POST /shares` · `GET /shares` · `PATCH·DELETE /shares/{id}` | shares | `files.share`; planned |
-| `GET /usage` · `PUT /policies/{app}` | admin | `files.admin`; planned |
-| `GET·POST·PATCH /tenants` · `POST /tenants/{id}/keys` · `POST /tenants/{id}/export` | shared host operator | `files.tenants`; planned |
-| `POST /imports` · `GET /imports/{id}` | migration | `files.admin`; planned |
+| `POST /api/files/v1/files` (multipart) | `UploadAsync` | `files.write` |
+| `GET /api/files/v1/files` · `GET /api/files/v1/files/{id}` | `ListAsync` · `GetAsync` | `files.read` |
+| `GET /api/files/v1/files/{id}/content` | `OpenReadAsync` | `files.read` |
+| `PATCH /api/files/v1/files/{id}` · `DELETE /api/files/v1/files/{id}` · `POST /api/files/v1/files/{id}/restore` | update · delete · restore | `files.write` |
+| `PUT·DELETE /api/files/v1/files/{id}/references/{recordType}/{recordId}` · `GET /api/files/v1/files/{id}/references` | references | `files.write` · `files.read` |
+| `POST /api/files/v1/files/{id}/urls` (`UrlSpec`) · `GET /api/files/v1/files/{id}/public-url?width=` | `IssueAsync` · `GetPublicUrlAsync` | `files.read` |
+| `GET /api/files/v1/audit?fileId=&action=&cursor=&limit=` | audit `ListAsync` | `files.admin` |
+| `POST /api/files/v1/uploads` · `POST /api/files/v1/uploads/{id}/complete` · `DELETE /api/files/v1/uploads/{id}` | tickets | planned |
+| `POST /api/files/v1/shares` · `GET /api/files/v1/shares` · `PATCH·DELETE /api/files/v1/shares/{id}` | shares | `files.share`; planned |
+| `GET /api/files/v1/usage` · `PUT /api/files/v1/policies/{app}` | admin | `files.admin`; planned |
+| `GET·POST·PATCH /api/files/v1/tenants` · `POST /api/files/v1/tenants/{id}/keys` · `POST /api/files/v1/tenants/{id}/export` | shared host operator | `files.tenants`; planned |
+| `POST /api/files/v1/imports` · `POST /api/files/v1/imports/{id}/tokens` · `GET /api/files/v1/imports/{id}` · `GET /api/files/v1/imports/{id}/map` · `POST /api/files/v1/imports/{id}/files` | imports, not a broker (`product/features/imports.md` § API) | operator key (`files.tenants`) · import token (`X-Import-Token`) |
 
 - scopes: `FilesScopeConstants` (`files.read`, `files.write`, `files.share`, `files.admin`, `files.tenants`), what the
   app may ask; a person also needs the matching `FilesPermissionConstants` permission (`files:read`, `files:write`,
   `files:share`, `files:admin`); Identity issues both (T8 C3, § Policy shape).
 - `Idempotency-Key` on every creating `POST`; cursor paging; filters `app`, `owner`, `kind`, `state`, `createdAfter`,
   `includeDeleted`.
-- `POST /files` reads its multipart body as a stream: fields (`name`, `appId`, `contentType`, `visibility`,
+- `POST /api/files/v1/files` reads its multipart body as a stream: fields (`name`, `appId`, `contentType`, `visibility`,
   `expiresAtUtc`) before the file part; the app policy's size limit stops the read.
-- wire: the be sdk `{ data }` envelope and JSON preset; `FileId` as its string; `FileKind` in kebab case
-  (`raw-photo`, `model-3d`); a problem carries `code` = the `AppErrorType`, which the Client maps back.
+- wire: the be sdk `{ "data": … }` envelope on every JSON `2xx` and its JSON preset; `FileId` as its string; `FileKind`
+  in kebab case (`raw-photo`, `model-3d`); a problem carries `code` = the `AppErrorType`, which the Client maps back.
 - callers: a token from a trusted issuer (`Files:Auth:Issuers`) — client credentials for a service, token exchange for a
   person — or, for a tenant outside Identity, an API key in `X-Api-Key`; the issuer's or the key's tenant is the
   caller's tenant (`partition`), never a claim the caller sends. Each action names its scope policy.
