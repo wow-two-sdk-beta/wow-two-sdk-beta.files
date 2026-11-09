@@ -7,7 +7,7 @@ The packages ship separately, from `publish-packages.yml` (`engineering/scripts/
 |---|---|
 | `deploy.yml` | descriptor 2: one service, `files` (`/health`, 256 MB, `needs: [postgres]`, the typed required key `DatabaseSettings:ConnectionString`, a `data` volume for the bytes); sites `app` (public, primary) and `console` (private), both at `/` and `/api`; `dotnetEnvironment: true` and the `verify` dev check |
 | `Dockerfile` | three stages: build the frontend workspace (`fe-files`, then `apps/web`), publish `service/Files.Api` with its packages and the pages in `wwwroot`, run on `aspnet` with `curl` |
-| `docker-compose.yml` | local verification: the image with its SQLite file on a named volume, on `http://127.0.0.1:8393` |
+| `docker-compose.yml` | local verification: the image on its own PostgreSQL (`postgres:18-alpine`), bytes on a named volume, on `http://127.0.0.1:8393` |
 
 ## Contract with Wheelhouse
 
@@ -39,12 +39,30 @@ The packages ship separately, from `publish-packages.yml` (`engineering/scripts/
 
 ## Local run
 
-- `appsettings.Development.json` holds a local-only key: send `X-Api-Key: files_LocalDevKey0123456789abcdefghijk` to act in the
-  `default` tenant with every scope. No deployment accepts it.
-- The store: `appsettings.Local.json` (this machine's, git-ignored) names it — a local PostgreSQL's
-  `DatabaseSettings:ConnectionString`, or `DatabaseSettings:Provider: Sqlite` with `Data Source=files.db`. Deployed dev
-  runs as .NET Development too, so `appsettings.Development.json` never chooses the engine. A `files.db` from before the
-  set `files` holds its history in `migration_history`; delete it, and the next run rebuilds it.
+- Deployed dev runs as .NET Development, so `appsettings.Development.json` holds defaults only: no loopback address, key
+  or engine choice. `DeployedDevelopmentTests` boots the host as deployed dev and fails on any of them.
+- A local run's values live in `appsettings.Local.json` beside `appsettings.json`: this machine's, git-ignored, out of
+  every image, and read only by the `https` launch profile (`LOCAL_SETTINGS=true`). It names the store, the local link
+  host, a signing key and a local API key:
+
+```json
+{
+  "DatabaseSettings": { "Provider": "Sqlite", "ConnectionString": "Data Source=files.db" },
+  "Files": {
+    "Delivery": { "BaseUrl": "https://localhost:8392", "SigningKey": "<32+ characters of your own>" },
+    "Auth": {
+      "ApiKeys": [
+        { "Id": "local", "Sha256": "<SHA-256 of your key>", "TenantId": "default", "Scopes": [ "files.read", "files.write", "files.admin" ] }
+      ]
+    }
+  }
+}
+```
+
+- The key is `files_` plus 32 letters or digits; its hash is `printf '%s' "$KEY" | shasum -a 256`. Send it as `X-Api-Key`
+  to act in the `default` tenant with every scope.
+- The store may instead be a local PostgreSQL's `DatabaseSettings:ConnectionString`. A `files.db` from before the set
+  `files` holds its history in `migration_history`; delete it, and the next run rebuilds it.
 
 ```bash
 docker build --build-arg APP_VERSION=0.1.99 --build-arg VCS_REF=$(git rev-parse HEAD) \
