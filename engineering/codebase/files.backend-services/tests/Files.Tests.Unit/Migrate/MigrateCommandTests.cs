@@ -135,6 +135,27 @@ public sealed class MigrateInputTests
         run.Code.Should().Be(MigrateExitCodeConstants.Refused);
     }
 
+    [Theory]
+    [InlineData("missing", "b", "no such table: missing")]
+    [InlineData("a", "missing", "no such column: \"missing\"")]
+    public async Task RunAsync_ShouldNameTheTableOrColumn_AndExitOne_WhenTheSqliteSourceLacksIt(string table, string content, string error)
+    {
+        using var root = new TempFolder();
+        using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={Path.Combine(root.Path, "c.db")};Pooling=False"))
+        {
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA journal_mode=WAL; CREATE TABLE a (k TEXT, b BLOB);";
+            command.ExecuteNonQuery();
+        }
+
+        var source = new JsonObject { ["id"] = "c", ["kind"] = "sqlite-column", ["database"] = "c.db", ["table"] = table, ["key"] = "k", ["content"] = content };
+        var run = await Mover.RunAsync(MigrateVerbConstants.Plan, Mover.Input(source, root: root.Path), Mover.Options());
+
+        run.Code.Should().Be(MigrateExitCodeConstants.Refused);
+        run.Stderr.Should().Contain(error);
+    }
+
     [Fact]
     public async Task RunAsync_ShouldNameTheSqliteError_AndExitTwo_WhenTheDatabaseIsUnreadable()
     {
