@@ -105,9 +105,12 @@ Standard input, one JSON document:
 - A missing `type` lets Files detect the type from the bytes.
 - A `volume-folder` whose folder does not exist reads as an empty source (0 files, exit `0`, a note on stderr): a
   product creates its blob folders on its first write. A missing `root` or a `path` that names a file is refused.
-- A `sqlite-column` database in WAL mode with no `-wal` file beside it (its product stopped) opens `immutable`, so a
-  read-only mount needs no `-wal` or `-shm` file; a live one reads through its `-wal`. The mover never writes beside
-  the source.
+- A `sqlite-column` database in WAL mode with no `-wal` file beside it — its product stopped, or idle with its pooled
+  connections closed — is copied to the mover's temp folder first, and the run reads the copy. A read-only mount needs
+  no `-wal` or `-shm` file, and a write by the product mid-read never tears it. The copy holds only while the main
+  file's size and write time stay the same across it; after 3 changed copies the run exits `2`. The container needs
+  free disk as large as the database. A live database, its `-wal` present, reads through it under SQLite's locks. The
+  mover never writes beside the source.
 
 | Verb | Does |
 |---|---|

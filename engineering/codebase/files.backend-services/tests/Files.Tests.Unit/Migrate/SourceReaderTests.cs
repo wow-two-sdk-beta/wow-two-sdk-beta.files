@@ -1,6 +1,7 @@
 using System.Data;
 using System.Text;
 using AwesomeAssertions;
+using Files.Api.Migrate.Api;
 using Files.Api.Migrate.Input;
 using Files.Api.Migrate.Sources;
 using Microsoft.Data.Sqlite;
@@ -174,7 +175,7 @@ public sealed class SqliteColumnSourceReaderTests : IDisposable
         ReadOnly(folder, true);
         try
         {
-            var reader = SqliteColumnSourceReader.For(Request(source));
+            using var reader = SqliteColumnSourceReader.For(Request(source));
             var items = await VolumeFolderSourceReaderTests.ToListAsync(reader.ReadAsync(CancellationToken.None));
 
             SqliteColumnSourceReader.IsClosedWal(database).Should().BeTrue();
@@ -186,6 +187,83 @@ public sealed class SqliteColumnSourceReaderTests : IDisposable
         {
             ReadOnly(folder, false);
         }
+    }
+
+    [Fact]
+    public async Task ReadAsync_ShouldReadAClosedWalDatabaseAsItWasAtOpen_WhenItsIdleProductWritesMidRead()
+    {
+        // An idle product's pool closes its last connection, which checkpoints and removes the -wal; its next write and
+        // close checkpoint into the main file while the mover reads it.
+        const int rows = 6;
+        Database("data/ocharo-catalogue.db",
+            "PRAGMA journal_mode=WAL; CREATE TABLE catalogue_release_assets (Sha256 TEXT NOT NULL PRIMARY KEY, ContentType TEXT NOT NULL, Bytes BLOB NOT NULL)",
+            [.. Enumerable.Range(0, rows).Select(row => ($"INSERT INTO catalogue_release_assets VALUES ('k{row}', 'image/png', $bytes)", (byte[]?)Blob(0x11)))]);
+        var database = Path.Combine(root.Path, "data", "ocharo-catalogue.db");
+        var source = Source(key: ["Sha256"], content: "Bytes", type: "ContentType", database: "data/ocharo-catalogue.db");
+        var read = new List<byte[]>();
+        string? snapshot;
+
+        using (var reader = SqliteColumnSourceReader.For(Request(source)))
+        {
+            await foreach (var item in reader.ReadAsync(CancellationToken.None))
+            {
+                await using (var content = item.OpenContent())
+                {
+                    using var copy = new MemoryStream();
+                    await content.CopyToAsync(copy);
+                    read.Add(copy.ToArray());
+                }
+
+                if (read.Count == 1)
+                    Write(database, "UPDATE catalogue_release_assets SET Bytes = $bytes", Blob(0x22));
+            }
+
+            snapshot = reader.SnapshotPath;
+        }
+
+        File.Exists(database + "-wal").Should().BeFalse("the writer's close checkpointed into the main file");
+        read.Should().HaveCount(rows).And.AllSatisfy(bytes => bytes.Should().Equal(Blob(0x11)));
+        snapshot.Should().NotBeNull("the reader reads its own copy").And.NotStartWith(root.Path);
+    }
+
+    [Fact]
+    public void Dispose_ShouldDeleteTheSnapshot()
+    {
+        Database("ocharo-catalogue.db", "PRAGMA journal_mode=WAL; CREATE TABLE catalogue_release_assets (Sha256 TEXT, ContentType TEXT, Bytes BLOB)");
+        var reader = SqliteColumnSourceReader.For(Request(Source(key: ["Sha256"], content: "Bytes")));
+
+        _ = reader.CountAsync(CancellationToken.None).GetAwaiter().GetResult();
+        var snapshot = reader.SnapshotPath;
+        reader.Dispose();
+
+        snapshot.Should().NotBeNull();
+        File.Exists(snapshot).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Take_ShouldCopyAgain_WhenTheDatabaseChangesDuringTheCopy_AndFailAfterThreeChangedCopies()
+    {
+        Database("a.db", "PRAGMA journal_mode=WAL; CREATE TABLE a (k TEXT)");
+        var database = Path.Combine(root.Path, "a.db");
+        var copies = 0;
+
+        var snapshot = SqliteSnapshot.Take(database, root.Path, (from, to) =>
+        {
+            File.Copy(from, to, overwrite: true);
+            if (++copies == 1)
+                Write(database, "INSERT INTO a VALUES ('x')", null);
+        });
+
+        copies.Should().Be(2);
+        File.Exists(snapshot).Should().BeTrue();
+        var always = () => SqliteSnapshot.Take(database, root.Path, (from, to) =>
+        {
+            File.Copy(from, to, overwrite: true);
+            Write(database, "INSERT INTO a VALUES ('y')", null);
+        });
+
+        always.Should().Throw<MigrateUnavailableException>().WithMessage("*changed*");
+        Directory.GetFiles(root.Path, "files-mover-*").Should().Equal(snapshot);
     }
 
     [Fact]
@@ -229,6 +307,19 @@ public sealed class SqliteColumnSourceReaderTests : IDisposable
     {
         if (!OperatingSystem.IsWindows())
             File.SetUnixFileMode(folder, readOnly ? UnixFileMode.UserRead | UnixFileMode.UserExecute : UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+    }
+
+    private static byte[] Blob(byte value) => Enumerable.Repeat(value, 16 * 1024).ToArray();
+
+    private static void Write(string database, string sql, byte[]? bytes)
+    {
+        using var connection = new SqliteConnection($"Data Source={database};Pooling=False");
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        if (bytes is not null)
+            command.Parameters.AddWithValue("$bytes", bytes);
+        command.ExecuteNonQuery();
     }
 
     private void Database(string file, string create, params (string Sql, byte[]? Bytes)[] rows)

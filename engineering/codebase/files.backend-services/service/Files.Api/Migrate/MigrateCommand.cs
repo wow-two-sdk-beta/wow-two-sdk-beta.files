@@ -95,6 +95,7 @@ public static class MigrateCommand
         finally
         {
             output.Result(verb, counters);
+            (reader as IDisposable)?.Dispose();
         }
     }
 
