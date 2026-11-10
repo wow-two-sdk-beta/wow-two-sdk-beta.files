@@ -14,8 +14,9 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 
 ## Status
 
+- ✅ Goal done, 2026-11-10: FSS (Files) `v0.1.18` runs with Ocharo's Identity on `files-dev`, deployed by Wheelhouse, and serves every Ocharo app's dev media; the developer reviews the built result from here (#33)
 - ✅ M1 analysis: every lane wrote its picks (#33); #29 answered by the developer
-- 🔄 M2 build: Files `v0.1.15` (`d07447a`) runs on `files-dev` on PostgreSQL with WebP variants; platform `v0.1.31` stores Brand's and Catalogue's media in Files
+- ✅ M2 build: Files `v0.1.18` (`d5cb0e2`) runs on `files-dev` on PostgreSQL with WebP variants; Ocharo's apps store their media in Files (Waves 1–4 below)
 - ✅ Wave 1 (Brand, Catalogue) on dev, 2026-11-09:
   - dev held no media stored before Files (platform `2375a24`), so the three mover plans pass with 0 files (wheelhouse job `d1c6833d`)
   - Brand: a master logo uploaded by the Ocharo owner, release 1 published; anonymous `logo/social` and `logo/master` answer 302 to Ocharo's dev Files host and serve the uploaded SHA-256
@@ -34,8 +35,7 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 - The platform lane closes after the split (developer confirmed the 4 per-repo chats, 2026-11-09); the PostgreSQL decision: one `ocharo_{env}` database, a schema per app, data copied (`migrations.md`, `b241c9e`)
 - ✅ Ocharo on PostgreSQL and the convention sweep, 2026-11-09 (4 per-repo chats): every app runs on `ocharo_dev` in its own schema (Studio `v0.1.15`, Marketing and Blog `v0.1.11`, Brand and Catalogue `v0.2.7`; Assets keeps no state), each SQLite store copied by `import-sqlite` with every row verified, sessions surviving restarts (checked in Chrome); Desk's pre-Identity tables dropped (developer: "completely fine"); sweep rows fixed or recorded as exceptions in each repo's `convention-sweep.md`; be sdk `10.0.108`–`10.0.111` and fe `0.0.42` closed the SDK gaps the apps hit
 - ✅ Sign-out signal end to end, 2026-11-10: the developer signed out of Brand on dev at 01:59:07Z; Identity revoked 16 authorizations and posted signals to 9 URLs, all answering 202; Files' `POST /signals/identity` passed its signature check and answered 202 in 224 ms at 01:59:09Z, with no warning or error logged (wheelhouse lane, read-only)
-- ⬜ Left before the goal closes:
-  - Files `v0.1` closed (waits on the developer's OK): its last task, WebP variants on `files-dev`, already passes (Wave 1, Wave 3); backlog rows "Deploy the shared files host through Wheelhouse" and "Ocharo tenant on the shared host" done
+- ✅ Files `v0.1` closed (developer: "yes", 2026-11-10): `84399ac` ticked WebP variants on `files-dev` and dropped the two built backlog rows, `4208f7a` set v0.1 complete; v0.2 opens with the whole-vector pass
 - ✅ Rename to FSS, File Storage and Sharing (developer, 2026-11-10: "yes let's go with FSS, analyze and rename the image, the solution and service names acordingly"), under `wow-two-ws` `docs/platform-apps.md` § Naming:
   - renamed: the display name, `FSS.BackendServices.slnx`, the deploy service and its image (`fss`), with `verify.service` and `$VERIFY_SERVICE_FSS` in the same commit
   - kept, as SCFD kept `harvest`: the repo, NuGet ids and namespaces, the npm package, `Files.*` projects and code dirs, `Files:*` settings keys, Identity's `files` resource and scopes, Ocharo's hostnames
@@ -43,7 +43,7 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
   - order: Wheelhouse ships its migration control accepting `fss` (`FilesMigrationCommandHandler.cs:35`) and promotes; the files lane then pushes service and verify together; Wheelhouse refreshes the product's identity and checks health, signals and a read
   - shipped: Wheelhouse `v0.14.9` (`1b16071`) promoted at 02:29Z; Files `v0.1.17` (`568edd1`, image `ghcr.io/wow-two-sdk-beta/wow-two-sdk-beta.files/fss`, tracked in v0.1 as Iteration 11) deployed to `files-dev` at 02:44:51Z, container `files` replaced by `fss`, no data moved; the product reads FSS, health 200, status `0.1.17` `imaging: ok`, an unsigned signal post 401, and Brand's public logo served through Files (200, 10,691 B) (wheelhouse lane); `wow-two-ws` `a304231` renamed the catalog entry and `scripts/active.sh`
   - the app's own label: Files `v0.1.18` (`d5cb0e2`) names its status, traces, metrics and config check `fss`; deployed to `files-dev` at 02:53:58Z, status `"service":"fss"` `ok` `imaging: ok` (wheelhouse lane)
-- ⬜ After the goal closes, sweep included (developer, 2026-11-09): Files' whole-vector pass over its P1 backlog
+- ⬜ After the goal closes, sweep included (developer, 2026-11-09): Files' whole-vector pass over its P1 backlog; its rows for the admins' console layout, file editing and the fe `FileImage` sit in `backlog.md`, the WoW2 secrets CLI in Wheelhouse's backlog
 - ✅ oc-assets done 2026-11-09: `assets` `v0.1.7` on dev keeps no state (its unused SQLite log deleted), all 30 sweep rows fixed or excepted, `release-garments` re-verified
 - Findings outside the lanes, 2026-11-10:
   - ✅ be sdk `10.0.107-beta`'s SPA fallback answering 404 where 405 is due: a row in the be sdk backlog (`d85af4f`)
