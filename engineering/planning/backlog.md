@@ -1,6 +1,6 @@
 # wow-two-sdk-beta.files — Backlog
 
-*Last updated: 2026-11-08*
+*Last updated: 2026-11-10*
 
 Every unbuilt item, grouped; top of each group = next. Shipped work lives in [`version-track/`](version-track/).
 Shape: wow-two-ws/conventions/planning/version-track/version-track.md
@@ -248,8 +248,6 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Item | Type | Notes |
 |---|---|---|
 | Backups: bucket versioning plus a nightly copy elsewhere | engineering | P1; D6 picks the store |
-| Deploy the shared files host through Wheelhouse | product | P1; D6 picks the server |
-| Ocharo tenant on the shared host, Catalogue and Brand first | product | P1; through the Wheelhouse migration module |
 | Personal-data export and erasure per person | feature | P2; files-integration #19; needs an Identity erasure event distinct from `Removed` |
 | Abuse report and takedown on B | feature | P2 |
 | Restore drill: one tenant from backup | engineering | P2 |
