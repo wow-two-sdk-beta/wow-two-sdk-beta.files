@@ -8,6 +8,9 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 - Source: the feature vector [T2](../research/files-analysis-2026-10/t2-feature-vector.md). `P1` · `P2` · `P3` in
   Notes is the spec's tier (the Ocharo slice · the rest of the vector · a named consumer first), not a version.
 - Items the active version holds are in its doc, not here.
+- Next: the whole-vector pass over every `P1` row below opens v0.2, the admins' console layout (§ Console) first;
+  parked until the Events integration closes (developer, 2026-11-10: "let's hold off whole vector pass for now - add
+  to backlog - will come back to it after events server").
 
 ## Features
 
