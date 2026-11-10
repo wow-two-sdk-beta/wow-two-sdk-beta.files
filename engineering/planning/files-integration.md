@@ -28,20 +28,22 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
   - Studio's thumbnail framing fixed in studio `v0.1.13` (240×180); Studio, like the other SQLite apps, still stores data in SQLite, which `database.md:15` bans, and signs members out on restart: the Ocharo convention sweep carries both
 - ✅ Wave 3 (Desk) on dev, 2026-11-09: platform `v0.1.34` (`2caf43b`), migration `012-files` applied at Desk's boot; the four `postgres-column` plans found 0 files
   - a preparation upload reads back with the same SHA-256; a sourcing upload redirects to Files, its thumbnail to the 480 px WebP variant
-  - not yet read back: export download and commerce media, left for the cross-lane check
+  - read back 2026-11-10: an export's download redirects to Files, which served the 17,928 B `application/zip` (200); a preparation image attached to a brand's commerce draft keeps a Files reference, and Desk's read fetched its content from Files (200), 16,442 B with the same SHA-256; no warning or error on either side (wheelhouse lane, read-only)
 - ✅ Wave 4 (Assets) on dev, 2026-11-09: platform `v0.1.35` adds Identity client 7 `assets-release` (client credentials, `files.write`), its secret typed by the developer; `release-garments` uploaded 7 GLBs and the manifest (`bdb95c57…`), each served anonymously from `t/ocharo/m/{sha}`, and Studio's sync rewrote them byte-identical
 - ✅ Cross-lane review, 2026-11-09: a fresh reviewer found 0 high, 0 medium, 4 low; all fixed (Files `v0.1.16` mover snapshot, Wheelhouse `639773d` token expiry, Catalogue deleted-file check `830e905`, tenant-prefixed garment links); the signal path is wired (`SignalUrl` matches, unsigned posts answer 401)
 - The platform lane closes after the split (developer confirmed the 4 per-repo chats, 2026-11-09); the PostgreSQL decision: one `ocharo_{env}` database, a schema per app, data copied (`migrations.md`, `b241c9e`)
 - ✅ Ocharo on PostgreSQL and the convention sweep, 2026-11-09 (4 per-repo chats): every app runs on `ocharo_dev` in its own schema (Studio `v0.1.15`, Marketing and Blog `v0.1.11`, Brand and Catalogue `v0.2.7`; Assets keeps no state), each SQLite store copied by `import-sqlite` with every row verified, sessions surviving restarts (checked in Chrome); Desk's pre-Identity tables dropped (developer: "completely fine"); sweep rows fixed or recorded as exceptions in each repo's `convention-sweep.md`; be sdk `10.0.108`–`10.0.111` and fe `0.0.42` closed the SDK gaps the apps hit
 - ✅ Sign-out signal end to end, 2026-11-10: the developer signed out of Brand on dev at 01:59:07Z; Identity revoked 16 authorizations and posted signals to 9 URLs, all answering 202; Files' `POST /signals/identity` passed its signature check and answered 202 in 224 ms at 01:59:09Z, with no warning or error logged (wheelhouse lane, read-only)
 - ⬜ Left before the goal closes:
-  - Desk on dev: export download and commerce media read back through Files (waits on the developer signing in again)
   - Files `v0.1` closed: its last task, WebP variants on `files-dev`, already passes (Wave 1, Wave 3); backlog rows "Deploy the shared files host through Wheelhouse" and "Ocharo tenant on the shared host" done
-  - the findings outside the lanes (below) handed to their owners' backlogs
+  - the two pipelines findings (below), which wait on the developer
 - ⬜ Rename (developer, 2026-11-10): Files takes a name under `wow-two-ws` `docs/platform-apps.md` § Naming after the goal closes; as with SCFD, the display name, logo and solution file change while the `files` slug, packages and `files-dev` stay
 - ⬜ After the goal closes, sweep included (developer, 2026-11-09): Files' whole-vector pass over its P1 backlog
 - ✅ oc-assets done 2026-11-09: `assets` `v0.1.7` on dev keeps no state (its unused SQLite log deleted), all 30 sweep rows fixed or excepted, `release-garments` re-verified
-- ⬜ Findings outside the lanes, for their owners when the goal closes: pipelines `v0.15.0`'s backend check with `node` caches pnpm but never installs it (a lockfile change fails the post step); be sdk `10.0.107-beta`'s SPA fallback answers 404 where 405 is due; `ocharo-ws` `scripts/prepare-local-backend-sdk.py:23` still names `ocharo-motion`; a pipelines release containing `e134a47` (Marketing's M-6) waits on the developer
+- Findings outside the lanes, 2026-11-10:
+  - ✅ be sdk `10.0.107-beta`'s SPA fallback answering 404 where 405 is due: a row in the be sdk backlog (`d85af4f`)
+  - ✅ `ocharo-ws` `scripts/prepare-local-backend-sdk.py:23` named the old `ocharo-motion` folder: fixed in `a9dc44f`
+  - ⬜ pipelines `v0.15.0`'s backend check with `node` caches pnpm but never installs it (a lockfile change fails the post step), and a pipelines release containing `e134a47` (Marketing's M-6): both wait on the developer, since pipelines has no chat and releases by tag
 - Every lane records what it builds in its repos' active version track (developer, 2026-11-09)
 - ✅ Identity's P1 gate released (#41): `0655603`, NuGet `10.0.30-beta` on nuget.org, image `v0.5.21`, npm `0.0.15` unchanged (2026-11-08); Files re-pins `Identity.Auth` and `Identity.Testing` to `10.0.30-beta`
 - ✅ Ocharo's Identity registers Files from platform `v0.1.28` (`8cff011`); its 2 owner keys on `ocharo-dev` wait for the wheelhouse lane's console access
