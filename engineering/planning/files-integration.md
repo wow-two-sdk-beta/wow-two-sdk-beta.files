@@ -1,6 +1,6 @@
 # Files integration
 
-*Last updated: 2026-11-08*
+*Last updated: 2026-11-10*
 
 WoW2's file server (Files, this repo) runs with Identity and serves Ocharo, deployed by Wheelhouse. This is the goal's
 cross-lane track: vectors, lanes, order, contracts, decisions and done-when. The orchestrator chat writes it; each lane
@@ -33,7 +33,12 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 - ✅ Cross-lane review, 2026-11-09: a fresh reviewer found 0 high, 0 medium, 4 low; all fixed (Files `v0.1.16` mover snapshot, Wheelhouse `639773d` token expiry, Catalogue deleted-file check `830e905`, tenant-prefixed garment links); the signal path is wired (`SignalUrl` matches, unsigned posts answer 401)
 - The platform lane closes after the split (developer confirmed the 4 per-repo chats, 2026-11-09); the PostgreSQL decision: one `ocharo_{env}` database, a schema per app, data copied (`migrations.md`, `b241c9e`)
 - ✅ Ocharo on PostgreSQL and the convention sweep, 2026-11-09 (4 per-repo chats): every app runs on `ocharo_dev` in its own schema (Studio `v0.1.15`, Marketing and Blog `v0.1.11`, Brand and Catalogue `v0.2.7`; Assets keeps no state), each SQLite store copied by `import-sqlite` with every row verified, sessions surviving restarts (checked in Chrome); Desk's pre-Identity tables dropped (developer: "completely fine"); sweep rows fixed or recorded as exceptions in each repo's `convention-sweep.md`; be sdk `10.0.108`–`10.0.111` and fe `0.0.42` closed the SDK gaps the apps hit
-- ⬜ Next: one real sign-out on dev proves the Identity → Files signal end to end (waits on the developer's OK, since it ends their dev session); then the goal closes
+- ✅ Sign-out signal end to end, 2026-11-10: the developer signed out of Brand on dev at 01:59:07Z; Identity revoked 16 authorizations and posted signals to 9 URLs, all answering 202; Files' `POST /signals/identity` passed its signature check and answered 202 in 224 ms at 01:59:09Z, with no warning or error logged (wheelhouse lane, read-only)
+- ⬜ Left before the goal closes:
+  - Desk on dev: export download and commerce media read back through Files (waits on the developer signing in again)
+  - Files `v0.1` closed: its last task, WebP variants on `files-dev`, already passes (Wave 1, Wave 3); backlog rows "Deploy the shared files host through Wheelhouse" and "Ocharo tenant on the shared host" done
+  - the findings outside the lanes (below) handed to their owners' backlogs
+- ⬜ Rename (developer, 2026-11-10): Files takes a name under `wow-two-ws` `docs/platform-apps.md` § Naming after the goal closes; as with SCFD, the display name, logo and solution file change while the `files` slug, packages and `files-dev` stay
 - ⬜ After the goal closes, sweep included (developer, 2026-11-09): Files' whole-vector pass over its P1 backlog
 - ✅ oc-assets done 2026-11-09: `assets` `v0.1.7` on dev keeps no state (its unused SQLite log deleted), all 30 sweep rows fixed or excepted, `release-garments` re-verified
 - ⬜ Findings outside the lanes, for their owners when the goal closes: pipelines `v0.15.0`'s backend check with `node` caches pnpm but never installs it (a lockfile change fails the post step); be sdk `10.0.107-beta`'s SPA fallback answers 404 where 405 is due; `ocharo-ws` `scripts/prepare-local-backend-sdk.py:23` still names `ocharo-motion`; a pipelines release containing `e134a47` (Marketing's M-6) waits on the developer
