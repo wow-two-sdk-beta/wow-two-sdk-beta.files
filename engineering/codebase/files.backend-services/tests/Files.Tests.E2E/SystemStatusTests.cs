@@ -27,7 +27,7 @@ public sealed class SystemStatusTests(FilesApiFixture fixture)
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var status = body.RootElement.GetProperty("data");
-        status.GetProperty("service").GetString().Should().Be("files");
+        status.GetProperty("service").GetString().Should().Be("fss");
         status.GetProperty("status").GetString().Should().Be("ok");
         status.GetProperty("version").GetString().Should().NotBeNullOrWhiteSpace().And.NotBe("unknown");
         status.GetProperty("imaging").GetString().Should().Be("ok");

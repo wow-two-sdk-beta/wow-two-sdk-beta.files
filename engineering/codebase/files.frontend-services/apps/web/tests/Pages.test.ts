@@ -12,7 +12,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const status = { data: { service: 'files', status: 'ok', version: '0.1.4+abc1234' } };
+const status = { data: { service: 'fss', status: 'ok', version: '0.1.4+abc1234' } };
 
 /** Mounts the app at `path`, routed as in the browser but over memory history. */
 async function renderAt(path: string) {

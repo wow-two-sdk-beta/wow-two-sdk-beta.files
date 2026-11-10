@@ -18,7 +18,7 @@ public static partial class HostConfiguration
         // the console are served from the same host.
         builder.AddApiDefaults(options =>
         {
-            options.ServiceName = "files";
+            options.ServiceName = "fss";
             options.EnableOtlpExporters = false;
             options.EnableHttpsRedirection = !builder.Environment.IsDevelopment();
             options.SpaHosting = _ => { };

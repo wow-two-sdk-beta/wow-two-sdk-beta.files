@@ -12,7 +12,7 @@ namespace Files.Api.Status.Controllers;
 public sealed class SystemController : ControllerBase
 {
     /// <summary>Holds the name the service reports.</summary>
-    private const string ServiceName = "files";
+    private const string ServiceName = "fss";
 
     /// <summary>Reports service liveness.</summary>
     /// <returns>The service name, liveness state and running version.</returns>
