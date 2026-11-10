@@ -19,7 +19,7 @@ engineering/             ← the HOW
 ├── deployment/          ← deploy.yml · Dockerfile · docker-compose.yml · deployment.md
 ├── research/ · scripts/ ← analyses · release helpers publish-packages.yml calls
 └── codebase/            ← THE CODE — only place code lives
-    ├── files.backend-services/    ← Files.BackendServices.slnx: packages/{Abstractions,Formats,Module,Client,Server,Testing} · service/Files.Api · tests/Files.Tests.*
+    ├── files.backend-services/    ← FSS.BackendServices.slnx: packages/{Abstractions,Formats,Module,Client,Server,Testing} · service/Files.Api · tests/Files.Tests.*
     └── files.frontend-services/   ← pnpm workspace: packages/fe-files (npm) · apps/web (hosted pages + console)
 ```
 

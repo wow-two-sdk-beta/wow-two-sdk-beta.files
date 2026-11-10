@@ -15,7 +15,7 @@ Files for every product — store, upload, transform, compress, share and serve 
 | `WoW2.Sdk.Beta.Be.Files.Server` — delivery and share routes, tenancy | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Server --prerelease` |
 | `WoW2.Sdk.Beta.Be.Files.Testing` — fake and conformance suite | nuget.org | `10.y.z-beta` · `be-v*` | `dotnet add package WoW2.Sdk.Beta.Be.Files.Testing --prerelease` |
 | `@wow-two-beta/fe-files` — contract mirror, upload kit, share UI, `/icons` | npm | `0.0.z` · `fe-v*` | `pnpm add @wow-two-beta/fe-files` |
-| `files` service image — roles `api`, `worker`, `delivery`; `Single` or `Shared` tenancy | GHCR | `X.Y.Z` · `v*` | `ghcr.io/wow-two-sdk-beta/wow-two-sdk-beta.files/files`, deployed by Wheelhouse |
+| `fss` service image — roles `api`, `worker`, `delivery`; `Single` or `Shared` tenancy | GHCR | `X.Y.Z` · `v*` | `ghcr.io/wow-two-sdk-beta/wow-two-sdk-beta.files/fss`, deployed by Wheelhouse |
 
 Planned, each with its first code: `Files.Compression`, `Files.Images` and `Files.Documents` (moved from core
 `Media/`), `Files.Video`, `Files.Scanning` — `engineering/architecture/package-registry.md`.
@@ -57,7 +57,7 @@ cd engineering/codebase/files.frontend-services && pnpm install --frozen-lockfil
 ```bash
 # Backend: unit, integration, E2E, conformance and migration tiers on SQLite, plus a PostgreSQL lane when Docker is
 # reachable (FILES_TESTS_POSTGRES=off skips it); the build also builds the frontend workspace, so Node and pnpm are required
-cd engineering/codebase/files.backend-services && dotnet test Files.BackendServices.slnx
+cd engineering/codebase/files.backend-services && dotnet test FSS.BackendServices.slnx
 
 # Frontend: lint, tests (builds fe-files first), production build, packed-consumer check
 cd engineering/codebase/files.frontend-services && pnpm lint && pnpm test && pnpm build && pnpm check:package

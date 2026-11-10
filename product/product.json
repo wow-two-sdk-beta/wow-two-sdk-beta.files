@@ -1,6 +1,0 @@
-{
-  "$schema": "../../../../conventions/design/identity/product.schema.json",
-  "manifest": 1,
-  "name": "FSS",
-  "description": "File Storage and Sharing for every product: store, upload, transform, compress, share and serve files under one contract."
-}

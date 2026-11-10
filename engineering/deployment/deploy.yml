@@ -3,7 +3,10 @@
 # console. Format and rules: wow-two-ws/conventions/deployment/descriptor/deploy-descriptor.md. Hostnames, secrets
 # and environments live in Wheelhouse targets, never here. Paths are relative to engineering/.
 descriptor: 2
+# The slug stays files: the compose project, the data volume and the database derive from it.
 product: files
+name: FSS
+description: File Storage and Sharing for every product - store, upload, transform, share and serve its files.
 platform: linux/amd64
 # Dev runs as .NET Development, prod as Production; appsettings.Development.json holds defaults only, and an IDE
 # run's own values live in appsettings.Local.json.
@@ -13,15 +16,15 @@ dotnetEnvironment: true
 # target's AllowedHosts names its public hosts plus localhost, so the service's platform-network name in the URL
 # would answer 400 from host filtering. The status must report imaging ok: the image can encode WebP variants.
 verify:
-  service: files
+  service: fss
   command:
     - sh
     - -c
     - >-
       curl --fail --silent --show-error --max-time 10 --header "Host: localhost" --output /dev/null
-      "$VERIFY_SERVICE_FILES/health"
+      "$VERIFY_SERVICE_FSS/health"
       && curl --fail --silent --show-error --max-time 10 --header "Host: localhost"
-      "$VERIFY_SERVICE_FILES/api/system/status" | grep -q '"imaging":"ok"'
+      "$VERIFY_SERVICE_FSS/api/system/status" | grep -q '"imaging":"ok"'
       && echo "health and status answered, WebP variants available"
   timeout: 1m
 # Two host roles: the public front door for the API and the hosted pages, and the private admin console. One app
@@ -33,7 +36,7 @@ shared:
   - codebase/files.backend-services/Directory.*.props
   - codebase/files.backend-services/global.json
 services:
-  files:
+  fss:
     build:
       dockerfile: deployment/Dockerfile
     paths:

@@ -51,7 +51,7 @@ jobs:
       - name: Test against the newest be sdk
         env:
           NEWEST: ${{ steps.core.outputs.newest }}
-        run: dotnet test Files.BackendServices.slnx -p:BackendSdkVersion="$NEWEST"
+        run: dotnet test FSS.BackendServices.slnx -p:BackendSdkVersion="$NEWEST"
 
       - name: Record the tested pair
         if: always()

@@ -41,7 +41,7 @@ jobs:
       backends: |
         [{"name": "Backend", "dotnet": "engineering/codebase/files.backend-services/global.json",
           "node": "engineering/codebase/files.frontend-services/.nvmrc",
-          "run": "dotnet test engineering/codebase/files.backend-services/Files.BackendServices.slnx",
+          "run": "dotnet test engineering/codebase/files.backend-services/FSS.BackendServices.slnx",
           "paths": ["engineering/codebase/files.backend-services/**",
                     "engineering/codebase/files.frontend-services/**",
                     "engineering/deployment/deploy.yml"]},

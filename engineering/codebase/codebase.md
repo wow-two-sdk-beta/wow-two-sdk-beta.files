@@ -4,7 +4,7 @@ The code lives in `files.backend-services/` (.NET) and `files.frontend-services/
 
 ## Backend
 
-- `Files.BackendServices.slnx` groups `Packages/`, `Services/` and `Tests/`.
+- `FSS.BackendServices.slnx` groups `Packages/`, `Services/` and `Tests/`.
 - `packages/` holds the NuGet family `WoW2.Sdk.Beta.Be.Files.*`: `Abstractions` (the contract), `Formats` (the
   file-type registry, `Registry/file-types.json`), `Module` (Form 1, with the migration set `files` once per engine,
   `Migrations/{Postgres,Sqlite}/NNN-name/{Apply,Rollback}.sql`),
@@ -21,7 +21,7 @@ The code lives in `files.backend-services/` (.NET) and `files.frontend-services/
   SQLite: wire, pages, `/health`, the descriptor's dev check), `Conformance` (one suite against module and client),
   `Migrations` (the module's SQL per engine). `Integration`, `Migrations` and the module's `Conformance` run once per
   lane (`tests/Shared/Lanes`): SQLite, then PostgreSQL in Testcontainers, skipped without Docker, so none needs Docker.
-  Run them with `dotnet test Files.BackendServices.slnx`.
+  Run them with `dotnet test FSS.BackendServices.slnx`.
 
 ## Frontend
 

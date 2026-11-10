@@ -25,7 +25,7 @@ wow-two-ws/conventions/development/repo/structure/domain-structure.md. Repo delt
   `Delivery:BaseUrl` and the secret `Delivery:SigningKey` (`Files__Delivery__SigningKey`). Callers: `Files:Auth` trusted
   issuers and API keys (SHA-256 only), read through Identity's `Auth` package; a new action names its policy, the scope
   (`FilesScopeConstants`), which also asks a person for the matching `FilesPermissionConstants` permission.
-- `dotnet test Files.BackendServices.slnx` runs every tier; the backend build needs Node and pnpm for the pages. The
+- `dotnet test FSS.BackendServices.slnx` runs every tier; the backend build needs Node and pnpm for the pages. The
   Migrations, Integration and module Conformance tiers run once per lane (`tests/Shared/Lanes`): SQLite in process, and
   PostgreSQL in one Testcontainers container per assembly with a database per store. Without Docker the PostgreSQL lane
   reports its tests skipped; `FILES_TESTS_POSTGRES=off` skips it on purpose. A PostgreSQL-lane class joins

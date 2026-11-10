@@ -39,7 +39,7 @@
 ## Cloud notes
 
 - Toolchain: .NET SDK `10.0.300` (`global.json`), Node `>=24.11 <25`, pnpm `10.33.2`; unverified in this environment.
-- `dotnet test engineering/codebase/files.backend-services/Files.BackendServices.slnx` runs every tier and builds the
+- `dotnet test engineering/codebase/files.backend-services/FSS.BackendServices.slnx` runs every tier and builds the
   web app into `wwwroot` first (needs pnpm, no Docker). Frontend: `pnpm -C engineering/codebase/files.frontend-services`
   with `test`, `lint`, `format:check`, `typecheck`, `check:package`.
 - Absent here: the hub's git guard, the local preview servers (`:8393` API, `:8394` web) and the browser. E2E tests are
