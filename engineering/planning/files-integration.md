@@ -37,7 +37,13 @@ Sources: [t8](../research/files-analysis-2026-10/t8-identity-contracts.md) (the 
 - ⬜ Left before the goal closes:
   - Files `v0.1` closed: its last task, WebP variants on `files-dev`, already passes (Wave 1, Wave 3); backlog rows "Deploy the shared files host through Wheelhouse" and "Ocharo tenant on the shared host" done
   - the two pipelines findings (below), which wait on the developer
-- ⬜ Rename (developer, 2026-11-10): Files takes a name under `wow-two-ws` `docs/platform-apps.md` § Naming after the goal closes; as with SCFD, the display name, logo and solution file change while the `files` slug, packages and `files-dev` stay
+- 🔄 Rename to FSS, File Storage and Sharing (developer, 2026-11-10: "yes let's go with FSS, analyze and rename the image, the solution and service names acordingly"), under `wow-two-ws` `docs/platform-apps.md` § Naming:
+  - renamed: the display name, `FSS.BackendServices.slnx`, the deploy service and its image (`fss`), with `verify.service` and `$VERIFY_SERVICE_FSS` in the same commit
+  - kept, as SCFD kept `harvest`: the repo, NuGet ids and namespaces, the npm package, `Files.*` projects and code dirs, `Files:*` settings keys, Identity's `files` resource and scopes, Ocharo's hostnames
+  - kept, so no data moves (wheelhouse lane, 2026-11-10): product `files` and target `files-dev`, since the compose project, volume `files-dev_data` and database `files_dev` derive from the product slug; settings and vault secrets key by setting, not service; a service rename only swaps container `files` for `fss`, a few seconds of 502
+  - order: Wheelhouse ships its migration control accepting `fss` (`FilesMigrationCommandHandler.cs:35`) and promotes; the files lane then pushes service and verify together; Wheelhouse refreshes the product's identity and checks health, signals and a read
+  - files lane, prepared and held: image `ghcr.io/wow-two-sdk-beta/wow-two-sdk-beta.files/files` → `…/fss`, container `files-{env}-fss`; the display name already pushed (`3a06b75`, docs only); the .slnx move, 4 workflows and deploy.yml release as `v0.1.17`, tracked in v0.1 as Iteration 11, and v0.1 closes after it ships; nightly conformance fails until the first `fss` image exists
+  - `wow-two-ws` after that push: `scripts/active.sh:83` takes `FSS.BackendServices.slnx`, `catalog.yml` takes the name FSS
 - ⬜ After the goal closes, sweep included (developer, 2026-11-09): Files' whole-vector pass over its P1 backlog
 - ✅ oc-assets done 2026-11-09: `assets` `v0.1.7` on dev keeps no state (its unused SQLite log deleted), all 30 sweep rows fixed or excepted, `release-garments` re-verified
 - Findings outside the lanes, 2026-11-10:
