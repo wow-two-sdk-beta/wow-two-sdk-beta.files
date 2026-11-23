@@ -27,6 +27,8 @@ internal sealed class ApiFileUploadsBroker(FilesApiTransport transport) : IFileU
             form.Add(new StringContent(spec.ContentType), "contentType");
         if (spec.ExpiresAtUtc is { } expiresAt)
             form.Add(new StringContent(expiresAt.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)), "expiresAtUtc");
+        if (spec.VariantPresets is { } presets)
+            form.Add(new StringContent(string.Join(',', presets)), "variantPresets");
 
         var file = new StreamContent(content);
         file.Headers.ContentType = new MediaTypeHeaderValue(spec.ContentType ?? "application/octet-stream");

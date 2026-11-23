@@ -33,12 +33,26 @@ internal sealed class ModuleFileStoreBroker(
             : Result<FileModel>.Fail(FilesErrors.FileNotFound());
 
     /// <inheritdoc />
-    public async Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default)
+    public Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default) =>
+        OpenAsync(id, range, null, cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<FileContent>> OpenImageAsync(FileId id, string preset, CancellationToken cancellationToken = default) =>
+        ImageVariantPresets.TryGetWidth(preset, out int width)
+            ? OpenAsync(id, null, width, cancellationToken)
+            : Task.FromResult(Result<FileContent>.Fail(FilesErrors.VariantPresetsInvalid()));
+
+    private async Task<Result<FileContent>> OpenAsync(FileId id, ByteRange? range, int? width, CancellationToken cancellationToken)
     {
         if (await FindAsync(id, includeDeleted: false, cancellationToken) is not { } row)
             return Result<FileContent>.Fail(FilesErrors.FileNotFound());
 
-        var opened = await reader.OpenAsync(row, range, cancellationToken);
+        var variant = width is { } minimum && row.State == FileState.Ready
+            ? await variants.FindAtLeastAsync(row.TenantId, row.Id, minimum, cancellationToken)
+            : null;
+        var opened = variant is not null
+            ? await reader.OpenAsync(variant, null, cancellationToken)
+            : await reader.OpenAsync(row, range, cancellationToken);
         if (opened is Result<FileContent>.Success { Value: var content })
             await audit.RecordAsync(row.TenantId, row.Id, FileAuditAction.Download, content.Length, cancellationToken);
         return opened;

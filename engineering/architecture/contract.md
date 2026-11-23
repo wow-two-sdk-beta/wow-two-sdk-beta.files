@@ -59,11 +59,16 @@
 - an upload the registry recognizes as JPEG, PNG, WebP or GIF (first frame) gets one WebP per width no wider than the
   image, upright, without metadata, keeping the aspect ratio; a wider width is skipped, never upscaled. Core's
   `IImageService` (`AddImageProcessing`, limits in `Media:Images`) makes them; imports get them through the same upload.
+- uploads can select `variantPresets` in place of the app widths. The sizes are `s1` 160, `s2` 480, `s3` 640,
+  `s4` 900 and `s5` 1,400 px. An empty list stores the original alone. The HTTP upload sends comma-separated names in one
+  multipart field.
 - a failing variant (unreadable bytes, over the image limits, a store error) is logged and skipped; the upload succeeds.
 - `FileModel.Variants` lists them narrowest first: `Width`, `Height`, `ContentType`, `Size`; one `files_variants` row
   each (migration 008), with its bytes a tenant blob under their own SHA-256.
 - `UrlSpec.Width` and `GetPublicUrlAsync(id, width)` pick the narrowest variant at least that wide, else the widest;
   the original when no width is asked or the file has none; a width below 1 is a validation failure.
+- authenticated `GET /api/files/v1/files/{id}/content?preset=s3` serves the smallest variant meeting the requested
+  width, or the original if no variant meets it. Omitting the preset reads the original.
 - a variant goes with its source: served while the source is live, ready and not deleted, public for a public URL;
   delete, restore and purge follow the source, and the sweep purges its bytes once no file or variant uses them.
 

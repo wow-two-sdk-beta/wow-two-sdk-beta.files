@@ -19,6 +19,13 @@ public interface IFileStoreBroker
     /// <returns>The open content; <see cref="FilesErrors.FileNotReady"/> before the file is ready.</returns>
     Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default);
 
+    /// <summary>Opens the smallest stored variant that meets the requested image size, or the original when none does.</summary>
+    /// <param name="id">The file.</param>
+    /// <param name="preset">The requested name from <c>s1</c> through <c>s5</c>.</param>
+    /// <param name="cancellationToken">The token that cancels the call.</param>
+    /// <returns>The open content under the same access and lifetime rules as the original.</returns>
+    Task<Result<FileContent>> OpenImageAsync(FileId id, string preset, CancellationToken cancellationToken = default);
+
     /// <summary>Lists the tenant's files, newest first.</summary>
     /// <param name="query">The filters and the page.</param>
     /// <param name="cancellationToken">The token that cancels the call.</param>

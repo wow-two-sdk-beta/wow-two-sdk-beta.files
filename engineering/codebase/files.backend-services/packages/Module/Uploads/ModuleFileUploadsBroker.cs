@@ -47,6 +47,20 @@ internal sealed class ModuleFileUploadsBroker(
 
         var appId = spec.AppId ?? caller.AppId;
         var policy = options.Value.PolicyFor(appId);
+        IReadOnlyCollection<int> widths = policy.Variants;
+        if (spec.VariantPresets is { } presets)
+        {
+            if (presets.Count > 5)
+                return await RefuseAsync(caller.TenantId, FilesErrors.VariantPresetsInvalid(), appId, cancellationToken);
+            var requested = new List<int>(presets.Count);
+            foreach (var preset in presets)
+            {
+                if (!ImageVariantPresets.TryGetWidth(preset, out int width))
+                    return await RefuseAsync(caller.TenantId, FilesErrors.VariantPresetsInvalid(), appId, cancellationToken);
+                requested.Add(width);
+            }
+            widths = requested;
+        }
         var spooled = await UploadSpool.CreateAsync(content, policy.MaxBytes, options.Value.TempPath ?? Path.GetTempPath(), cancellationToken);
         if (spooled is Result<UploadSpool>.Failure tooLarge)
             return await RefuseAsync(caller.TenantId, tooLarge.Error, appId, cancellationToken);
@@ -102,7 +116,7 @@ internal sealed class ModuleFileUploadsBroker(
         }
 
         // The file is stored: its variants finish even if the caller goes away, and a failing one is skipped.
-        var made = await variants.CreateAsync(row, file.Type, spool.OpenRead, policy, now, CancellationToken.None);
+        var made = await variants.CreateAsync(row, file.Type, spool.OpenRead, widths, policy.VariantQuality, now, CancellationToken.None);
         return Result<FileModel>.Ok(FileEntityMapper.ToModel(row, made));
     }
 

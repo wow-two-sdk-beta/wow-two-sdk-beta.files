@@ -17,9 +17,18 @@ internal sealed class ApiFileStoreBroker(FilesApiTransport transport) : IFileSto
         transport.SendAsync<FileModel>(new HttpRequestMessage(HttpMethod.Get, FilesApiRouteMapper.File(id)), cancellationToken);
 
     /// <inheritdoc />
-    public async Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default)
+    public Task<Result<FileContent>> OpenReadAsync(FileId id, ByteRange? range = null, CancellationToken cancellationToken = default) =>
+        OpenAsync(FilesApiRouteMapper.File(id, "content"), range, cancellationToken);
+
+    /// <inheritdoc />
+    public Task<Result<FileContent>> OpenImageAsync(FileId id, string preset, CancellationToken cancellationToken = default) =>
+        ImageVariantPresets.TryGetWidth(preset, out _)
+            ? OpenAsync($"{FilesApiRouteMapper.File(id, "content")}?preset={preset}", null, cancellationToken)
+            : Task.FromResult(Result<FileContent>.Fail(FilesErrors.VariantPresetsInvalid()));
+
+    private async Task<Result<FileContent>> OpenAsync(string path, ByteRange? range, CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, FilesApiRouteMapper.File(id, "content"));
+        var request = new HttpRequestMessage(HttpMethod.Get, path);
         if (range is { } asked)
             request.Headers.Range = new RangeHeaderValue(asked.From, asked.To);
 

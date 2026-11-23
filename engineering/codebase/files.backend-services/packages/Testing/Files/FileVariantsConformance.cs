@@ -77,6 +77,43 @@ public abstract class FileVariantsConformance
         (await SignedWidthAsync(file.Id, 480)).Should().Be("480");
     }
 
+    /// <summary>Requests named sizes, reads the card and falls back to the original when the requested size is missing.</summary>
+    [Fact]
+    public async Task UploadAndRead_ShouldUseTheRequestedPresets()
+    {
+        var original = FilesSamples.PngImage(1200, 800);
+        using var input = new MemoryStream(original);
+        var file = Value(await Brokers.Uploads.UploadAsync(input, new UploadSpec
+        {
+            Name = "presets.png", AppId = App, VariantPresets = ["s1", "s3", "s5"],
+        }));
+        file.Variants.Select(variant => variant.Width).Should().Equal(160, 640);
+
+        var card = Value(await Brokers.Store.OpenImageAsync(file.Id, "s3"));
+        await using (card.Content)
+        {
+            using var copy = new MemoryStream();
+            await card.Content.CopyToAsync(copy);
+            FilesSamples.IsWebp(copy.ToArray()).Should().BeTrue();
+            card.ContentType.Should().Be("image/webp");
+            card.Length.Should().Be(file.Variants[1].Size);
+        }
+
+        var detail = Value(await Brokers.Store.OpenImageAsync(file.Id, "s5"));
+        await using (detail.Content)
+        {
+            detail.ContentType.Should().Be("image/png");
+            detail.Length.Should().Be(original.Length);
+        }
+
+        using var branding = new MemoryStream(original);
+        Value(await Brokers.Uploads.UploadAsync(branding, new UploadSpec
+        {
+            Name = "logo.png", AppId = App, VariantPresets = [],
+        })).Variants.Should().BeEmpty();
+        Error(await Brokers.Store.OpenImageAsync(file.Id, "unknown")).Type.Should().Be(AppErrorType.Validation);
+    }
+
     private async Task<string?> SignedWidthAsync(FileId id, int? width)
     {
         var url = Value(await Brokers.Urls.IssueAsync(id, new UrlSpec { Width = width })).Url;

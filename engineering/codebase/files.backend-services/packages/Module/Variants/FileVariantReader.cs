@@ -6,6 +6,13 @@ namespace WoW.Two.Sdk.Beta.Be.Files.Module.Variants;
 /// <summary>Reads files' variant rows, for the models the brokers return and the URLs they issue.</summary>
 internal sealed class FileVariantReader(FilesDbContext db)
 {
+    /// <summary>Finds the smallest variant at or above a requested width.</summary>
+    public Task<FileVariantEntity?> FindAtLeastAsync(string tenantId, string fileId, int width, CancellationToken cancellationToken) =>
+        db.Variants.AsNoTracking()
+            .Where(variant => variant.TenantId == tenantId && variant.FileId == fileId && variant.Width >= width)
+            .OrderBy(variant => variant.Width)
+            .FirstOrDefaultAsync(cancellationToken);
+
     /// <summary>Lists one file's variants, narrowest first.</summary>
     /// <param name="tenantId">The file's tenant.</param>
     /// <param name="fileId">The file's row id.</param>

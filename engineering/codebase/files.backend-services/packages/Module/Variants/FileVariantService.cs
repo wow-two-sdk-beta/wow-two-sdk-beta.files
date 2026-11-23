@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using WoW.Two.Sdk.Beta.Be.Files.Formats.Types;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Blobs;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Persistence;
-using WoW.Two.Sdk.Beta.Be.Files.Module.Policies;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Store;
 using WoW.Two.Sdk.Beta.Be.Media.Images;
 
@@ -27,14 +26,16 @@ internal sealed class FileVariantService(
     /// <param name="file">The saved file row.</param>
     /// <param name="type">The registry's type of the file.</param>
     /// <param name="open">Opens the file's bytes from their start; each call returns a stream the caller disposes.</param>
-    /// <param name="policy">The app policy, which names the widths and the quality.</param>
+    /// <param name="widths">The eligible widths selected for this upload.</param>
+    /// <param name="quality">The app's WebP quality setting.</param>
     /// <param name="now">The current time.</param>
     /// <param name="cancellationToken">The token that cancels the call.</param>
     /// <returns>The variants made, narrowest first; empty when the file is no raster image, the policy names no width,
     /// or every variant failed.</returns>
-    public async Task<IReadOnlyList<FileVariantEntity>> CreateAsync(FileEntity file, FileTypeModel type, Func<Stream> open, FilePolicyOptions policy, DateTimeOffset now, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<FileVariantEntity>> CreateAsync(FileEntity file, FileTypeModel type, Func<Stream> open,
+        IReadOnlyCollection<int> widths, int quality, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        if (policy.Variants.Count == 0 || !FileVariantWidthMapper.IsSource(type))
+        if (widths.Count == 0 || !FileVariantWidthMapper.IsSource(type))
             return [];
 
         if (file.Size > imageOptions.CurrentValue.MaxInputBytes)
@@ -56,11 +57,11 @@ internal sealed class FileVariantService(
         }
 
         var created = new List<FileVariantEntity>();
-        foreach (var width in FileVariantWidthMapper.Plan(sourceWidth, policy.Variants))
+        foreach (var width in FileVariantWidthMapper.Plan(sourceWidth, widths))
         {
             try
             {
-                var variant = await CreateAsync(file, width, open, policy.VariantQuality, now, created, cancellationToken);
+                var variant = await CreateAsync(file, width, open, quality, now, created, cancellationToken);
                 if (variant is not null)
                     created.Add(variant);
             }

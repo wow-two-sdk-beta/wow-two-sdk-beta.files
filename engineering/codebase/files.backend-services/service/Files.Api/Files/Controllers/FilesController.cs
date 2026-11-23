@@ -31,7 +31,7 @@ public sealed class FilesController(
     IFileUrlsBroker urls) : ControllerBase
 {
     /// <summary>Uploads a file: a multipart body whose fields (<c>name</c>, <c>appId</c>, <c>contentType</c>,
-    /// <c>visibility</c>, <c>expiresAtUtc</c>) come before the file part, which is read as a stream.</summary>
+    /// <c>visibility</c>, <c>expiresAtUtc</c>, <c>variantPresets</c>) precede the streamed file part.</summary>
     /// <param name="idempotencyKey">The key that makes a retry return the first upload's file.</param>
     /// <param name="ct">The token that cancels the request.</param>
     [HttpPost]
@@ -106,22 +106,26 @@ public sealed class FilesController(
     public async Task<IActionResult> Get(string id, CancellationToken ct) =>
         FileId.TryParse(id, out var fileId) ? Answer(await store.GetAsync(fileId, ct)) : NotFoundProblem();
 
-    /// <summary>Streams a file's bytes; one <c>Range</c> answers <c>206</c>, one outside the file <c>416</c>.</summary>
+    /// <summary>Streams the original, optionally with a byte range, or an image size requested by preset.</summary>
     [HttpGet("{id}/content")]
     [Authorize(Policy = FilesScopeConstants.Read)]
-    public async Task<IActionResult> Content(string id, CancellationToken ct)
+    public async Task<IActionResult> Content(string id, [FromQuery] string? preset, CancellationToken ct)
     {
         if (!FileId.TryParse(id, out var fileId))
             return NotFoundProblem();
         if (await store.GetAsync(fileId, ct) is not Result<FileModel>.Success { Value: var file })
             return NotFoundProblem();
+        if (preset is not null && Request.Headers.ContainsKey("Range"))
+            return this.ToProblem(AppErrorFactory.Validation("A preset image request reads the whole image."));
         if (!ByteRangeHeaderParser.TryParse(Request.Headers.Range, file.Size, out var range))
         {
             Response.Headers.ContentRange = $"bytes */{file.Size}";
             return this.ToProblem(FilesErrors.RangeInvalid(file.Size));
         }
 
-        var opened = await store.OpenReadAsync(fileId, range, ct);
+        var opened = preset is null
+            ? await store.OpenReadAsync(fileId, range, ct)
+            : await store.OpenImageAsync(fileId, preset, ct);
         if (opened is not Result<FileContent>.Success { Value: var content })
             return this.ToProblem(((Result<FileContent>.Failure)opened).Error);
 
@@ -132,7 +136,10 @@ public sealed class FilesController(
         Response.ContentType = content.ContentType;
         Response.ContentLength = content.Length;
         Response.Headers.XContentTypeOptions = "nosniff";
-        Response.Headers.ContentDisposition = FileNameMapper.ToContentDisposition(file.Name, FileDisposition.Attachment);
+        var name = content.ContentType == "image/webp" && file.ContentType != "image/webp"
+            ? Path.ChangeExtension(file.Name, ".webp")
+            : file.Name;
+        Response.Headers.ContentDisposition = FileNameMapper.ToContentDisposition(name, FileDisposition.Attachment);
         await bytes.CopyToAsync(Response.Body, ct);
         return new EmptyResult();
     }
@@ -223,6 +230,12 @@ public sealed class FilesController(
             Visibility = visibility ?? FileVisibility.Private,
             IdempotencyKey = idempotencyKey,
             ExpiresAtUtc = expiresAt,
+            VariantPresets = fields.GetValueOrDefault("variantPresets") switch
+            {
+                null => null,
+                "" => [],
+                var presets => presets.Split(',', 6, StringSplitOptions.TrimEntries),
+            },
         });
     }
 }

@@ -55,6 +55,10 @@ public static class FilesErrors
     /// <summary>Creates the error for a list cursor no previous page returned.</summary>
     public static AppError CursorInvalid() => AppErrorFactory.Validation("The list cursor is not valid.");
 
+    /// <summary>Creates the error for an invalid image preset or preset list.</summary>
+    public static AppError VariantPresetsInvalid() =>
+        AppErrorFactory.Validation("Choose up to five image presets from s1 through s5.");
+
     /// <summary>Creates the error for a byte range outside the file.</summary>
     /// <param name="size">The file's size in bytes.</param>
     public static AppError RangeInvalid(long size) =>

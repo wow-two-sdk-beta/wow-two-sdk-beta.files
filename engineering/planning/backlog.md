@@ -65,7 +65,6 @@ Shape: wow-two-ws/conventions/planning/version-track/version-track.md
 | Item | Type | Notes |
 |---|---|---|
 | Queued image compaction | feature | Resolve a media category preset or a request override, keep the original, and generate compressed variants in a retryable job. Publish durable `VariantReady` events with stable Files references that products can resolve through the Files API. Research formats, dimensions and quality before choosing presets. |
-| Named variant presets beyond an app's widths | feature | P2; P1 makes WebP at each app's widths |
 | EXIF strip on public images, orientation fix | feature | P1 |
 | BlurHash and dominant color for placeholders | feature | P1 |
 | Image limits: max pixels, decompression-bomb guard | feature | P1 |

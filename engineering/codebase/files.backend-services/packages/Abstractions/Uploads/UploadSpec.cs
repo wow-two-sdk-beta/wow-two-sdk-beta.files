@@ -20,6 +20,9 @@ public sealed record UploadSpec
     /// <summary>Gets the key that makes a retried upload return the first one's file.</summary>
     public string? IdempotencyKey { get; init; }
 
+    /// <summary>Gets the named image sizes to generate. Null uses the app policy, and an empty list keeps just the original.</summary>
+    public IReadOnlyList<string>? VariantPresets { get; init; }
+
     /// <summary>Gets when the file expires (UTC); none keeps it while referenced.</summary>
     public DateTimeOffset? ExpiresAtUtc { get; init; }
 }
