@@ -8,9 +8,9 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <!-- The core pin; it is also each package's nuspec floor on WoW2.Sdk.Beta.Be and the kernel. -->
-    <BackendSdkVersion>10.0.112-beta</BackendSdkVersion>
+    <BackendSdkVersion>11.0.1-beta</BackendSdkVersion>
     <!-- Identity's consumer packages (Auth, Testing): tokens, keys, signals and the principal, never its server. -->
-    <IdentityVersion>10.0.30-beta</IdentityVersion>
+    <IdentityVersion>11.0.0-beta</IdentityVersion>
   </PropertyGroup>
 
   <!-- be sdk: one family, bumped together. The kernel (Result, AppError, IEvent) is the only package the contract takes. -->
@@ -29,7 +29,7 @@
 
   <!-- The mover's postgres-column reader (Files.Api migrate); the version Ocharo already uses. -->
   <ItemGroup>
-    <PackageVersion Include="Npgsql" Version="10.0.0" />
+    <PackageVersion Include="Npgsql" Version="11.0.0" />
   </ItemGroup>
 
   <!-- Tests. -->
