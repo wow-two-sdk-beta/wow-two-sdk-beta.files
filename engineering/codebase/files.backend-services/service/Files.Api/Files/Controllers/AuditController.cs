@@ -1,3 +1,7 @@
+using Files.Api.Auth;
+using Files.Application.Audit.Queries;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
+using WoW.Two.Sdk.Beta.Be.Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Files.Api.Files.Mappers;
@@ -14,7 +18,7 @@ namespace Files.Api.Files.Controllers;
 [ApiController]
 [Route(FilesRouteConstants.Api + "/audit")]
 [Authorize(Policy = FilesScopeConstants.Admin)]
-public sealed class AuditController(IFileAuditBroker audit) : ControllerBase
+public sealed class AuditController(ISender sender, IFilesCallerService caller) : ControllerBase
 {
     /// <summary>Lists the tenant's audit entries, newest first.</summary>
     [HttpGet]
@@ -32,7 +36,9 @@ public sealed class AuditController(IFileAuditBroker audit) : ControllerBase
         if (!WireEnumMapper.TryParse<FileAuditAction>(action, out var auditAction))
             return this.ToProblem(AppErrorFactory.Validation("The action filter is not known."));
 
-        var result = await audit.ListAsync(new FileAuditQuery { FileId = file, Action = auditAction, Cursor = cursor, Limit = limit ?? 50 }, ct);
-        return result.Match<IActionResult>(page => Ok(ApiResponse<FileAuditPage>.Ok(page)), error => this.ToProblem(error));
+        var criteria = new FileAuditQuery { FileId = file, Action = auditAction, Cursor = cursor, Limit = limit ?? 50 };
+        var result = await sender.SendAsync(new GetAllFileAuditEntriesQuery(caller.ToActor(), criteria), ct);
+
+        return result.Match<IActionResult>(success => Ok(ApiResponse<FileAuditPage>.Ok(success.Data)), failure => this.ToProblem(failure.Error));
     }
 }

@@ -1,3 +1,4 @@
+using WoW.Two.Sdk.Beta.Be.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -63,6 +64,8 @@ public static class FilesModuleServiceCollectionExtensions
         services.AddScoped<IFileReferencesBroker, ModuleFileReferencesBroker>();
         services.AddScoped<IFileUrlsBroker, ModuleFileUrlsBroker>();
         services.AddScoped<IFilesDeliveryService, FilesDeliveryService>();
+        services.AddScoped<FileDeliveryReader>();
+        services.AddMediator(options => options.ExceptionToResult = false, typeof(FilesModuleServiceCollectionExtensions).Assembly);
         services.AddScoped<IFileAuditBroker, ModuleFileAuditBroker>();
         services.AddScoped<IFilesSweepService, FilesSweepService>();
         services.AddOptions<FileImportOptions>();

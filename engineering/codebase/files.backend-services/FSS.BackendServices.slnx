@@ -8,6 +8,8 @@
     <Project Path="packages/Testing/WoW.Two.Sdk.Beta.Be.Files.Testing.csproj" />
   </Folder>
   <Folder Name="/Services/">
+    <Project Path="service/Files.Application/Files.Application.csproj" />
+    <Project Path="service/Files.Infrastructure/Files.Infrastructure.csproj" />
     <Project Path="service/Files.Api/Files.Api.csproj" />
   </Folder>
   <Folder Name="/Tests/">

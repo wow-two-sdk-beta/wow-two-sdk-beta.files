@@ -31,6 +31,9 @@
     <InternalsVisibleTo Include="Files.Tests.Unit" />
     <InternalsVisibleTo Include="Files.Tests.Integration" />
     <InternalsVisibleTo Include="Files.Tests.Conformance" />
+    <InternalsVisibleTo Include="Files.Api" />
+    <InternalsVisibleTo Include="Files.Infrastructure" />
+    <InternalsVisibleTo Include="WoW.Two.Sdk.Beta.Be.Files.Server" />
   </ItemGroup>
 
 </Project>

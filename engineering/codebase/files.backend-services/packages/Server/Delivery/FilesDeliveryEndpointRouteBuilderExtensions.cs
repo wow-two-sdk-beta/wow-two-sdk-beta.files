@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using WoW.Two.Sdk.Beta.Be.Files.Module.Delivery;
+using WoW.Two.Sdk.Beta.Be.Mediator;
 using WoW.Two.Sdk.Beta.Be.Web.SecureHeaders;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Server.Delivery;
@@ -32,17 +32,17 @@ public static class FilesDeliveryEndpointRouteBuilderExtensions
             .ExcludeFromDescription();
 
         group.MapMethods($"/{FilesRouteConstants.SignedFile}/{{id}}", Methods,
-            (HttpContext http, string id, IFilesDeliveryService delivery, TimeProvider time) =>
-                FilesDeliveryHandlers.ServeSignedAsync(http, id, null, delivery, time));
+            (HttpContext http, string id, ISender sender, TimeProvider time) =>
+                FilesDeliveryHandlers.ServeSignedAsync(http, id, null, sender, time));
         group.MapMethods($"/t/{{tenant}}/{FilesRouteConstants.SignedFile}/{{id}}", Methods,
-            (HttpContext http, string tenant, string id, IFilesDeliveryService delivery, TimeProvider time) =>
-                FilesDeliveryHandlers.ServeSignedAsync(http, id, tenant, delivery, time));
+            (HttpContext http, string tenant, string id, ISender sender, TimeProvider time) =>
+                FilesDeliveryHandlers.ServeSignedAsync(http, id, tenant, sender, time));
         group.MapMethods($"/{FilesRouteConstants.PublicFile}/{{file}}", Methods,
-            (HttpContext http, string file, IFilesDeliveryService delivery) =>
-                FilesDeliveryHandlers.ServePublicAsync(http, file, null, delivery));
+            (HttpContext http, string file, ISender sender) =>
+                FilesDeliveryHandlers.ServePublicAsync(http, file, null, sender));
         group.MapMethods($"/t/{{tenant}}/{FilesRouteConstants.PublicFile}/{{file}}", Methods,
-            (HttpContext http, string tenant, string file, IFilesDeliveryService delivery) =>
-                FilesDeliveryHandlers.ServePublicAsync(http, file, tenant, delivery));
+            (HttpContext http, string tenant, string file, ISender sender) =>
+                FilesDeliveryHandlers.ServePublicAsync(http, file, tenant, sender));
 
         return group;
     }

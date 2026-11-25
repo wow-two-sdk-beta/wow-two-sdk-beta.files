@@ -1,7 +1,7 @@
 using Microsoft.Net.Http.Headers;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 
-namespace WoW.Two.Sdk.Beta.Be.Files.Server.Delivery;
+namespace WoW.Two.Sdk.Beta.Be.Files.Module.Delivery;
 
 /// <summary>Parses a request's <c>Range</c> header against a file's size: one byte range is served, several or none
 /// serve the whole file, and a range outside the file is unsatisfiable.</summary>

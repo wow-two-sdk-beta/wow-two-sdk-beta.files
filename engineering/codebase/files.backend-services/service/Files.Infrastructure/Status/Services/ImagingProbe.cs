@@ -1,6 +1,6 @@
 using SkiaSharp;
 
-namespace Files.Api.Status.Models;
+namespace Files.Infrastructure.Status.Services;
 
 /// <summary>Tells whether this process can encode the WebP variants: SkiaSharp's native library loads, with the system
 /// libraries it needs (<c>libfontconfig1</c> in the image). Checked once per process.</summary>

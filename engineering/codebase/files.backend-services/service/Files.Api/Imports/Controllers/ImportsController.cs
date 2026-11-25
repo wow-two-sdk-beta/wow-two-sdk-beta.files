@@ -1,3 +1,7 @@
+using WoW.Two.Sdk.Beta.Be.Files.Module.Imports.Commands;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Imports.Queries;
+using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Mediator.Result;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -8,7 +12,6 @@ using Files.Api.Imports.Models;
 using WoW.Two.Sdk.Beta.Be.Files;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Imports;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
-using WoW.Two.Sdk.Beta.Be.Foundation.Results;
 using WoW.Two.Sdk.Beta.Be.Web.Contracts;
 using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
 
@@ -18,7 +21,7 @@ namespace Files.Api.Imports.Controllers;
 /// import's token (<c>X-Import-Token</c>) and reads the id map the product's cutover takes.</summary>
 [ApiController]
 [Route(FileImportConstants.Route)]
-public sealed class ImportsController(IFilesImportsService imports) : ControllerBase
+public sealed class ImportsController(ISender sender) : ControllerBase
 {
     /// <summary>Holds the page size of a map read that names none.</summary>
     private const int DefaultMapPageSize = 500;
@@ -31,10 +34,11 @@ public sealed class ImportsController(IFilesImportsService imports) : Controller
     [ProducesResponseType<ApiResponse<FileImportTicketModel>>(StatusCodes.Status201Created)]
     public async Task<IActionResult> Open([FromBody] OpenImportRequest request, CancellationToken ct)
     {
-        var opened = await imports.OpenAsync(new FileImportSpec { Tenant = request.Tenant ?? string.Empty, Sources = request.Sources ?? [] }, ct);
+        var spec = new FileImportSpec { Tenant = request.Tenant ?? string.Empty, Sources = request.Sources ?? [] };
+        var opened = await sender.SendAsync(new OpenFileImportCommand(spec), ct);
         return opened.Match<IActionResult>(
-            ticket => Created($"/{FileImportConstants.Route}/{ticket.Id}", ApiResponse<FileImportTicketModel>.Ok(ticket)),
-            error => this.ToProblem(error));
+            success => Created($"/{FileImportConstants.Route}/{success.Data.Id}", ApiResponse<FileImportTicketModel>.Ok(success.Data)),
+            failure => this.ToProblem(failure.Error));
     }
 
     /// <summary>Mints a new token for an import.</summary>
@@ -43,7 +47,7 @@ public sealed class ImportsController(IFilesImportsService imports) : Controller
     [HttpPost("{id}/tokens")]
     [Authorize(Policy = FilesScopeConstants.Tenants)]
     [ProducesResponseType<ApiResponse<FileImportTokenModel>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> IssueToken(string id, CancellationToken ct) => Answer(await imports.IssueTokenAsync(id, ct));
+    public async Task<IActionResult> IssueToken(string id, CancellationToken ct) => Answer(await sender.SendAsync(new IssueFileImportTokenCommand(id), ct));
 
     /// <summary>Gets an import and each source's counts.</summary>
     /// <param name="id">The import.</param>
@@ -51,7 +55,7 @@ public sealed class ImportsController(IFilesImportsService imports) : Controller
     [HttpGet("{id}")]
     [Authorize(Policy = FilesAuthConstants.ImportsPolicy)]
     [ProducesResponseType<ApiResponse<FileImportModel>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get(string id, CancellationToken ct) => Answer(await imports.GetAsync(id, ct));
+    public async Task<IActionResult> Get(string id, CancellationToken ct) => Answer(await sender.SendAsync(new GetFileImportQuery(id), ct));
 
     /// <summary>Pages an import's id map in push order.</summary>
     /// <param name="id">The import.</param>
@@ -62,7 +66,7 @@ public sealed class ImportsController(IFilesImportsService imports) : Controller
     [Authorize(Policy = FilesAuthConstants.ImportsPolicy)]
     [ProducesResponseType<ApiResponse<FileImportMapPage>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Map(string id, [FromQuery] string? cursor, [FromQuery] int? limit, CancellationToken ct) =>
-        Answer(await imports.MapAsync(id, cursor, limit ?? DefaultMapPageSize, ct));
+        Answer(await sender.SendAsync(new GetFileImportMapQuery(id, cursor, limit ?? DefaultMapPageSize), ct));
 
     /// <summary>Pushes one file: a multipart body whose fields (<c>source</c>, <c>key</c>, <c>sha256</c>, <c>reference</c>,
     /// <c>name</c>, <c>contentType</c>, <c>app</c>) come before the file part, which is read as a stream. Answers 201 when
@@ -106,17 +110,17 @@ public sealed class ImportsController(IFilesImportsService imports) : Controller
                 ContentType = fields.GetValueOrDefault("contentType"),
                 App = fields.GetValueOrDefault("app"),
             };
-            var pushed = await imports.PushAsync(id, section.Body, spec, ct);
+            var pushed = await sender.SendAsync(new PushFileImportEntryCommand(id, section.Body, spec), ct);
             return pushed.Match<IActionResult>(
-                file => file.Created
-                    ? StatusCode(StatusCodes.Status201Created, ApiResponse<FileImportPushResultModel>.Ok(file))
-                    : Ok(ApiResponse<FileImportPushResultModel>.Ok(file)),
-                error => this.ToProblem(error));
+                success => success.Data.Created
+                    ? StatusCode(StatusCodes.Status201Created, ApiResponse<FileImportPushResultModel>.Ok(success.Data))
+                    : Ok(ApiResponse<FileImportPushResultModel>.Ok(success.Data)),
+                failure => this.ToProblem(failure.Error));
         }
 
         return this.ToProblem(AppErrorFactory.Validation("The push has no file part."));
     }
 
-    private IActionResult Answer<T>(Result<T> result) where T : notnull =>
-        result.Match<IActionResult>(value => Ok(ApiResponse<T>.Ok(value)), error => this.ToProblem(error));
+    private IActionResult Answer<T>(AppResult<T> result) where T : notnull =>
+        result.Match<IActionResult>(success => Ok(ApiResponse<T>.Ok(success.Data)), failure => this.ToProblem(failure.Error));
 }

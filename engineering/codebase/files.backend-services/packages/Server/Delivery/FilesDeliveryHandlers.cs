@@ -2,10 +2,13 @@ using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using WoW.Two.Sdk.Beta.Be.Files.Formats.Types;
 using WoW.Two.Sdk.Beta.Be.Files.Module.Delivery;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Delivery.Models;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Delivery.Queries;
 using WoW.Two.Sdk.Beta.Be.Files.Store;
 using WoW.Two.Sdk.Beta.Be.Files.Urls;
 using WoW.Two.Sdk.Beta.Be.Foundation.Errors;
-using WoW.Two.Sdk.Beta.Be.Foundation.Results;
+using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Mediator.Result;
 
 namespace WoW.Two.Sdk.Beta.Be.Files.Server.Delivery;
 
@@ -16,7 +19,7 @@ internal static class FilesDeliveryHandlers
     private const string PublicCaching = "public, max-age=31536000, immutable";
 
     /// <summary>Serves <c>/f/{id}</c> and <c>/t/{tenant}/f/{id}</c>; a <c>w</c> parameter names a variant.</summary>
-    public static async Task ServeSignedAsync(HttpContext http, string id, string? tenant, IFilesDeliveryService delivery, TimeProvider time)
+    public static async Task ServeSignedAsync(HttpContext http, string id, string? tenant, ISender sender, TimeProvider time)
     {
         var query = http.Request.Query;
         int? width = null;
@@ -28,13 +31,15 @@ internal static class FilesDeliveryHandlers
             return;
         }
 
-        var found = await delivery.FindSignedAsync(tenant, fileId, expires, query["d"], query["sig"], width, http.RequestAborted);
-        await ServeAsync(http, delivery, found, file =>
+        var read = new ReadSignedFileDeliveryQuery(tenant, fileId, expires, query["d"], query["sig"], width, Conditions(http.Request));
+        var result = await sender.SendAsync(read, http.RequestAborted);
+
+        await ServeAsync(http, result, file =>
             $"private, max-age={Math.Max(0, (long)(file.ExpiresAtUtc!.Value - time.GetUtcNow()).TotalSeconds)}");
     }
 
     /// <summary>Serves <c>/m/{sha256}.{ext}</c> and <c>/t/{tenant}/m/{sha256}.{ext}</c>.</summary>
-    public static async Task ServePublicAsync(HttpContext http, string file, string? tenant, IFilesDeliveryService delivery)
+    public static async Task ServePublicAsync(HttpContext http, string file, string? tenant, ISender sender)
     {
         var sha256 = file.Split('.')[0];
         if (sha256.Length != FilesConstants.Sha256HexLength || !sha256.All(char.IsAsciiHexDigitLower))
@@ -43,44 +48,46 @@ internal static class FilesDeliveryHandlers
             return;
         }
 
-        var found = await delivery.FindPublicAsync(tenant, sha256, http.RequestAborted);
-        await ServeAsync(http, delivery, found, _ => PublicCaching);
+        var result = await sender.SendAsync(new ReadPublicFileDeliveryQuery(tenant, sha256, Conditions(http.Request)), http.RequestAborted);
+
+        await ServeAsync(http, result, _ => PublicCaching);
     }
 
-    private static async Task ServeAsync(HttpContext http, IFilesDeliveryService delivery, Result<DeliverableFileModel> found, Func<DeliverableFileModel, string> caching)
+    private static FileDeliveryConditions Conditions(HttpRequest request) =>
+        new(request.Headers.IfNoneMatch.ToArray(), request.Headers.Range);
+
+    private static async Task ServeAsync(HttpContext http, AppResult<FileDeliveryRead> result, Func<DeliverableFileModel, string> caching)
     {
         var response = http.Response;
-        if (found is not Result<DeliverableFileModel>.Success { Value: var file })
+        if (result is AppResult<FileDeliveryRead>.Failure failure)
         {
-            var error = ((Result<DeliverableFileModel>.Failure)found).Error;
-            Refuse(response, error.Type == AppErrorType.Forbidden ? StatusCodes.Status403Forbidden : StatusCodes.Status404NotFound);
+            if (failure.Error.Type == AppErrorType.Unexpected)
+                throw failure.Error.ToException();
+
+            Refuse(response, failure.Error.Type == AppErrorType.Forbidden ? StatusCodes.Status403Forbidden : StatusCodes.Status404NotFound);
             return;
         }
 
-        var etag = $"\"{file.Sha256}\"";
+        var read = ((AppResult<FileDeliveryRead>.Success)result).Data;
+        var file = read.File;
         FilesDeliveryHeaders.Apply(response);
-        response.Headers.ETag = etag;
+        response.Headers.ETag = $"\"{file.Sha256}\"";
         response.Headers.AcceptRanges = "bytes";
         response.Headers.CacheControl = caching(file);
-        if (http.Request.Headers.IfNoneMatch.Any(value => value is not null && (value.Contains(etag, StringComparison.Ordinal) || value.Trim() == "*")))
+        if (read.NotModified)
         {
             response.StatusCode = StatusCodes.Status304NotModified;
             return;
         }
 
-        if (!ByteRangeHeaderParser.TryParse(http.Request.Headers.Range, file.Size, out var range))
+        if (read.HasUnsatisfiedRange)
         {
             response.StatusCode = StatusCodes.Status416RangeNotSatisfiable;
             response.Headers.ContentRange = $"bytes */{file.Size}";
             return;
         }
 
-        if (await delivery.OpenAsync(file, range, http.RequestAborted) is not Result<FileContent>.Success { Value: var content })
-        {
-            Refuse(response, StatusCodes.Status404NotFound);
-            return;
-        }
-
+        var content = read.Content!;
         await using var bytes = content.Content;
         var disposition = file.Risk == FileRisk.None ? file.Disposition : FileDisposition.Attachment;
         response.StatusCode = content.Range is null ? StatusCodes.Status200OK : StatusCodes.Status206PartialContent;

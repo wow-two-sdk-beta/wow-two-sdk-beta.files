@@ -1,3 +1,8 @@
+using Files.Application.Status.Queries;
+using Files.Infrastructure.Status.QueryHandlers;
+using WoW.Two.Sdk.Beta.Be.Foundation.Validation;
+using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Mediator.Validation;
 using WoW.Two.Sdk.Beta.Be.Data.Migrations.Bespoke;
 using WoW.Two.Sdk.Beta.Be.Files.Module;
 using WoW.Two.Sdk.Beta.Be.Storage.Core;
@@ -36,6 +41,10 @@ public static partial class HostConfiguration
     /// <summary>Registers controllers on the SDK wire contract.</summary>
     private static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
+        builder.Services
+            .AddMediator(typeof(GetFilesSystemStatusQueryHandler).Assembly)
+            .AddFluentValidatorsFromAssemblies(typeof(GetFilesSystemStatusQuery).Assembly)
+            .AddMediatorValidatingInterceptor();
         builder.Services.AddControllersWithSdkJson();
         return builder;
     }

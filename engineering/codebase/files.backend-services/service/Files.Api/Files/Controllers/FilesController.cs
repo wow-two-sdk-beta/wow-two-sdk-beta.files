@@ -1,3 +1,10 @@
+using Files.Api.Auth;
+using Files.Application.Files.Commands;
+using Files.Application.Files.Models;
+using Files.Application.Files.Queries;
+using WoW.Two.Sdk.Beta.Be.Files.Module.Callers;
+using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Mediator.Result;
 using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,11 +31,7 @@ namespace Files.Api.Files.Controllers;
 [ApiController]
 [Route(FilesRouteConstants.Files)]
 [Authorize]
-public sealed class FilesController(
-    IFileUploadsBroker uploads,
-    IFileStoreBroker store,
-    IFileReferencesBroker references,
-    IFileUrlsBroker urls) : ControllerBase
+public sealed class FilesController(ISender sender, IFilesCallerService caller) : ControllerBase
 {
     /// <summary>Uploads a file: a multipart body whose fields (<c>name</c>, <c>appId</c>, <c>contentType</c>,
     /// <c>visibility</c>, <c>expiresAtUtc</c>, <c>variantPresets</c>) precede the streamed file part.</summary>
@@ -64,10 +67,10 @@ public sealed class FilesController(
             if (spec is Result<UploadSpec>.Failure invalid)
                 return this.ToProblem(invalid.Error);
 
-            var result = await uploads.UploadAsync(section.Body, ((Result<UploadSpec>.Success)spec).Value, ct);
+            var result = await sender.SendAsync(new UploadFileCommand(caller.ToActor(), section.Body, ((Result<UploadSpec>.Success)spec).Value), ct);
             return result.Match<IActionResult>(
-                file => Created($"/{FilesRouteConstants.Files}/{file.Id}", ApiResponse<FileModel>.Ok(file)),
-                error => this.ToProblem(error));
+                success => Created($"/{FilesRouteConstants.Files}/{success.Data.Id}", ApiResponse<FileModel>.Ok(success.Data)),
+                failure => this.ToProblem(failure.Error));
         }
 
         return this.ToProblem(AppErrorFactory.Validation("The upload has no file part."));
@@ -96,7 +99,7 @@ public sealed class FilesController(
             Cursor = cursor,
             Limit = limit ?? 50,
         };
-        return Answer(await store.ListAsync(query, ct));
+        return Answer(await sender.SendAsync(new GetAllFilesQuery(caller.ToActor(), query), ct));
     }
 
     /// <summary>Gets a file's metadata.</summary>
@@ -104,7 +107,7 @@ public sealed class FilesController(
     [Authorize(Policy = FilesScopeConstants.Read)]
     [ProducesResponseType<ApiResponse<FileModel>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(string id, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await store.GetAsync(fileId, ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new GetFileByIdQuery(caller.ToActor(), fileId), ct)) : NotFoundProblem();
 
     /// <summary>Streams the original, optionally with a byte range, or an image size requested by preset.</summary>
     [HttpGet("{id}/content")]
@@ -113,22 +116,18 @@ public sealed class FilesController(
     {
         if (!FileId.TryParse(id, out var fileId))
             return NotFoundProblem();
-        if (await store.GetAsync(fileId, ct) is not Result<FileModel>.Success { Value: var file })
-            return NotFoundProblem();
-        if (preset is not null && Request.Headers.ContainsKey("Range"))
-            return this.ToProblem(AppErrorFactory.Validation("A preset image request reads the whole image."));
-        if (!ByteRangeHeaderParser.TryParse(Request.Headers.Range, file.Size, out var range))
+        var query = new OpenFileContentQuery(caller.ToActor(), fileId, preset, Request.Headers.Range,
+            Request.Headers.ContainsKey("Range"));
+        var result = await sender.SendAsync(query, ct);
+        if (result is AppResult<FileDownload>.Failure failure)
         {
-            Response.Headers.ContentRange = $"bytes */{file.Size}";
-            return this.ToProblem(FilesErrors.RangeInvalid(file.Size));
+            if (failure.Error.Metadata?.GetValueOrDefault(FileDownload.UnsatisfiedRangeLength) is long size)
+                Response.Headers.ContentRange = $"bytes */{size}";
+
+            return this.ToProblem(failure.Error);
         }
 
-        var opened = preset is null
-            ? await store.OpenReadAsync(fileId, range, ct)
-            : await store.OpenImageAsync(fileId, preset, ct);
-        if (opened is not Result<FileContent>.Success { Value: var content })
-            return this.ToProblem(((Result<FileContent>.Failure)opened).Error);
-
+        var (file, content) = ((AppResult<FileDownload>.Success)result).Data;
         await using var bytes = content.Content;
         Response.StatusCode = content.Range is null ? StatusCodes.Status200OK : StatusCodes.Status206PartialContent;
         if (content.Range is { } served)
@@ -149,62 +148,62 @@ public sealed class FilesController(
     [Authorize(Policy = FilesScopeConstants.Write)]
     [ProducesResponseType<ApiResponse<FileModel>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Update(string id, [FromBody] FilePatch patch, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await store.UpdateAsync(fileId, patch, ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new UpdateFileCommand(caller.ToActor(), fileId, patch), ct)) : NotFoundProblem();
 
     /// <summary>Deletes a file softly.</summary>
     [HttpDelete("{id}")]
     [Authorize(Policy = FilesScopeConstants.Write)]
     [ProducesResponseType<ApiResponse<FileModel>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Delete(string id, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await store.DeleteAsync(fileId, ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new DeleteFileCommand(caller.ToActor(), fileId), ct)) : NotFoundProblem();
 
     /// <summary>Restores a deleted file within its retention.</summary>
     [HttpPost("{id}/restore")]
     [Authorize(Policy = FilesScopeConstants.Write)]
     [ProducesResponseType<ApiResponse<FileModel>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Restore(string id, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await store.RestoreAsync(fileId, ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new RestoreFileCommand(caller.ToActor(), fileId), ct)) : NotFoundProblem();
 
     /// <summary>Lists the records that use a file.</summary>
     [HttpGet("{id}/references")]
     [Authorize(Policy = FilesScopeConstants.Read)]
     [ProducesResponseType<ApiResponse<IReadOnlyList<FileReference>>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> References(string id, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await references.ListAsync(fileId, ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new GetFileReferencesQuery(caller.ToActor(), fileId), ct)) : NotFoundProblem();
 
     /// <summary>Attaches a file to a record; attaching twice is a no-op.</summary>
     [HttpPut("{id}/references/{recordType}/{recordId}")]
     [Authorize(Policy = FilesScopeConstants.Write)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Attach(string id, string recordType, string recordId, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await references.AttachAsync(fileId, new FileReference(recordType, recordId), ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new AttachFileReferenceCommand(caller.ToActor(), fileId, new FileReference(recordType, recordId)), ct)) : NotFoundProblem();
 
     /// <summary>Detaches a file from a record.</summary>
     [HttpDelete("{id}/references/{recordType}/{recordId}")]
     [Authorize(Policy = FilesScopeConstants.Write)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Detach(string id, string recordType, string recordId, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await references.DetachAsync(fileId, new FileReference(recordType, recordId), ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new DetachFileReferenceCommand(caller.ToActor(), fileId, new FileReference(recordType, recordId)), ct)) : NotFoundProblem();
 
     /// <summary>Issues a short-lived signed URL on the content host, to the original or the variant a width picks.</summary>
     [HttpPost("{id}/urls")]
     [Authorize(Policy = FilesScopeConstants.Read)]
     [ProducesResponseType<ApiResponse<SignedFileUrl>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> IssueUrl(string id, [FromBody] UrlSpec spec, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await urls.IssueAsync(fileId, spec, ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new IssueFileUrlCommand(caller.ToActor(), fileId, spec), ct)) : NotFoundProblem();
 
     /// <summary>Gets the immutable URL of a public file, or of the variant a <c>width</c> picks.</summary>
     [HttpGet("{id}/public-url")]
     [Authorize(Policy = FilesScopeConstants.Read)]
     [ProducesResponseType<ApiResponse<Uri>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> PublicUrl(string id, [FromQuery] int? width, CancellationToken ct) =>
-        FileId.TryParse(id, out var fileId) ? Answer(await urls.GetPublicUrlAsync(fileId, width, ct)) : NotFoundProblem();
+        FileId.TryParse(id, out var fileId) ? Answer(await sender.SendAsync(new GetPublicFileUrlQuery(caller.ToActor(), fileId, width), ct)) : NotFoundProblem();
 
-    private IActionResult Answer<T>(Result<T> result) where T : notnull =>
-        result.Match<IActionResult>(value => Ok(ApiResponse<T>.Ok(value)), error => this.ToProblem(error));
+    private IActionResult Answer<T>(AppResult<T> result) where T : notnull =>
+        result.Match<IActionResult>(success => Ok(ApiResponse<T>.Ok(success.Data)), failure => this.ToProblem(failure.Error));
 
-    private IActionResult Answer(Result result) =>
-        result.Match<IActionResult>(NoContent, error => this.ToProblem(error));
+    private IActionResult Answer(AppResult<Unit> result) =>
+        result.Match<IActionResult>(_ => NoContent(), failure => this.ToProblem(failure.Error));
 
     private IActionResult NotFoundProblem() => this.ToProblem(FilesErrors.FileNotFound());
 

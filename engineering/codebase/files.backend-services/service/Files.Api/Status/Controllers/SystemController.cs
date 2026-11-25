@@ -1,4 +1,6 @@
-using System.Reflection;
+using Files.Application.Status.Queries;
+using WoW.Two.Sdk.Beta.Be.Mediator;
+using WoW.Two.Sdk.Beta.Be.Web.ExceptionHandling.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Files.Api.Status.Models;
@@ -9,7 +11,7 @@ namespace Files.Api.Status.Controllers;
 /// <summary>Exposes system status over HTTP.</summary>
 [ApiController]
 [Route("api/system")]
-public sealed class SystemController : ControllerBase
+public sealed class SystemController(ISender sender) : ControllerBase
 {
     /// <summary>Holds the name the service reports.</summary>
     private const string ServiceName = "fss";
@@ -19,12 +21,16 @@ public sealed class SystemController : ControllerBase
     [HttpGet("status")]
     [AllowAnonymous]
     [ProducesResponseType<ApiResponse<SystemStatusDto>>(StatusCodes.Status200OK)]
-    public IActionResult Status()
+    public async Task<IActionResult> Status(CancellationToken ct)
     {
-        var version = typeof(SystemController).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
-        var status = new SystemStatusDto { Service = ServiceName, Status = "ok", Version = version, Imaging = ImagingProbe.State };
+        var result = await sender.SendAsync(new GetFilesSystemStatusQuery(), ct);
 
-        return Ok(ApiResponse<SystemStatusDto>.Ok(status));
+        return result.Match<IActionResult>(success => Ok(ApiResponse<SystemStatusDto>.Ok(new SystemStatusDto
+        {
+            Service = ServiceName,
+            Status = "ok",
+            Version = success.Data.Version,
+            Imaging = success.Data.Imaging,
+        })), failure => this.ToProblem(failure.Error));
     }
 }
